@@ -42,6 +42,14 @@ function NavHeader() {
 
   const queryClient = useQueryClient()
 
+  //call api get user profile để lấy fullName
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: () => userApi.getProfile().then((res) => res.data),
+    staleTime: 5 * 60 * 1000, // Cache 5 phút
+    refetchOnWindowFocus: false
+  })
+
   //call api get all notification
   const { data: notifications = [], isPending } = useQuery({
     queryKey: ['notifications'],
@@ -232,7 +240,7 @@ function NavHeader() {
               icon={<UserOutlined />}
             />
             <span className='inline-block text-sm font-semibold text-black/60 truncate max-w-[130px]'>
-              {getEmailAccountFromLS()}
+              {userProfile?.fullName || getEmailAccountFromLS()}
             </span>
           </Space>
         </div>
@@ -251,8 +259,8 @@ function NavHeader() {
                   <Avatar userId={userId} size={40} className='cursor-pointer' />
                 </div>
                 <div>
-                  <div className='text-sm font-semibold text-gray-800'>{getEmailAccountFromLS()}</div>
-                  <div className='text-xs text-gray-500'>Member</div>
+                  <div className='text-sm font-semibold text-gray-800'>{userProfile?.fullName || getEmailAccountFromLS()}</div>
+                  <div className='text-xs text-gray-500'>{userProfile?.email || 'Member'}</div>
                 </div>
               </div>
             </div>

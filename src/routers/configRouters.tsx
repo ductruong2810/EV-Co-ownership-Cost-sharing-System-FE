@@ -11,7 +11,12 @@ import CheckContract from '../pages/AdminDashboard/pages/CheckContract'
 import CheckGroup from '../pages/AdminDashboard/pages/CheckGroup'
 import CheckLicense from '../pages/AdminDashboard/pages/CheckLicense'
 import CheckVehicleReport from '../pages/AdminDashboard/pages/CheckVehicleReport'
+import DisputeList from '../pages/AdminDashboard/pages/Disputes/DisputeList'
+import DisputeDetail from '../pages/AdminDashboard/pages/Disputes/DisputeDetail'
+import CreateStaff from '../pages/AdminDashboard/pages/CreateStaff'
+import CreateTechnician from '../pages/AdminDashboard/pages/CreateTechnician'
 import EditContract from '../pages/AdminDashboard/pages/EditContract'
+import AdminDashboardPage from '../pages/AdminDashboard/pages/Dashboard'
 import FeedbackCoOwner from '../pages/AdminDashboard/pages/EditContract/FeedbackCo-Owner'
 import ModalEditContract from '../pages/AdminDashboard/pages/EditContract/ModalEditContract/ModalEditContract'
 import MaintenanceList from '../pages/AdminDashboard/pages/Maintenance'
@@ -171,7 +176,9 @@ function Routers() {
                     { index: true, element: <CheckGroup /> },
                     { path: path.checkLicense, element: <CheckLicense /> },
                     { path: path.checkBooking, element: <CheckBooking /> },
-                    { path: path.bookingQr, element: <BookingQr /> }
+                    { path: path.bookingQr, element: <BookingQr /> },
+                    { path: path.disputes, element: <DisputeList /> },
+                    { path: path.disputeDetail, element: <DisputeDetail /> }
                   ]
                 }
               ]
@@ -190,10 +197,14 @@ function Routers() {
                 {
                   element: <AdminDashboard />,
                   children: [
+                    { index: true, element: <AdminDashboardPage /> },
+                    { path: 'dashboard', element: <AdminDashboardPage /> },
                     { path: 'checkContract', element: <CheckContract /> },
                     { path: 'editContract', element: <EditContract /> },
                     { path: 'feedbackCo-Owner/:contractId/:groupId/:groupName', element: <FeedbackCoOwner /> },
-                    { path: 'editContractDetail/:contractId/:groupId', element: <ModalEditContract /> }
+                    { path: 'editContractDetail/:contractId/:groupId', element: <ModalEditContract /> },
+                    { path: 'createStaff', element: <CreateStaff /> },
+                    { path: 'createTechnician', element: <CreateTechnician /> }
                   ]
                 }
               ]

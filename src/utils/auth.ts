@@ -5,6 +5,10 @@ export const setAccessTokenToLS = (accessToken: string) => {
   localStorage.setItem('accessToken', accessToken)
 }
 
+export const setRefreshTokenToLS = (refreshToken: string) => {
+  localStorage.setItem('refreshToken', refreshToken)
+}
+
 export const setEmailAccountToLS = (accessToken: string) => {
   localStorage.setItem('emailAccount', accessToken)
 }
@@ -23,6 +27,7 @@ export const setGroupIdToLS = (groupId: string) => {
 
 export const clearLS = () => {
   localStorage.removeItem('accessToken')
+  localStorage.removeItem('refreshToken')
   localStorage.removeItem('emailAccount')
   localStorage.removeItem('role')
   localStorage.removeItem('userId')
@@ -36,6 +41,7 @@ export const clearGroupInfoLS = () => {
 }
 
 export const getAccessTokenFromLS = () => localStorage.getItem('accessToken') || ''
+export const getRefreshTokenFromLS = () => localStorage.getItem('refreshToken') || ''
 export const getEmailAccountFromLS = () => localStorage.getItem('emailAccount') || ''
 export const getRoleFromLS = () => localStorage.getItem('role') || ''
 export const getUserIdFromLS = () => localStorage.getItem('userId') || ''

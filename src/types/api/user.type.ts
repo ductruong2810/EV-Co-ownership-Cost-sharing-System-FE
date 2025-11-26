@@ -63,18 +63,35 @@ export interface UserGetProfile {
   }
 }
 
+export interface DocumentInfo {
+  idNumber: string
+  fullName: string
+  dateOfBirth: string
+  issueDate: string
+  expiryDate: string
+  address: string
+}
+
 export interface UploadImage {
-  message: string
-  front: {
-    imageUrl: string
-    status: string
-    documentId: number
+  success: boolean
+  uploadedDocuments: {
+    FRONT: {
+      documentId: number
+      imageUrl: string
+      status: string
+      documentNumber: string
+    }
+    BACK?: {
+      documentId: number
+      imageUrl: string
+      status: string
+      documentNumber: string
+    }
   }
-  back: {
-    imageUrl: string
-    status: string
-    documentId: number
-  }
+  documentInfo: DocumentInfo
+  detectedType: string
+  ocrEnabled: boolean
+  processingTime: string
 }
 
 export enum NotificationType {

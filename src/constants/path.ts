@@ -44,7 +44,9 @@ const path = {
   adminDashboard: '/manager',
   checkLicense: 'checkLicense',
   checkBooking: 'checkBooking',
-  bookingQr: 'bookingQr/:userId/:groupId'
+  bookingQr: 'bookingQr/:userId/:groupId',
+  disputes: 'disputes',
+  disputeDetail: 'disputes/:disputeId'
 } as const
 
 export default path

@@ -61,6 +61,42 @@ const adminApi = {
   // lấy chi tiết hợp đồng dựa trên groupId
   getContractDetailByGroupId: (groupId: number) => {
     return http.get<ContractDetail>(`api/contracts/${groupId}/details`)
+  },
+
+  // ========== User Management ==========
+  // Create Staff account
+  createStaff: (data: {
+    fullName: string
+    email: string
+    phoneNumber: string
+    password: string
+  }) => {
+    return http.post('api/admin/users/staff', data)
+  },
+
+  // Create Technician account
+  createTechnician: (data: {
+    fullName: string
+    email: string
+    phoneNumber: string
+    password: string
+  }) => {
+    return http.post('api/admin/users/technician', data)
+  },
+
+  // Get all Staff accounts
+  getAllStaff: () => {
+    return http.get('api/admin/users/staff')
+  },
+
+  // Get all Technician accounts
+  getAllTechnicians: () => {
+    return http.get('api/admin/users/technician')
+  },
+
+  // ========== Dashboard Statistics ==========
+  getDashboardStatistics: (params?: { fromDate?: string; toDate?: string; periodType?: string }) => {
+    return http.get('api/admin/dashboard/statistics', { params })
   }
 }
 

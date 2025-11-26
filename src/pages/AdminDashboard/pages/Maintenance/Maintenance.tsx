@@ -3,6 +3,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react'
 import technicianApi from '../../../../apis/technician.api'
 import Skeleton from '../../../../components/Skeleton'
 import { toast } from 'react-toastify'
+import logger from '../../../../utils/logger'
 
 // TYPES
 export interface MaintenanceReport {
@@ -123,7 +124,7 @@ function MaintenanceList() {
     queryFn: () => technicianApi.getAllUserReport().then((res) => res.data)
   })
 
-  console.log(userVehicleList)
+  logger.debug('User vehicle list:', userVehicleList)
 
   // Query created maintenances
   const {
@@ -238,19 +239,25 @@ function MaintenanceList() {
       : null
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-teal-50 via-slate-50 to-white flex flex-col px-2 md:px-10 py-8'>
-      <div className='w-full max-w-4xl mx-auto space-y-10'>
-        {/* List of vehicles/users needing maintenance */}
-        <div>
-          <h2 className='text-xl font-bold text-teal-700 mb-4'>List of Vehicles/Users Needing Maintenance</h2>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-6'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-6'>
+      <div className='max-w-6xl mx-auto'>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Maintenance Management</h1>
+          <p className='text-gray-600'>Manage vehicle maintenance requests and reports</p>
+        </div>
+
+        <div className='space-y-8'>
+          {/* List of vehicles/users needing maintenance */}
+          <div>
+            <h2 className='text-xl font-bold text-gray-800 mb-4'>List of Vehicles/Users Needing Maintenance</h2>
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-6'>
             {userVehicleList.length === 0 && (
               <div className='text-slate-500 col-span-full'>No vehicles require maintenance.</div>
             )}
             {userVehicleList.map((vehicle, index) => (
               <div
                 key={`${vehicle.userId}-${vehicle.vehicleId}-${index}`}
-                className='flex flex-col bg-white border border-teal-200 rounded-2xl shadow-md hover:shadow-lg transition p-4 group'
+                className='flex flex-col bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-all p-6 group'
               >
                 <div>
                   <span className='block font-bold text-slate-900 text-base'>{vehicle.vehicleModel}</span>
@@ -274,22 +281,33 @@ function MaintenanceList() {
 
         {/* List of existing maintenance requests */}
         <div>
-          <h2 className='text-xl font-bold text-teal-700 mb-4'>Submitted Maintenance Requests</h2>
-          <div className='bg-white border border-teal-200 rounded-2xl shadow px-2 py-4 max-h-[400px] overflow-y-auto'>
+          <h2 className='text-xl font-bold text-gray-800 mb-4'>Submitted Maintenance Requests</h2>
+          <div className='bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-4 max-h-[400px] overflow-y-auto'>
             {maintenances.length === 0 && <div className='text-slate-500 px-4'>No requests yet.</div>}
             <ul className='space-y-2'>
               {maintenances.map((item) => (
                 <li
                   key={item.id}
-                  className='flex flex-col md:flex-row md:items-center md:justify-between bg-teal-50 border border-teal-100 rounded-xl px-3 py-2'
+                  className='flex flex-col md:flex-row md:items-center md:justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50 hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer'
                 >
                   <div className='flex flex-col md:flex-row md:items-center gap-2 flex-1'>
-                    <span className='font-medium text-teal-800'>{item.vehicleModel}</span>
-                    <span className='text-teal-700'>{item.liableUserName}</span>
-                    <span className='italic text-slate-700'>({item.description})</span>
+                    <span className='font-semibold text-gray-900'>{item.vehicleModel}</span>
+                    <span className='text-gray-600'>•</span>
+                    <span className='text-gray-700'>{item.liableUserName}</span>
+                    <span className='text-gray-500 text-sm'>({item.description})</span>
                   </div>
                   <div className='flex flex-row md:flex-col md:items-end gap-2 mt-2 md:mt-0'>
-                    <span className='text-xs px-2 py-1 rounded bg-white border border-teal-200 text-teal-700 font-medium uppercase'>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium uppercase ${
+                      item.status === 'COMPLETED' 
+                        ? 'bg-green-100 text-green-800 border border-green-200'
+                        : item.status === 'FUNDED'
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                          : item.status === 'APPROVED'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : item.status === 'REJECTED'
+                              ? 'bg-red-100 text-red-800 border border-red-200'
+                              : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                    }`}>
                       {item.status}
                     </span>
                     {item.status === 'FUNDED' && (
@@ -307,7 +325,7 @@ function MaintenanceList() {
                         Completed
                       </span>
                     )}
-                    <span className='text-xs text-slate-400'>{new Date(item.createdAt).toLocaleDateString()}</span>
+                    <span className='text-xs text-slate-500 font-medium'>{new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                   </div>
                 </li>
               ))}
@@ -401,6 +419,7 @@ function MaintenanceList() {
             </div>
           </form>
         </Modal>
+        </div>
       </div>
     </div>
   )

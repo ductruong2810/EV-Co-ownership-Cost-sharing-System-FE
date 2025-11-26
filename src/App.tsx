@@ -1,13 +1,16 @@
 import { ToastContainer } from 'react-toastify'
 import './App.css'
 import Routers from './routers/configRouters'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   return (
-    <div>
-      <Routers />
-      <ToastContainer />
-    </div>
+    <ErrorBoundary>
+      <div>
+        <Routers />
+        <ToastContainer />
+      </div>
+    </ErrorBoundary>
   )
 }
 

@@ -35,8 +35,8 @@ export function CheckVehicleReport() {
   const reportData = data?.data ?? []
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-teal-50 via-slate-50 to-white p-6 lg:p-8'>
-      <div className='max-w-5xl mx-auto'>
+    <div className='min-h-screen bg-gradient-to-br from-emerald-50 via-white to-lime-50 p-6'>
+      <div className='max-w-6xl mx-auto'>
         <PageHeader totalReports={reportData.length} />
         <div className='space-y-3'>
           {reportData.length ? (
@@ -57,15 +57,10 @@ export function CheckVehicleReport() {
 }
 
 const PageHeader = ({ totalReports }: { totalReports: number }) => (
-  <div className='mb-10'>
-    <div className='flex items-center gap-3 mb-2'>
-      <div className='w-1 h-8 bg-gradient-to-b from-emerald-500 to-lime-600 rounded-full'></div>
-      <h1 className='text-4xl font-bold bg-gradient-to-r from-emerald-600 to-lime-700 bg-clip-text text-transparent'>
-        Vehicle Inspection Approval
-      </h1>
-    </div>
-    <p className='text-green-500 ml-4 text-sm'>
-      <span className='font-semibold text-emerald-700'>{totalReports}</span> reports on this page
+  <div className='mb-8'>
+    <h1 className='text-3xl font-bold text-gray-900 mb-2'>Vehicle Inspection Approval</h1>
+    <p className='text-gray-600'>
+      Review and approve vehicle inspection reports • Total: <span className='font-semibold'>{totalReports}</span> reports
     </p>
   </div>
 )
@@ -111,10 +106,9 @@ function ReportCard({ report, onStatusChange }: { report: VehicleCheck; onStatus
   return (
     <div
       className={` 
-        bg-white rounded-2xl border border-green-200 p-6 
-        hover:shadow-lg hover:border-emerald-300 transition-all
+        bg-white rounded-xl border border-gray-200 shadow-lg p-6 
+        hover:shadow-xl hover:border-emerald-300 transition-all
         ${isPending ? 'ring-1 ring-lime-100' : ''}
-        animate-fade-in-up
       `}
     >
       {/* Header */}

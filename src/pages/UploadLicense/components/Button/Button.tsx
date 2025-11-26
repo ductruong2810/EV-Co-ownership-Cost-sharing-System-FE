@@ -15,7 +15,7 @@ function Button({ isReady, uploadedCount, currentStep, isUploading }: IButton) {
       return 'Uploading...'
     }
     if (isReady) {
-      return isLastStep ? '✓ Upload & Complete' : 'Upload & Continue →'
+      return isLastStep ? '✓ Upload & Complete' : 'Preview & Continue →'
     }
     return `Missing ${2 - uploadedCount} side(s)`
   }

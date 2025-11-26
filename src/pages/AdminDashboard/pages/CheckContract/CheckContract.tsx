@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { Input, Select } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
 import { toast } from 'react-toastify'
 import adminApi from '../../../../apis/admin.api'
 import Skeleton from '../../../../components/Skeleton'
 import type { ContractResponse, ContractDetail } from '../../../../types/api/admin.type'
 import { formatToVND } from '../../../../utils/formatPrice'
-import { formatVnTime } from '../../../../utils/helper'
 import EmptyState from '../EmptyState'
+
+const { Option } = Select
 
 // Lấy message từ axios error (bắt luôn kiểu message là array như NestJS)
 const getServerMessage = (error: unknown): string | null => {
@@ -37,12 +40,36 @@ function CheckContract() {
   const [rejectReason, setRejectReason] = useState('')
   const [rejectingContractId, setRejectingContractId] = useState<number | null>(null)
   const [rejectReasonError, setRejectReasonError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
 
   // List contracts
   const { data: contracts = [], isLoading } = useQuery<ContractResponse[]>({
     queryKey: ['contracts'],
     queryFn: () => adminApi.getAllContracts().then((res) => res.data)
   })
+
+  // Filter and search logic
+  const filteredContracts = useMemo(() => {
+    let filtered = contracts
+
+    // Search by ID or group ID
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase()
+      filtered = filtered.filter(
+        (contract) =>
+          contract.id.toString().includes(searchTerm) ||
+          contract.groupId.toString().includes(searchTerm)
+      )
+    }
+
+    // Filter by status
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter((contract) => contract.approvalStatus === statusFilter)
+    }
+
+    return filtered
+  }, [contracts, searchTerm, statusFilter])
 
   // Contract detail
   const {
@@ -154,11 +181,48 @@ function CheckContract() {
   }
 
   return (
-    <div className='p-8 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
-      <h1 className='text-2xl font-bold mb-6 text-gray-800'>Contract Approval</h1>
+    <div className='min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6'>
+      <div className='max-w-6xl mx-auto'>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Contract Approval</h1>
+          <p className='text-gray-600'>Review and approve pending contracts</p>
+        </div>
 
-      {/* TABLE */}
-      <div className='bg-white rounded-xl shadow-md overflow-hidden border border-gray-100'>
+        {/* Search and Filter Section */}
+        <div className='mb-6 flex flex-col sm:flex-row gap-4'>
+          <Input
+            placeholder='Search by contract ID or group ID...'
+            prefix={<SearchOutlined className='text-gray-400' />}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            allowClear
+            className='flex-1'
+            size='large'
+          />
+          <Select
+            value={statusFilter}
+            onChange={setStatusFilter}
+            className='w-full sm:w-48'
+            size='large'
+          >
+            <Option value='ALL'>All Status</Option>
+            <Option value='SIGNED'>Signed</Option>
+            <Option value='APPROVED'>Approved</Option>
+            <Option value='REJECTED'>Rejected</Option>
+          </Select>
+        </div>
+
+        {/* Results count */}
+        {filteredContracts.length !== contracts.length && (
+          <div className='mb-4 text-sm text-gray-600'>
+            Showing {filteredContracts.length} of {contracts.length} contracts
+            {searchTerm && ` matching "${searchTerm}"`}
+            {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
+          </div>
+        )}
+
+        {/* TABLE */}
+        <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
         <table className='w-full text-sm text-gray-700'>
           <thead className='bg-gray-100 text-gray-700 uppercase text-xs'>
             <tr>
@@ -171,12 +235,19 @@ function CheckContract() {
           </thead>
 
           <tbody className='divide-y divide-gray-200'>
-            {contracts.map((c) => (
+            {filteredContracts.length === 0 ? (
+              <tr>
+                <td colSpan={7} className='px-4 py-12 text-center text-gray-500'>
+                  {searchTerm || statusFilter !== 'ALL' ? 'No contracts match your filters' : 'No contracts found'}
+                </td>
+              </tr>
+            ) : (
+              filteredContracts.map((c) => (
               <tr key={c.id} className='hover:bg-gray-50 transition-colors'>
                 <td className='px-4 py-3 font-medium'>#{c.id}</td>
                 <td className='px-4 py-3'>Group {c.groupId}</td>
-                <td className='px-4 py-3'>{formatVnTime(c.startDate)}</td>
-                <td className='px-4 py-3'>{formatVnTime(c.endDate)}</td>
+                <td className='px-4 py-3'>{new Date(c.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                <td className='px-4 py-3'>{new Date(c.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                 <td className='px-4 py-3 font-semibold'>{formatToVND(c.requiredDepositAmount)}</td>
                 <td className='px-4 py-3'>{getStatusBadge(c.approvalStatus)}</td>
                 <td className='px-4 py-3'>
@@ -208,7 +279,8 @@ function CheckContract() {
                   </div>
                 </td>
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -261,19 +333,19 @@ function CheckContract() {
                       <div className='bg-gray-50 p-4 rounded-lg'>
                         <p className='text-xs text-gray-500 mb-1'>Start date</p>
                         <p className='text-base font-semibold text-gray-800'>
-                          {formatVnTime(contractDetail.contract.startDate)}
+                          {new Date(contractDetail.contract.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
                         <p className='text-xs text-gray-500 mb-1'>End date</p>
                         <p className='text-base font-semibold text-gray-800'>
-                          {formatVnTime(contractDetail.contract.endDate)}
+                          {new Date(contractDetail.contract.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
                         <p className='text-xs text-gray-500 mb-1'>Deposit deadline</p>
                         <p className='text-base font-semibold text-orange-600'>
-                          {formatVnTime(contractDetail.contract.depositDeadline)}
+                          {new Date(contractDetail.contract.depositDeadline).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
@@ -423,6 +495,7 @@ function CheckContract() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

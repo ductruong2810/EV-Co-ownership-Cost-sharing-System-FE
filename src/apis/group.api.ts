@@ -1,4 +1,5 @@
 import type {
+  AutoFillInfo,
   BookingResponse,
   BookingSlotResponse,
   CheckInResponse,
@@ -14,7 +15,9 @@ import type {
   InvitationResponse,
   MyBookingResponse,
   OwnershipResponse,
-  PaymentFund
+  PaymentFund,
+  SmartSuggestionResponse,
+  UsageAnalytics
 } from '../types/api/group.type'
 import type { PaymentHistory } from '../types/api/user.type'
 import { getAccessTokenFromLS } from '../utils/auth'
@@ -128,13 +131,43 @@ const groupApi = {
   verifyCheckIn: (qrCode: string) => {
     return http.post<CheckInResponse>('api/vehicle-checks/qr-scan', { qrCode })
   },
+  // smart AI suggestions & analytics
+  getSmartSuggestions: (groupId: string) => {
+    return http.get<SmartSuggestionResponse>(`api/calendar/groups/${groupId}/smart-insights`)
+  },
+  getUsageReport: (groupId: string) => {
+    return http.get<UsageAnalytics>(`api/calendar/groups/${groupId}/usage-report`)
+  },
   // show deposit and fund history
-  showDepositAndFundHistory: (groupId: string) => {
-    return http.get<FundDepositHistory>(`api/funds/groups/${groupId}/ledger/summary`)
+  showDepositAndFundHistory: (
+    groupId: string,
+    params?: { preset?: string; from?: string; to?: string }
+  ) => {
+    return http.get<FundDepositHistory>(`api/funds/groups/${groupId}/ledger/summary`, { params })
+  },
+  exportLedger: (
+    groupId: string,
+    params?: { preset?: string; from?: string; to?: string }
+  ) => {
+    return http.get<Blob>(`api/funds/groups/${groupId}/ledger/summary`, {
+      params: { ...params, export: true },
+      responseType: 'blob'
+    })
   },
   // payment fund contribution
   paymentFund: (body: { userId: string; groupId: string; amount: number; note: string }) => {
     return http.post<PaymentFund>('api/funds/payments/create', body)
+  },
+  // OCR auto-fill vehicle information
+  autoFillVehicleInfo: (image: File) => {
+    const formData = new FormData()
+    formData.append('image', image)
+    return http.post<AutoFillInfo>('api/ocr/auto-fill-form', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: 60000
+    })
   }
 }
 

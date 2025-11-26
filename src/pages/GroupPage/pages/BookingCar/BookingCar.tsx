@@ -12,6 +12,8 @@ import QuotaCard from './components/QuotaCard'
 import Statsbar from './components/StatsBar'
 import StatusCard from './components/StatusCard'
 import VehicleInforCard from './components/VehicleInforCard'
+import UsageAnalyticsCard from './components/UsageAnalyticsCard'
+import AISuggestionPanel from './components/AISuggestionPanel'
 
 // ============= INTERFACES (giữ nguyên) =============
 type SlotStatus = 'AVAILABLE' | 'LOCKED' | 'CONFIRMED' | 'CANCELLED' | ''
@@ -56,6 +58,12 @@ const BookingCar = () => {
   const bookingQuery = useQuery({
     queryKey: ['vehicle-bookings'],
     queryFn: () => groupApi.getBookingCalendar(groupId as string),
+    enabled: !!groupId
+  })
+
+  const smartSuggestionQuery = useQuery({
+    queryKey: ['smart-suggestions', groupId],
+    queryFn: () => groupApi.getSmartSuggestions(groupId as string),
     enabled: !!groupId
   })
 
@@ -114,6 +122,16 @@ const BookingCar = () => {
 
         {/* Stats Bar */}
         <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
+
+      {/* AI analytics + suggestions */}
+      <div className='grid lg:grid-cols-2 gap-6 mb-8'>
+        <UsageAnalyticsCard data={smartSuggestionQuery?.data?.data?.analytics} isLoading={smartSuggestionQuery.isLoading} />
+        <AISuggestionPanel
+          suggestions={smartSuggestionQuery?.data?.data?.suggestions}
+          insights={smartSuggestionQuery?.data?.data?.aiInsights}
+          isLoading={smartSuggestionQuery.isLoading}
+        />
+      </div>
 
         {/* hiển thị lịch  đặt xe */}
         <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white'>

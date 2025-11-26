@@ -4,6 +4,7 @@ import type { CheckoutForm } from '../pages/GroupPage/pages/CheckOutResult/Check
 import type {
   CreateVotingPayload,
   CreateVotingResponse,
+  DocumentInfo,
   GetAllNotifications,
   MaintenancePaymentResponse,
   PaymentHistory,
@@ -28,7 +29,25 @@ const userApi = {
     })
   },
 
-  uploadLicense(frontFile: File, backFile: File) {
+  // Preview OCR (extract but don't save)
+  previewOcr(documentType: 'DRIVER_LICENSE' | 'CITIZEN_ID', frontFile: File, backFile: File) {
+    const accessToken = getAccessTokenFromLS()
+    const formData = new FormData()
+
+    formData.append('documentType', documentType)
+    formData.append('frontFile', frontFile)
+    formData.append('backFile', backFile)
+
+    return http.post<UploadImage>('api/user/documents/preview-ocr', formData, {
+      timeout: 60000,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  uploadLicense(frontFile: File, backFile: File, editedInfo?: DocumentInfo) {
     const accessToken = getAccessTokenFromLS()
     const formData = new FormData()
 
@@ -36,7 +55,18 @@ const userApi = {
     formData.append('frontFile', frontFile)
     formData.append('backFile', backFile)
 
+    // Add edited info if provided
+    if (editedInfo) {
+      if (editedInfo.idNumber) formData.append('editedIdNumber', editedInfo.idNumber)
+      if (editedInfo.fullName) formData.append('editedFullName', editedInfo.fullName)
+      if (editedInfo.dateOfBirth) formData.append('editedDateOfBirth', editedInfo.dateOfBirth)
+      if (editedInfo.issueDate) formData.append('editedIssueDate', editedInfo.issueDate)
+      if (editedInfo.expiryDate) formData.append('editedExpiryDate', editedInfo.expiryDate)
+      if (editedInfo.address) formData.append('editedAddress', editedInfo.address)
+    }
+
     return http.post<UploadImage>('api/user/documents/upload-batch', formData, {
+      timeout: 60000,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'multipart/form-data'
@@ -45,7 +75,7 @@ const userApi = {
   },
 
   //api giup upload CCCD
-  uploadCitizenId(frontFile: File, backFile: File) {
+  uploadCitizenId(frontFile: File, backFile: File, editedInfo?: DocumentInfo) {
     const accessToken = getAccessTokenFromLS()
     const formData = new FormData()
 
@@ -53,7 +83,18 @@ const userApi = {
     formData.append('frontFile', frontFile)
     formData.append('backFile', backFile)
 
+    // Add edited info if provided
+    if (editedInfo) {
+      if (editedInfo.idNumber) formData.append('editedIdNumber', editedInfo.idNumber)
+      if (editedInfo.fullName) formData.append('editedFullName', editedInfo.fullName)
+      if (editedInfo.dateOfBirth) formData.append('editedDateOfBirth', editedInfo.dateOfBirth)
+      if (editedInfo.issueDate) formData.append('editedIssueDate', editedInfo.issueDate)
+      if (editedInfo.expiryDate) formData.append('editedExpiryDate', editedInfo.expiryDate)
+      if (editedInfo.address) formData.append('editedAddress', editedInfo.address)
+    }
+
     return http.post<UploadImage>('api/user/documents/upload-batch', formData, {
+      timeout: 60000,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'multipart/form-data'

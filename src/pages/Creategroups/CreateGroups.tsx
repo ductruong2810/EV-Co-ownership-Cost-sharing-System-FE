@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 import { toast } from 'react-toastify'
 import { Fragment } from 'react/jsx-runtime'
+import { useEffect, useState } from 'react'
 import groupApi from '../../apis/group.api'
 import Skeleton from '../../components/Skeleton'
 import path from '../../constants/path'
@@ -16,6 +17,7 @@ import NumberInput from './components/NumberInput'
 import TextAreaInput from './components/TextAreaInput'
 import TextInput from './components/TextInput'
 import PriceInput from './components/PriceInput/PriceInput'
+import type { AutoFillInfo } from '../../types/api/group.type'
 
 export default function CreateGroups() {
   const {
@@ -36,6 +38,8 @@ export default function CreateGroups() {
   const vehicleImage = watch('vehicleImage')
   const registrationImage = watch('registrationImage')
   const navigate = useNavigate()
+  const [ocrResult, setOcrResult] = useState<AutoFillInfo | null>(null)
+  const [isProcessingOcr, setIsProcessingOcr] = useState(false)
 
   const groupMutation = useMutation({
     mutationFn: (body: FormData) => groupApi.CreateGroup(body),
@@ -50,6 +54,52 @@ export default function CreateGroups() {
       console.error('Create group failed:', error)
     }
   })
+
+  // Auto-fill from OCR when registration image is uploaded
+  useEffect(() => {
+    const processOcr = async () => {
+      if (registrationImage && registrationImage.length > 0) {
+        const file = registrationImage[0]
+        setIsProcessingOcr(true)
+        try {
+          const response = await groupApi.autoFillVehicleInfo(file)
+          const autoFillInfo = response.data
+          setOcrResult(autoFillInfo)
+
+          // Auto-fill form fields if OCR extracted data
+          if (autoFillInfo.extractedLicensePlate && !watch('licensePlate')) {
+            setValue('licensePlate', autoFillInfo.extractedLicensePlate)
+          }
+          if (autoFillInfo.extractedChassisNumber && !watch('chassisNumber')) {
+            setValue('chassisNumber', autoFillInfo.extractedChassisNumber)
+          }
+          if (autoFillInfo.extractedBrand && !watch('brand')) {
+            // Note: brand field might not exist in form, adjust as needed
+          }
+          if (autoFillInfo.extractedModel && !watch('model')) {
+            // Note: model field might not exist in form, adjust as needed
+          }
+
+          if (autoFillInfo.isRegistrationDocument) {
+            toast.success('Vehicle information extracted successfully!', { autoClose: 2000 })
+          } else {
+            toast.warning('Could not detect vehicle registration document. Please verify the image.', {
+              autoClose: 3000
+            })
+          }
+        } catch (error) {
+          console.error('OCR processing failed:', error)
+          toast.error('Failed to extract vehicle information. Please enter manually.')
+        } finally {
+          setIsProcessingOcr(false)
+        }
+      } else {
+        setOcrResult(null)
+      }
+    }
+
+    processOcr()
+  }, [registrationImage, setValue, watch])
 
   const onSubmit: SubmitHandler<CreateGroupSchema> = (data) => {
     const formData = new FormData()
@@ -177,22 +227,57 @@ export default function CreateGroups() {
                   color='teal'
                   error={errors.vehicleImage?.message}
                 />
-                <FileUpload
-                  label='Car parrot shape'
-                  file={registrationImage || null}
-                  register={register('registrationImage')}
-                  onRemove={(file) => {
-                    if (registrationImage) {
-                      const dt = new DataTransfer()
-                      Array.from(registrationImage)
-                        .filter((f) => f !== file)
-                        .forEach((f) => dt.items.add(f))
-                      setValue('registrationImage', dt.files.length ? dt.files : null)
-                    }
-                  }}
-                  color='teal'
-                  error={errors.registrationImage?.message}
-                />
+                <div className='space-y-2'>
+                  <FileUpload
+                    label='Car parrot shape (Registration Document)'
+                    file={registrationImage || null}
+                    register={register('registrationImage')}
+                    onRemove={(file) => {
+                      if (registrationImage) {
+                        const dt = new DataTransfer()
+                        Array.from(registrationImage)
+                          .filter((f) => f !== file)
+                          .forEach((f) => dt.items.add(f))
+                        setValue('registrationImage', dt.files.length ? dt.files : null)
+                        setOcrResult(null)
+                      }
+                    }}
+                    color='teal'
+                    error={errors.registrationImage?.message}
+                  />
+                  {isProcessingOcr && (
+                    <div className='flex items-center gap-2 text-sm text-blue-600'>
+                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600' />
+                      <span>Processing OCR...</span>
+                    </div>
+                  )}
+                  {ocrResult && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className='bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-3 text-xs'
+                    >
+                      <div className='font-semibold text-green-900 mb-2'>✓ OCR Extracted:</div>
+                      <div className='space-y-1 text-gray-700'>
+                        {ocrResult.extractedLicensePlate && (
+                          <div>License Plate: <span className='font-semibold'>{ocrResult.extractedLicensePlate}</span></div>
+                        )}
+                        {ocrResult.extractedChassisNumber && (
+                          <div>Chassis: <span className='font-semibold'>{ocrResult.extractedChassisNumber}</span></div>
+                        )}
+                        {ocrResult.extractedBrand && (
+                          <div>Brand: <span className='font-semibold'>{ocrResult.extractedBrand}</span></div>
+                        )}
+                        {ocrResult.extractedModel && (
+                          <div>Model: <span className='font-semibold'>{ocrResult.extractedModel}</span></div>
+                        )}
+                      </div>
+                      {ocrResult.processingTime && (
+                        <div className='text-xs text-gray-500 mt-2'>Processed in {ocrResult.processingTime}</div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
               </div>
 
               {/* Member Count */}

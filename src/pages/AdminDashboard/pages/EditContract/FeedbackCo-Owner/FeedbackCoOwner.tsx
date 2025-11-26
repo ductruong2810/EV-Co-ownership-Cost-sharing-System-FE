@@ -77,40 +77,50 @@ export default function FeedbackCoOwner() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      {/* Header */}
-      <div className='bg-white border-b border-gray-200 sticky top-0 z-10'>
-        <div className='max-w-7xl mx-auto px-6 py-4'>
-          <div className='flex items-center gap-4'>
+    <div className='min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 p-6'>
+      <div className='max-w-7xl mx-auto'>
+        {/* Header */}
+        <div className='mb-8'>
+          <div className='flex items-center gap-4 mb-4'>
             <button
-              onClick={() => navigate(-1)}
-              className='flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors'
+              onClick={() => navigate('/manager/editContract')}
+              className='flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-lg hover:bg-gray-100'
             >
               <LeftOutlined className='text-lg' />
-              <span className='font-medium'>Quay lại</span>
+              <span className='font-medium'>Back to Contract Editing</span>
             </button>
-            <div className='border-l border-gray-300 h-6'></div>
-            <div>
-              <h1 className='text-2xl font-bold text-gray-900'>Quản Lý Feedback Hợp Đồng - {groupName}</h1>
-              <p className='text-sm text-gray-600'>Xem và xử lý các phản hồi từ co-owner về hợp đồng</p>
+          </div>
+          <div>
+            <h1 className='text-3xl font-bold text-gray-900 mb-2'>Contract Feedback Management</h1>
+            <p className='text-gray-600'>View and manage feedback from co-owners about the contract</p>
+            <div className='mt-3 flex items-center gap-2'>
+              <span className='text-sm text-gray-500'>Group:</span>
+              <span className='px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium'>
+                {groupName}
+              </span>
+              {contractId && (
+                <>
+                  <span className='text-gray-400'>•</span>
+                  <span className='text-sm text-gray-500'>Contract ID: {contractId}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      {feedbacks && <MainContent feedBacks={feedbacks} />}
+        {/* Main Content */}
+        {feedbacks && <MainContent feedBacks={feedbacks} />}
 
-      {/* Content Grid */}
-      <div className='max-w-7xl mx-auto px-6 py-6'>
-        <div className='grid grid-cols-1 lg:grid-cols-5 gap-6'>
+        {/* Content Grid */}
+        <div className='py-6'>
+          <div className='grid grid-cols-1 lg:grid-cols-5 gap-6'>
           {/* Feedback List - Two Level: Users -> Feedbacks */}
           <div className='lg:col-span-3'>
-            <div className='bg-white rounded-lg border border-gray-200 shadow-sm p-4'>
+            <div className='bg-white rounded-xl border border-gray-200 shadow-lg p-6'>
               {!selectedUserEmail ? (
                 <>
                   {/* User List */}
-                  <h2 className='text-lg font-bold text-gray-900 mb-4'>Danh sách người dùng</h2>
+                  <h2 className='text-xl font-bold text-gray-900 mb-6'>Users with Feedback</h2>
                   <div
                     className='max-h-[calc(100vh-380px)] overflow-y-auto space-y-3 pr-2 scroll-smooth
                     [&::-webkit-scrollbar]:w-2
@@ -120,12 +130,17 @@ export default function FeedbackCoOwner() {
                     [&::-webkit-scrollbar-thumb]:rounded-lg
                     [&::-webkit-scrollbar-thumb]:hover:bg-gray-400'
                   >
-                    {users.map((user) => (
-                      <div
-                        key={user.email}
-                        onClick={() => handleUserClick(user.email)}
-                        className='bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 shadow-md hover:shadow-lg transition-all cursor-pointer'
-                      >
+                    {users.length === 0 ? (
+                      <div className='text-center py-12 text-gray-500'>
+                        <p>No users with feedback found</p>
+                      </div>
+                    ) : (
+                      users.map((user) => (
+                        <div
+                          key={user.email}
+                          onClick={() => handleUserClick(user.email)}
+                          className='bg-white rounded-xl border-2 border-gray-200 hover:border-blue-400 shadow-md hover:shadow-xl transition-all cursor-pointer'
+                        >
                         <div className='p-5'>
                           <div className='flex items-center gap-3 mb-3'>
                             <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md'>
@@ -148,28 +163,29 @@ export default function FeedbackCoOwner() {
                             {user.approvedCount > 0 && (
                               <span className='inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200'>
                                 <CheckCircleOutlined />
-                                {user.approvedCount} đã chấp nhận
+                                {user.approvedCount} approved
                               </span>
                             )}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </>
               ) : (
                 <>
                   {/* User's Feedbacks */}
-                  <div className='flex items-center gap-3 mb-4'>
+                  <div className='flex items-center gap-3 mb-6'>
                     <button
                       onClick={() => setSelectedUserEmail(null)}
                       className='flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors'
                     >
                       <LeftOutlined />
-                      Quay lại
+                      Back
                     </button>
-                    <h2 className='text-lg font-bold text-gray-900'>
-                      Feedback của {selectedUserFeedbacks[0]?.fullName}
+                    <h2 className='text-xl font-bold text-gray-900'>
+                      Feedback from {selectedUserFeedbacks[0]?.fullName}
                     </h2>
                   </div>
                   <div
@@ -181,16 +197,21 @@ export default function FeedbackCoOwner() {
                     [&::-webkit-scrollbar-thumb]:rounded-lg
                     [&::-webkit-scrollbar-thumb]:hover:bg-gray-400'
                   >
-                    {selectedUserFeedbacks.map((feedback, index) => (
-                      <div
-                        key={feedback?.feedbackId + '-' + index}
-                        onClick={() => handleFeedbackClick(feedback)}
-                        className={`bg-white rounded-lg border-2 shadow-md hover:shadow-lg transition-all cursor-pointer ${
-                          selectedFeedback?.feedbackId === feedback?.feedbackId
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-blue-300'
-                        }`}
-                      >
+                    {selectedUserFeedbacks.length === 0 ? (
+                      <div className='text-center py-12 text-gray-500'>
+                        <p>No feedback found for this user</p>
+                      </div>
+                    ) : (
+                      selectedUserFeedbacks.map((feedback, index) => (
+                        <div
+                          key={feedback?.feedbackId + '-' + index}
+                          onClick={() => handleFeedbackClick(feedback)}
+                          className={`bg-white rounded-xl border-2 shadow-md hover:shadow-xl transition-all cursor-pointer ${
+                            selectedFeedback?.feedbackId === feedback?.feedbackId
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-blue-400'
+                          }`}
+                        >
                         <div className='p-5'>
                           <div className='flex items-start justify-between mb-3'>
                             <div className='flex items-center gap-3 flex-1'>
@@ -206,7 +227,7 @@ export default function FeedbackCoOwner() {
                               {feedback?.status === 'APPROVED' && feedback?.reactionType === 'DISAGREE' && (
                                 <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200'>
                                   <CheckCircleOutlined className='text-sm' />
-                                  Đã chấp nhận
+                                  Approved
                                 </span>
                               )}
                             </div>
@@ -216,12 +237,13 @@ export default function FeedbackCoOwner() {
                           </div>
                           <div className='flex items-center justify-between text-sm'>
                             <span className='text-gray-500'>
-                              {new Date(feedback?.submittedAt).toLocaleDateString('vi-VN')}
+                              {new Date(feedback?.submittedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                             </span>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </>
               )}
@@ -231,16 +253,16 @@ export default function FeedbackCoOwner() {
           {/* Feedback Detail - Read Only */}
           <div className='lg:col-span-2'>
             {selectedFeedback ? (
-              <div className='bg-white rounded-lg border border-gray-200 shadow-sm sticky top-24'>
-                <div className='p-6 border-b border-gray-200'>
-                  <h2 className='text-lg font-bold text-gray-900'>Chi tiết Feedback</h2>
+              <div className='bg-white rounded-xl border border-gray-200 shadow-lg sticky top-24'>
+                <div className='p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50'>
+                  <h2 className='text-xl font-bold text-gray-900'>Feedback Details</h2>
                 </div>
 
                 <div className='p-6'>
                   {/* User Info */}
                   <div className='mb-6'>
                     <div className='flex items-center gap-3 mb-3'>
-                      <div className='w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg'>
+                      <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md'>
                         {selectedFeedback?.fullName.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -250,13 +272,13 @@ export default function FeedbackCoOwner() {
                     </div>
                     <div className='flex items-center gap-2 text-xs text-gray-500'>
                       <ClockCircleOutlined />
-                      <span>Gửi lúc: {new Date(selectedFeedback?.submittedAt).toLocaleString('vi-VN')}</span>
+                      <span>Submitted: {new Date(selectedFeedback?.submittedAt).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </div>
 
                   {/* Content */}
                   <div className='mb-6 pb-6 border-b border-gray-100'>
-                    <h3 className='font-semibold text-gray-900 mb-3'>Lý do phản hồi</h3>
+                    <h3 className='font-semibold text-gray-900 mb-3'>Feedback Reason</h3>
                     <p className='text-sm text-gray-700 leading-relaxed'>{selectedFeedback?.reason}</p>
                   </div>
 
@@ -264,7 +286,7 @@ export default function FeedbackCoOwner() {
                   <div className='space-y-2.5'>
                     <>
                       <button
-                        className='w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium text-sm flex items-center justify-center gap-2'
+                        className='w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg'
                         onClick={() =>
                           handleEditContract({
                             contractId: feedbacks?.contractId.toString() as string,
@@ -273,17 +295,18 @@ export default function FeedbackCoOwner() {
                         }
                       >
                         <CheckCircleOutlined />
-                        Sửa Hợp Đồng
+                        Edit Contract
                       </button>
                     </>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className='bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center'>
-                <p className='text-gray-600'>bấm vào feedback nào để xem chi tiết</p>
+              <div className='bg-white rounded-xl border border-gray-200 shadow-lg p-8 text-center'>
+                <p className='text-gray-600'>Click on a feedback to view details</p>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

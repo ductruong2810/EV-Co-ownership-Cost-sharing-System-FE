@@ -54,6 +54,10 @@ const authApi = {
   // reset password
   resetPassword: (body: { resetToken: string; newPassword: string; confirmPassword: string }) => {
     return http.post<AuthResponse>('api/auth/forgot-password/reset-password', body)
+  },
+  // refresh token
+  refreshToken: (refreshToken: string) => {
+    return http.post<AuthResponse>('api/auth/refresh', { refreshToken })
   }
 }
 

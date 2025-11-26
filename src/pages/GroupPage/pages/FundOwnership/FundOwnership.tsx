@@ -10,8 +10,11 @@ import {
   DollarOutlined,
   FundOutlined,
   UnorderedListOutlined,
-  UserOutlined
+  UserOutlined,
+  DownloadOutlined
 } from '@ant-design/icons'
+import { Button, DatePicker, Select } from 'antd'
+import type { Dayjs } from 'dayjs'
 import { toast } from 'react-toastify'
 import { getGroupIdFromLS, getUserIdFromLS } from '../../../../utils/auth'
 import Skeleton from '../../../../components/Skeleton'
@@ -378,10 +381,20 @@ export default function FundOwnership() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [totalFund, setTotalFund] = useState(0)
   const { groupId } = useParams<{ groupId: string }>()
+  const { RangePicker } = DatePicker
+
+  const [preset, setPreset] = useState<'MONTH' | 'QUARTER' | 'CUSTOM'>('MONTH')
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null])
+  const [isExporting, setIsExporting] = useState(false)
 
   const fundSummaryQuery = useQuery({
-    queryKey: ['fundSummary', groupId],
-    queryFn: () => groupApi.showDepositAndFundHistory(groupId as string)
+    queryKey: ['fundSummary', groupId, preset, dateRange],
+    queryFn: () =>
+      groupApi.showDepositAndFundHistory(groupId as string, {
+        preset,
+        from: preset === 'CUSTOM' && dateRange[0] ? dateRange[0].toISOString() : undefined,
+        to: preset === 'CUSTOM' && dateRange[1] ? dateRange[1].toISOString() : undefined
+      })
   })
 
   const totalFundData = fundSummaryQuery?.data?.data?.operatingBalance
@@ -404,6 +417,58 @@ export default function FundOwnership() {
       <div className='max-w-7xl mx-auto h-full p-4 mt-7'>
         <div className='bg-white/95 backdrop-blur-lg rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] p-5 space-y-4'>
           <FundHeader />
+
+          <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+            <div className='flex items-center gap-3 flex-wrap'>
+              <Select
+                value={preset}
+                style={{ width: 180 }}
+                onChange={(value) => {
+                  setPreset(value as 'MONTH' | 'QUARTER' | 'CUSTOM')
+                  if (value !== 'CUSTOM') {
+                    setDateRange([null, null])
+                  }
+                }}
+                options={[
+                  { label: 'Tháng hiện tại', value: 'MONTH' },
+                  { label: 'Quý hiện tại', value: 'QUARTER' },
+                  { label: 'Tuỳ chỉnh', value: 'CUSTOM' }
+                ]}
+              />
+              {preset === 'CUSTOM' && (
+                <RangePicker
+                  value={dateRange}
+                  onChange={(values) => setDateRange(values as [Dayjs | null, Dayjs | null])}
+                />
+              )}
+            </div>
+            <Button
+              icon={<DownloadOutlined />}
+              loading={isExporting}
+              onClick={async () => {
+                try {
+                  setIsExporting(true)
+                  const response = await groupApi.exportLedger(groupId as string, {
+                    preset,
+                    from: preset === 'CUSTOM' && dateRange[0] ? dateRange[0].toISOString() : undefined,
+                    to: preset === 'CUSTOM' && dateRange[1] ? dateRange[1].toISOString() : undefined
+                  })
+                  const blob = response.data
+                  const url = window.URL.createObjectURL(blob)
+                  const link = document.createElement('a')
+                  link.href = url
+                  link.setAttribute('download', `ledger_${groupId}_${preset.toLowerCase()}.csv`)
+                  document.body.appendChild(link)
+                  link.click()
+                  link.remove()
+                } finally {
+                  setIsExporting(false)
+                }
+              }}
+            >
+              Export CSV
+            </Button>
+          </div>
 
           <FundSummaryCard
             totalFund={totalFund ?? 0}

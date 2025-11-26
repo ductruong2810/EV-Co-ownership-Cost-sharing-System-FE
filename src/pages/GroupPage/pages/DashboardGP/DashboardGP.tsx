@@ -1,14 +1,23 @@
 import { BarChartOutlined, CalendarOutlined, WalletOutlined } from '@ant-design/icons'
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'react-router'
+import groupApi from '../../../../apis/group.api'
+import { setGroupIdToLS } from '../../../../utils/auth'
 import GroupHeader from '../../components/GroupHeader'
 import Banner from './components/Banner'
 import BenefitCard from './components/BenefitCard'
 import StepCard from './components/StepCard/StepCard'
-import { useParams } from 'react-router'
-import { setGroupIdToLS } from '../../../../utils/auth'
+import UsageReportCard from './components/UsageReportCard'
 
 export default function DashboardGP() {
   const { groupId } = useParams<{ groupId: string }>()
   setGroupIdToLS(groupId as string)
+
+  const usageReportQuery = useQuery({
+    queryKey: ['usage-report', groupId],
+    queryFn: () => groupApi.getUsageReport(groupId as string),
+    enabled: !!groupId
+  })
 
   return (
     <div className='w-full max-w-5xl rounded-[2rem] backdrop-blur-[60px] bg-gradient-to-br from-white/22 via-white/16 to-white/20 shadow-[0_15px_70px_rgba(6,182,212,0.5),0_30px_100px_rgba(14,165,233,0.4),0_0_150px_rgba(79,70,229,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] border-[4px] border-white/60 p-10 space-y-8 m-12 relative overflow-hidden'>
@@ -19,6 +28,9 @@ export default function DashboardGP() {
       <GroupHeader groupId={groupId} />
       {/* Top banner */}
       <Banner />
+
+      {/* Usage report */}
+      <UsageReportCard data={usageReportQuery.data?.data} isLoading={usageReportQuery.isLoading} />
 
       {/* Main content grid */}
       <div className='grid lg:grid-cols-2 gap-8'>

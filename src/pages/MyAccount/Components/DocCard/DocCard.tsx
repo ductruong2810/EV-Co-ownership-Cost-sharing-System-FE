@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { getDecryptedImageUrl } from '../../../../utils/imageUrl'
 
 interface IDocCard {
   title: string
@@ -122,7 +123,7 @@ function DocCard({ title, imageFront, imageBack, statusFront, statusBack }: IDoc
           <div className='relative w-full h-56 group'>
             {/* Image with blur effect */}
             <img
-              src={currentImage}
+              src={getDecryptedImageUrl(currentImage)}
               alt={`${title} - ${currentSide}`}
               className='w-full h-full object-cover blur-md group-hover:blur-none transition-all duration-400'
             />

@@ -9,10 +9,11 @@ import { toast } from 'react-toastify'
 import authApi from '../../apis/auth.api'
 import path from '../../constants/path'
 import { AppContext } from '../../contexts/app.context'
-import { setAccessTokenToLS, setEmailAccountToLS, setRoleToLS } from '../../utils/auth'
+import { setAccessTokenToLS, setEmailAccountToLS, setRoleToLS, setRefreshTokenToLS } from '../../utils/auth'
 import { loginSchema, type LoginSchema } from '../../utils/rule'
 import Skeleton from '../../components/Skeleton'
 import { LOGIN_IMG_URL } from '../../constants/images'
+import logger from '../../utils/logger'
 
 export default function Login() {
   const {
@@ -32,26 +33,32 @@ export default function Login() {
   })
   // Khi nào mà cần truyền thêm gì lên thì phải sử dụng mutate tách riêng ra
   const onSubmit = handleSubmit((data) => {
-    console.log('Payload gửi lên:', data)
+    logger.debug('Login attempt:', { email: data.email })
     loginMutation.mutate(data, {
       // *Data trong onSuccess là data trả về từ server sau khi call api
       onSuccess: (response) => {
-        console.log('Login thành công:', data)
+        logger.info('Login successful')
         // Mục đích set luôn là để cho nó đồng bộ luôn chứ lúc đầu nó đâu có sẵn mà lấy từ LS
         //phải ctrl r mới có sẽ bị bất đồng bộ
-        console.log(response.data?.accessToken)
         setAccessTokenToLS(response.data?.accessToken as string)
-        setRoleToLS(response.data?.role as string)
-        console.log(data?.email)
+        if (response.data?.refreshToken) {
+          setRefreshTokenToLS(response.data.refreshToken as string)
+        }
+        const userRole = response.data?.role as string
+        setRoleToLS(userRole)
         setEmailAccountToLS(data?.email)
         setIsAuthenticated(true)
         toast.success('Login successful', {
           autoClose: 1000
         })
-        navigate(path.dashBoard)
+        const destination =
+          userRole === 'ADMIN' || userRole === 'STAFF' || userRole === 'TECHNICIAN'
+            ? path.adminDashboard
+            : path.dashBoard
+        navigate(destination, { replace: true })
       },
       onError: (error) => {
-        console.log('Login thất bại:', error)
+        logger.error('Login failed:', error)
       }
     })
   })

@@ -90,12 +90,67 @@ export interface VehicleInfo {
   updatedAt: string
 }
 
+// OCR Auto-fill information
+export interface AutoFillInfo {
+  enabled: boolean
+  extractedBrand: string
+  extractedModel: string
+  extractedYear: string
+  extractedLicensePlate: string
+  extractedChassisNumber: string
+  isRegistrationDocument: boolean
+  ocrConfidence: string
+  processingTime: string
+}
+
 // Kiểu dữ liệu tổng cho API response
 export interface OwnershipResponse {
   userOwnership: UserOwnership
   groupSummary: GroupSummary
-  suggestions: any[] // nếu backend có gợi ý cụ thể, có thể tạo type riêng sau
+  suggestions: any[]
   vehicleInfo: VehicleInfo
+}
+
+export interface BookingSuggestion {
+  date: string
+  dayOfWeek: string
+  timeRange: string
+  score: number
+  reason: string
+  suitability: 'PRIME' | 'BALANCED' | 'OFF_PEAK'
+  recommendationLevel: 'HIGH' | 'MEDIUM' | 'LOW'
+  overnight: boolean
+}
+
+export interface UsageLeaderboardEntry {
+  userId: number
+  userName: string
+  totalHours: number
+  ownershipPercentage: number
+  usageToShareRatio: number
+}
+
+export interface UsageAnalytics {
+  ownershipPercentage: number
+  actualHoursLast4Weeks: number
+  expectedHoursLast4Weeks: number
+  utilizationPercent: number
+  usageGapHours: number
+  bookingsThisWeek: number
+  hoursThisWeek: number
+  weeklyAverageHours: number
+  totalQuotaSlots?: number
+  usedQuotaSlots?: number
+  remainingQuotaSlots?: number
+  fairnessStatus: string
+  actionItems: string[]
+  leaderboard: UsageLeaderboardEntry[]
+}
+
+export interface SmartSuggestionResponse {
+  analytics: UsageAnalytics
+  suggestions: BookingSuggestion[]
+  aiInsights: string[]
 }
 
 // contract

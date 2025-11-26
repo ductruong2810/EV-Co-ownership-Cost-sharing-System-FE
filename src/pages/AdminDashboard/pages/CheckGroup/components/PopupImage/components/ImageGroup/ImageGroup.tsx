@@ -1,5 +1,6 @@
 import { ReloadOutlined } from '@ant-design/icons'
 import { useState } from 'react'
+import { getDecryptedImageUrl } from '../../../../../../../../utils/imageUrl'
 import type { imageElement } from '../../../../../../../../types/api/staff.type'
 
 export default function ImageGroup({ label, images }: { label: string; images: imageElement[] }) {
@@ -35,7 +36,7 @@ export default function ImageGroup({ label, images }: { label: string; images: i
       {/* Container ảnh */}
       <div className='group relative bg-gray-900 aspect-video overflow-hidden'>
         <img
-          src={currentImage.imageUrl}
+          src={getDecryptedImageUrl(currentImage.imageUrl)}
           //  hiển thị ảnh với alt tương ứng
           alt={`Ảnh ${label} ${currentIndex + 1}`}
           className={`w-full h-full object-contain transition-opacity duration-200 ${

@@ -4,8 +4,11 @@ import { useMutation } from '@tanstack/react-query'
 import Field from './components/Field'
 import ProgressBar from './components/ProgressBar'
 import Button from './components/Button'
+import OCRPreview from '../../components/OCRPreview/OCRPreview'
+import OCREditor from '../../components/OCREditor/OCREditor'
 import userApi from '../../apis/user.api'
 import { toast } from 'react-toastify'
+import type { DocumentInfo } from '../../types/api/user.type'
 
 export type DocType = 'gplx' | 'cccd'
 export type DocSide = 'front' | 'back'
@@ -28,31 +31,249 @@ export default function UploadLicense() {
     cccd: { front: null, back: null }
   })
 
+  // State to hold OCR extracted information
+  const [ocrResults, setOcrResults] = useState<Record<DocType, DocumentInfo | null>>({
+    gplx: null,
+    cccd: null
+  })
+
+  const [processingTime, setProcessingTime] = useState<Record<DocType, string>>({
+    gplx: '',
+    cccd: ''
+  })
+
+  // State for OCR preview/edit flow
+  const [showOcrEditor, setShowOcrEditor] = useState<Record<DocType, boolean>>({
+    gplx: false,
+    cccd: false
+  })
+
+  const [isPreviewingOcr, setIsPreviewingOcr] = useState(false)
+
+  // Preview OCR mutation
+  const previewOcrMutation = useMutation({
+    mutationFn: ({ frontFile, backFile, documentType }: { frontFile: File; backFile: File; documentType: 'DRIVER_LICENSE' | 'CITIZEN_ID' }) =>
+      userApi.previewOcr(documentType, frontFile, backFile),
+    onSuccess: (data) => {
+      const response = data.data as any
+      if (response?.documentInfo) {
+        const docType = activeTab
+        setOcrResults((prev) => ({ ...prev, [docType]: response.documentInfo }))
+        if (response.processingTime) {
+          setProcessingTime((prev) => ({ ...prev, [docType]: response.processingTime }))
+        }
+        setShowOcrEditor((prev) => ({ ...prev, [docType]: false }))
+      }
+      setIsPreviewingOcr(false)
+    },
+    onError: (error: any) => {
+      console.error('Failed to preview OCR:', error)
+      setIsPreviewingOcr(false)
+      toast.error('Failed to extract information from image. Please try again.', { autoClose: 3000 })
+    }
+  })
+
   const uploadLicenseMutation = useMutation({
-    mutationFn: ({ frontFile, backFile }: { frontFile: File; backFile: File }) =>
-      userApi.uploadLicense(frontFile, backFile),
+    mutationFn: ({ frontFile, backFile, editedInfo }: { frontFile: File; backFile: File; editedInfo?: DocumentInfo }) =>
+      userApi.uploadLicense(frontFile, backFile, editedInfo),
     onSuccess: (data) => {
       console.log('Upload driver license successfully:', data)
+      const response = data.data as any
+      if (response?.documentInfo) {
+        setOcrResults((prev) => ({ ...prev, gplx: response.documentInfo }))
+        if (response.processingTime) {
+          setProcessingTime((prev) => ({ ...prev, gplx: response.processingTime }))
+        }
+      }
       setUploadSuccess((prev) => ({ ...prev, gplx: true }))
-      toast.success('Upload driver license successfully!', { autoClose: 1500 })
+      setShowOcrEditor((prev) => ({ ...prev, gplx: false }))
+      toast.success(
+        <div>
+          <div className='font-semibold mb-1'>✓ Upload Successful</div>
+          <div className='text-sm'>Your driver license has been uploaded and is being reviewed.</div>
+        </div>,
+        { 
+          autoClose: 3000,
+          position: 'top-right'
+        }
+      )
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Failed to upload driver license:', error)
-      toast.error('Upload driver license failed, please try again!')
+      
+      // Extract user-friendly error message
+      let errorMessage = 'Failed to upload driver license. Please try again.'
+      let errorTitle = 'Upload Failed'
+      
+      if (error?.response?.data) {
+        const errorData = error.response.data
+        const status = error.response.status
+        
+        // Handle ValidationErrorResponseDTO format
+        if (errorData.message) {
+          errorMessage = errorData.message
+        } else if (errorData.errors && errorData.errors.length > 0) {
+          errorMessage = errorData.errors[0].message || errorMessage
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData
+        }
+        
+        // Handle specific error cases with user-friendly messages
+        if (status === 409) {
+          // Duplicate document
+          errorTitle = 'Document Already Exists'
+          errorMessage = errorData.message || 
+            'This driver license number has already been registered by another user. Please check your document number.'
+        } else if (status === 413) {
+          // File too large
+          errorTitle = 'File Too Large'
+          errorMessage = 'The image file is too large. Maximum size is 10MB. Please compress or resize your image and try again.'
+        } else if (status === 400) {
+          // Validation error
+          if (errorData.message?.includes('Document type mismatch')) {
+            errorTitle = 'Wrong Document Type'
+            errorMessage = 'The uploaded image does not match the selected document type. Please upload a valid driver license (GPLX).'
+          } else if (errorData.message?.includes('Unable to extract text')) {
+            errorTitle = 'OCR Processing Failed'
+            errorMessage = 'Unable to read text from the image. Please ensure:\n• The image is clear and in focus\n• The document is fully visible\n• There is good lighting\n• The image is not blurry or rotated'
+          } else if (errorData.message?.includes('must be different')) {
+            errorTitle = 'Invalid Images'
+            errorMessage = 'Front and back images must be different. Please upload two different images of your driver license.'
+          } else if (errorData.message?.includes('must not be empty')) {
+            errorTitle = 'Missing File'
+            errorMessage = 'Please upload both front and back images of your driver license.'
+          } else if (errorData.message?.includes('must be an image')) {
+            errorTitle = 'Invalid File Type'
+            errorMessage = 'Please upload image files only (JPG, PNG, etc.). Other file types are not supported.'
+          }
+        } else if (status === 500 || status === 503) {
+          errorTitle = 'Server Error'
+          errorMessage = 'The server is temporarily unavailable. Please try again in a few moments.'
+        } else if (status === 401 || status === 403) {
+          errorTitle = 'Authentication Required'
+          errorMessage = 'Your session has expired. Please log in again.'
+        }
+      } else if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+        errorTitle = 'Request Timeout'
+        errorMessage = 'The upload is taking too long. Please check your internet connection and try again.'
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+      
+      // Show error toast with title and message
+      toast.error(
+        <div>
+          <div className='font-semibold mb-1'>{errorTitle}</div>
+          <div className='text-sm whitespace-pre-line'>{errorMessage}</div>
+        </div>,
+        { 
+          autoClose: 5000,
+          position: 'top-right',
+          className: 'toast-error-custom'
+        }
+      )
     }
   })
 
   const uploadCitizenIdMutation = useMutation({
-    mutationFn: ({ frontFile, backFile }: { frontFile: File; backFile: File }) =>
-      userApi.uploadCitizenId(frontFile, backFile),
+    mutationFn: ({ frontFile, backFile, editedInfo }: { frontFile: File; backFile: File; editedInfo?: DocumentInfo }) =>
+      userApi.uploadCitizenId(frontFile, backFile, editedInfo),
     onSuccess: (data) => {
       console.log('Upload citizen ID successfully:', data)
+      const response = data.data as any
+      if (response?.documentInfo) {
+        setOcrResults((prev) => ({ ...prev, cccd: response.documentInfo }))
+        if (response.processingTime) {
+          setProcessingTime((prev) => ({ ...prev, cccd: response.processingTime }))
+        }
+      }
       setUploadSuccess((prev) => ({ ...prev, cccd: true }))
-      toast.success('Upload citizen ID successfully!', { autoClose: 1500 })
+      setShowOcrEditor((prev) => ({ ...prev, cccd: false }))
+      toast.success(
+        <div>
+          <div className='font-semibold mb-1'>✓ Upload Successful</div>
+          <div className='text-sm'>Your citizen ID has been uploaded and is being reviewed.</div>
+        </div>,
+        { 
+          autoClose: 3000,
+          position: 'top-right'
+        }
+      )
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Failed to upload citizen ID:', error)
-      toast.error('Upload citizen ID failed, please try again!')
+      
+      // Extract user-friendly error message
+      let errorMessage = 'Failed to upload citizen ID. Please try again.'
+      let errorTitle = 'Upload Failed'
+      
+      if (error?.response?.data) {
+        const errorData = error.response.data
+        const status = error.response.status
+        
+        // Handle ValidationErrorResponseDTO format
+        if (errorData.message) {
+          errorMessage = errorData.message
+        } else if (errorData.errors && errorData.errors.length > 0) {
+          errorMessage = errorData.errors[0].message || errorMessage
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData
+        }
+        
+        // Handle specific error cases with user-friendly messages
+        if (status === 409) {
+          // Duplicate document
+          errorTitle = 'Document Already Exists'
+          errorMessage = errorData.message || 
+            'This citizen ID number has already been registered by another user. Please check your document number.'
+        } else if (status === 413) {
+          // File too large
+          errorTitle = 'File Too Large'
+          errorMessage = 'The image file is too large. Maximum size is 10MB. Please compress or resize your image and try again.'
+        } else if (status === 400) {
+          // Validation error
+          if (errorData.message?.includes('Document type mismatch')) {
+            errorTitle = 'Wrong Document Type'
+            errorMessage = 'The uploaded image does not match the selected document type. Please upload a valid citizen ID (CCCD).'
+          } else if (errorData.message?.includes('Unable to extract text')) {
+            errorTitle = 'OCR Processing Failed'
+            errorMessage = 'Unable to read text from the image. Please ensure:\n• The image is clear and in focus\n• The document is fully visible\n• There is good lighting\n• The image is not blurry or rotated'
+          } else if (errorData.message?.includes('must be different')) {
+            errorTitle = 'Invalid Images'
+            errorMessage = 'Front and back images must be different. Please upload two different images of your citizen ID.'
+          } else if (errorData.message?.includes('must not be empty')) {
+            errorTitle = 'Missing File'
+            errorMessage = 'Please upload both front and back images of your citizen ID.'
+          } else if (errorData.message?.includes('must be an image')) {
+            errorTitle = 'Invalid File Type'
+            errorMessage = 'Please upload image files only (JPG, PNG, etc.). Other file types are not supported.'
+          }
+        } else if (status === 500 || status === 503) {
+          errorTitle = 'Server Error'
+          errorMessage = 'The server is temporarily unavailable. Please try again in a few moments.'
+        } else if (status === 401 || status === 403) {
+          errorTitle = 'Authentication Required'
+          errorMessage = 'Your session has expired. Please log in again.'
+        }
+      } else if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+        errorTitle = 'Request Timeout'
+        errorMessage = 'The upload is taking too long. Please check your internet connection and try again.'
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+      
+      // Show error toast with title and message
+      toast.error(
+        <div>
+          <div className='font-semibold mb-1'>{errorTitle}</div>
+          <div className='text-sm whitespace-pre-line'>{errorMessage}</div>
+        </div>,
+        { 
+          autoClose: 5000,
+          position: 'top-right',
+          className: 'toast-error-custom'
+        }
+      )
     }
   })
 
@@ -67,6 +288,7 @@ export default function UploadLicense() {
   const isCurrentTabReady = useMemo(() => currentUploadedCount === 2, [currentUploadedCount])
 
   const isUploading = uploadLicenseMutation.isPending || uploadCitizenIdMutation.isPending
+  const isProcessing = isUploading || isPreviewingOcr || previewOcrMutation.isPending
 
   const handleFileChange = (type: DocType, side: DocSide, file: File | null) => {
     setDocs((prev) => ({
@@ -83,23 +305,69 @@ export default function UploadLicense() {
 
     if (activeTab === 'gplx') {
       if (!docs.gplx.front || !docs.gplx.back) {
-        toast.warning('Please upload both front and back of your driver license!')
+        toast.warning(
+          <div>
+            <div className='font-semibold mb-1'>Missing Files</div>
+            <div className='text-sm'>Please upload both front and back images of your driver license to continue.</div>
+          </div>,
+          { 
+            autoClose: 3000,
+            position: 'top-right'
+          }
+        )
         return
       }
-      uploadLicenseMutation.mutate({
+      // Preview OCR first
+      setIsPreviewingOcr(true)
+      previewOcrMutation.mutate({
         frontFile: docs.gplx.front,
-        backFile: docs.gplx.back
+        backFile: docs.gplx.back,
+        documentType: 'DRIVER_LICENSE'
       })
     } else {
       if (!docs.cccd.front || !docs.cccd.back) {
-        toast.warning('Please upload both front and back of your citizen ID!')
+        toast.warning(
+          <div>
+            <div className='font-semibold mb-1'>Missing Files</div>
+            <div className='text-sm'>Please upload both front and back images of your citizen ID to continue.</div>
+          </div>,
+          { 
+            autoClose: 3000,
+            position: 'top-right'
+          }
+        )
         return
       }
-      uploadCitizenIdMutation.mutate({
+      // Preview OCR first
+      setIsPreviewingOcr(true)
+      previewOcrMutation.mutate({
         frontFile: docs.cccd.front,
-        backFile: docs.cccd.back
+        backFile: docs.cccd.back,
+        documentType: 'CITIZEN_ID'
       })
     }
+  }
+
+  const handleConfirmOcr = (editedInfo: DocumentInfo) => {
+    if (activeTab === 'gplx') {
+      if (!docs.gplx.front || !docs.gplx.back) return
+      uploadLicenseMutation.mutate({
+        frontFile: docs.gplx.front,
+        backFile: docs.gplx.back,
+        editedInfo
+      })
+    } else {
+      if (!docs.cccd.front || !docs.cccd.back) return
+      uploadCitizenIdMutation.mutate({
+        frontFile: docs.cccd.front,
+        backFile: docs.cccd.back,
+        editedInfo
+      })
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setShowOcrEditor((prev) => ({ ...prev, [activeTab]: false }))
   }
 
   return (
@@ -263,35 +531,80 @@ export default function UploadLicense() {
             </motion.div>
           )}
 
+          {/* OCR Results Preview */}
+          {ocrResults[activeTab] && (
+            <div className='space-y-4'>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <OCRPreview
+                  documentInfo={ocrResults[activeTab]!}
+                  documentType={activeTab}
+                  processingTime={processingTime[activeTab]}
+                  onConfirm={() => handleConfirmOcr(ocrResults[activeTab]!)}
+                  onEdit={() => setShowOcrEditor((prev) => ({ ...prev, [activeTab]: true }))}
+                />
+              </motion.div>
+
+              {showOcrEditor[activeTab] && (
+                <motion.div
+                  key={`${activeTab}-${ocrResults[activeTab]?.idNumber || 'editor'}`}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 }}
+                >
+                  <OCREditor
+                    documentInfo={ocrResults[activeTab]!}
+                    documentType={activeTab}
+                    processingTime={processingTime[activeTab]}
+                  onConfirm={handleConfirmOcr}
+                    onCancel={handleCancelEdit}
+                  />
+                </motion.div>
+              )}
+            </div>
+          )}
+
           {uploadSuccess[activeTab] && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className='flex items-center gap-3 bg-green-400/20 backdrop-blur-lg border-[2px] border-green-300/40 rounded-xl p-4 shadow-[0_0_20px_rgba(74,222,128,0.3)]'
+              className='flex items-center gap-3 bg-gradient-to-r from-green-400/20 to-emerald-400/20 backdrop-blur-lg border-[2px] border-green-300/40 rounded-xl p-4 shadow-[0_0_20px_rgba(74,222,128,0.3)]'
             >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                fill='none'
-                viewBox='0 0 24 24'
-                strokeWidth={2}
-                stroke='currentColor'
-                className='w-5 h-5 text-green-200'
-              >
-                <path strokeLinecap='round' strokeLinejoin='round' d='M4.5 12.75l6 6 9-13.5' />
-              </svg>
-              <span className='text-green-200 font-semibold'>
-                Upload {activeTab === 'gplx' ? 'driver license' : 'citizen ID'} successfully!
-              </span>
+              <div className='flex-shrink-0'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  strokeWidth={2.5}
+                  stroke='currentColor'
+                  className='w-6 h-6 text-green-200'
+                >
+                  <path strokeLinecap='round' strokeLinejoin='round' d='M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                </svg>
+              </div>
+              <div className='flex flex-col'>
+                <span className='text-green-200 font-semibold'>
+                  Upload {activeTab === 'gplx' ? 'driver license' : 'citizen ID'} successfully!
+                </span>
+                <span className='text-green-200/70 text-xs mt-0.5'>
+                  Your document is being reviewed. You'll be notified once it's approved.
+                </span>
+              </div>
             </motion.div>
           )}
         </motion.div>
 
-        <Button
-          isReady={isCurrentTabReady && !isUploading && !uploadSuccess[activeTab]}
-          uploadedCount={currentUploadedCount}
-          currentStep={activeTab === 'gplx' ? 1 : 2}
-          isUploading={isUploading}
-        />
+        {!ocrResults[activeTab] && (
+          <Button
+            isReady={isCurrentTabReady && !isProcessing && !uploadSuccess[activeTab]}
+            uploadedCount={currentUploadedCount}
+            currentStep={activeTab === 'gplx' ? 1 : 2}
+            isUploading={isProcessing}
+          />
+        )}
 
         <div className='flex items-center justify-center gap-4 pt-4 border-t-[2px] border-white/20'>
           {(['gplx', 'cccd'] as const).map((type) => (

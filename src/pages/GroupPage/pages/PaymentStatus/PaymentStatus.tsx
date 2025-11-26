@@ -3,13 +3,14 @@ import { useNavigate, useSearchParams } from 'react-router'
 import groupApi from '../../../../apis/group.api'
 import { formatToVND } from '../../../../utils/formatPrice'
 import { useEffect } from 'react'
+import logger from '../../../../utils/logger'
 
 export default function PaymentStatus() {
   const [searchParams] = useSearchParams()
   const status = searchParams.get('status')?.trim()?.toLowerCase()
   const type = searchParams.get('type')?.trim()?.toLowerCase()
   const txnRef = searchParams.get('txnRef')
-  console.log(status, type, txnRef)
+  logger.debug('Payment status params:', { status, type, txnRef })
 
   const navigate = useNavigate()
 
@@ -17,13 +18,11 @@ export default function PaymentStatus() {
     queryKey: ['deposit-history', txnRef],
     queryFn: () => groupApi.getDepositHistoryForGroup(txnRef || '')
   })
-  console.log(txnQuery?.data?.data)
+  logger.debug('Transaction query data:', txnQuery?.data?.data)
 
   useEffect(() => {
     const data = txnQuery.data?.data
-    console.log(data?.groupId)
-
-    console.log(data)
+    logger.debug('Transaction data:', data)
 
     if (!data) return
 
@@ -31,18 +30,15 @@ export default function PaymentStatus() {
     if (!groupId) return
 
     if (status === 'fail' && type === 'fund') {
-      console.log(status, type)
+      logger.debug('Navigating to fund ownership page')
       navigate(`/dashboard/viewGroups/${groupId}/fund-ownership`)
     } else if (status === 'fail' && type === 'maintenance') {
-      console.log('vô đây rồi nè ')
-
-      console.log(status, type)
+      logger.debug('Navigating to group expense page')
       navigate(`/dashboard/viewGroups/${groupId}/group-expense`)
     } else if (status === 'fail') {
       navigate(`/dashboard/viewGroups/${groupId}/paymentDeposit`)
     }
   }, [txnQuery.data, status, type, navigate])
-  console.log('tới đây rồi nè 2 ')
 
   const handleNavigate = () => {
     if (type === 'fund') {

@@ -23,10 +23,14 @@ const staffApi = {
   },
   // lấy danh sách group để duyệt
 
-  reviewDocument(documentId: number, action: ReviewAction) {
+  reviewDocument(documentId: number, action: ReviewAction, reason?: string) {
+    const payload: { action: ReviewAction; reason?: string } = { action }
+    if (reason && reason.trim()) {
+      payload.reason = reason.trim()
+    }
     return http.post(
       `/api/staff/documents/review/${documentId}`,
-      { action },
+      payload,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`

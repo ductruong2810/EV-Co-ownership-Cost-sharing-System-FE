@@ -8,6 +8,7 @@ import type { GroupItem } from '../../types/api/group.type'
 import DataTable from './components/DataTable'
 import EmptyGroup from './components/EmptyGroup'
 import HeroSection from './components/HeroSection'
+import logger from '../../utils/logger'
 
 export default function Viewgroups() {
   const groupListQuery = useQuery({
@@ -17,10 +18,10 @@ export default function Viewgroups() {
 
   localStorage.setItem('groupId', '')
 
-  console.log(groupListQuery.data?.data)
+  logger.debug('Group list query data:', groupListQuery.data?.data)
 
   const allGroupList: GroupItem[] = groupListQuery?.data?.data || []
-  console.log(allGroupList)
+  logger.debug('All group list:', allGroupList)
 
   return (
     <motion.div

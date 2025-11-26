@@ -8,6 +8,7 @@ import MainContent from './components/MainContent'
 import adminApi from '../../../../apis/admin.api'
 import type { FeedbackItem } from '../../../../types/api/admin.type'
 import userApi from '../../../../apis/user.api'
+import logger from '../../../../utils/logger'
 
 export default function FeedBackAdmin() {
   const queryClient = useQueryClient()
@@ -69,7 +70,7 @@ export default function FeedBackAdmin() {
     enabled: !!contractId
   })
 
-  console.log(feedContractQuery?.data)
+  logger.debug('Feedback contract query data:', feedContractQuery?.data)
 
   const feedbacks = feedContractQuery?.data?.data
 
@@ -87,7 +88,7 @@ export default function FeedBackAdmin() {
 
     return grouped
   }, [feedbacks?.feedbacks])
-  console.log(groupedFeedbacks)
+  logger.debug('Grouped feedbacks:', groupedFeedbacks)
 
   const users = useMemo(() => {
     return Object.keys(groupedFeedbacks).map((email) => {

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState } from 'react'
+import { createContext, useState, useEffect } from 'react'
 import {
   getAccessTokenFromLS,
   getEmailAccountFromLS,
@@ -7,6 +7,7 @@ import {
   getRoleFromLS,
   getUserIdFromLS
 } from '../utils/auth'
+import { useWebSocket } from '../hooks/useWebSocket'
 
 // Định nghĩa context lưu dữ liệu kiểu gì hoặc nói cách khác là định nghĩa cho initialState
 interface AppContextInterface {
@@ -50,6 +51,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   // thêm state groupId
   const [groupId, setGroupId] = useState<string>(initialAppContext.groupId)
+
+  // Kết nối WebSocket để nhận realtime updates (chỉ khi đã đăng nhập)
+  useWebSocket()
 
   const reset = () => {
     setIsAuthenticated(false)

@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { Input, Select } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
 import staffApi from '../../../../apis/staff.api'
 import type { groupStaffItem } from '../../../../types/api/staff.type'
 import PaginationButton from './components/PaginationButton'
@@ -7,11 +9,15 @@ import PropupImage from './components/PopupImage'
 import StatusBadge from './components/StatusBadge'
 import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState'
-import { InfoCircleOutlined, RightOutlined, TeamOutlined } from '@ant-design/icons'
+import { InfoCircleOutlined, RightOutlined, TeamOutlined, CalendarOutlined } from '@ant-design/icons'
+
+const { Option } = Select
 
 export default function CheckGroup() {
   const [currentPage, setCurrentPage] = useState(0)
   const pageSize = 10 // fixed page size
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
 
   const [selectedGroup, setSelectedGroup] = useState<groupStaffItem | null>(null)
 
@@ -23,39 +29,116 @@ export default function CheckGroup() {
 
   const { isPending } = groupListQuery
 
-  const groupData: groupStaffItem[] = groupListQuery.data?.data?.content || []
+  const allGroupData: groupStaffItem[] = groupListQuery.data?.data?.content || []
 
-  // total pages
-  const totalPages: number = groupListQuery.data?.data?.totalPages || 0
-  // current page number from backend (0-based)
-  const pageNumber: number = groupListQuery.data?.data?.pageable.pageNumber || 0
-  console.log(pageNumber)
+  // Filter and search logic
+  const filteredGroups = useMemo(() => {
+    let filtered = allGroupData
 
-  // total elements
-  const totalElements: number = groupListQuery.data?.data?.totalElements || 0
+    // Filter by status
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter((group) => group.status === statusFilter)
+    }
+
+    // Search by name, description, or ID
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase()
+      filtered = filtered.filter(
+        (group) =>
+          group.groupName.toLowerCase().includes(searchLower) ||
+          group.description?.toLowerCase().includes(searchLower) ||
+          group.groupId.toString().includes(searchTerm)
+      )
+    }
+
+    return filtered
+  }, [allGroupData, statusFilter, searchTerm])
+
+  // Pagination for filtered results
+  const totalFiltered = filteredGroups.length
+  const startIndex = currentPage * pageSize
+  const endIndex = startIndex + pageSize
+  const groupData = filteredGroups.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(totalFiltered / pageSize)
+  const pageNumber = currentPage
+
+  // Reset to first page when filter/search changes
+  const handleFilterChange = () => {
+    setCurrentPage(0)
+  }
 
   // handle page change
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage) // update state (0, 1, 2...)
+    setCurrentPage(newPage - 1) // Convert to 0-based
   }
 
-  if (groupData.length === 0) {
+  if (isPending) {
+    return <Skeleton />
+  }
+
+  if (allGroupData.length === 0) {
     return <EmptyState />
   }
 
   return isPending ? (
     <Skeleton />
   ) : (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 font-sans'>
-      <div className='container mx-auto p-4 md:p-8'>
-        <header className='text-center mb-8'>
-          <h1 className='text-3xl md:text-4xl font-bold text-gray-800'>Group Approval Page</h1>
-          <p className='text-gray-500 mt-2'>Choose a group from the list below to view detailed information.</p>
-        </header>
+    <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6'>
+      <div className='max-w-6xl mx-auto'>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Group Approval</h1>
+          <p className='text-gray-600'>Choose a group from the list below to view detailed information</p>
+        </div>
 
-        <main>
-          <div className='bg-white p-6 rounded-lg shadow-lg'>
-            <h2 className='text-xl font-semibold mb-4 border-b pb-2'>Pending groups</h2>
+        {/* Search and Filter Section */}
+        <div className='bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-6'>
+          <div className='mb-4 flex flex-col sm:flex-row gap-4'>
+            <Input
+              placeholder='Search by group name, description, or ID...'
+              prefix={<SearchOutlined className='text-gray-400' />}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                handleFilterChange()
+              }}
+              allowClear
+              className='flex-1'
+              size='large'
+            />
+            <Select
+              value={statusFilter}
+              onChange={(value) => {
+                setStatusFilter(value)
+                handleFilterChange()
+              }}
+              className='w-full sm:w-48'
+              size='large'
+            >
+              <Option value='ALL'>All Status</Option>
+              <Option value='PENDING'>Pending</Option>
+              <Option value='ACTIVE'>Active</Option>
+              <Option value='INACTIVE'>Inactive</Option>
+            </Select>
+          </div>
+
+          {/* Results count */}
+          <div className='text-sm text-gray-600'>
+            Showing {groupData.length} of {totalFiltered} groups
+            {searchTerm && ` matching "${searchTerm}"`}
+            {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
+          </div>
+        </div>
+
+        {/* Groups List */}
+        <div className='bg-white p-6 rounded-xl shadow-lg border border-gray-200'>
+          <h2 className='text-xl font-semibold mb-6 border-b pb-3 text-gray-800'>
+            {statusFilter === 'ALL' ? 'All groups' : `${statusFilter} groups`}
+          </h2>
+          {groupData.length === 0 ? (
+            <div className='text-center py-12 text-gray-500'>
+              {searchTerm || statusFilter !== 'ALL' ? 'No groups match your filters' : 'No groups found'}
+            </div>
+          ) : (
             <div className='divide-y divide-gray-100'>
               {groupData.map((group, index) => (
                 <div
@@ -73,9 +156,12 @@ export default function CheckGroup() {
                           {index + 1 + pageNumber * pageSize}
                         </div>
                         <div className='flex-1 min-w-0'>
-                          <h3 className='text-lg font-bold text-gray-800 truncate group-hover:text-blue-600 transition-colors'>
-                            {group.groupName}
-                          </h3>
+                          <div className='flex items-center gap-2 mb-1'>
+                            <h3 className='text-lg font-bold text-gray-800 truncate group-hover:text-blue-600 transition-colors'>
+                              {group.groupName}
+                            </h3>
+                            <span className='text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded'>ID: #{group.groupId}</span>
+                          </div>
                         </div>
                       </div>
 
@@ -84,13 +170,25 @@ export default function CheckGroup() {
                         <div className='flex items-center gap-2 text-sm text-gray-600'>
                           <InfoCircleOutlined className='text-gray-400' />
                           <span className='truncate'>
-                            <span className='text-gray-500'>Description:</span>{' '}
-                            <span className='text-gray-500'>{group.description}</span>
+                            <span className='text-gray-500 font-medium'>Description:</span>{' '}
+                            <span className='text-gray-700'>{group.description || 'No description'}</span>
                           </span>
                         </div>
-                        <div className='flex items-center gap-2 text-sm'>
-                          <TeamOutlined className='text-indigo-600' />
-                          <span className='font-medium text-indigo-600'>Total members: {group.memberCapacity}</span>
+                        <div className='flex items-center gap-4 text-sm flex-wrap'>
+                          <div className='flex items-center gap-2'>
+                            <TeamOutlined className='text-indigo-600' />
+                            <span className='font-medium text-indigo-600'>
+                              Capacity: <span className='font-bold'>{group.memberCapacity}</span> members
+                            </span>
+                          </div>
+                          {group.createdAt && (
+                            <div className='flex items-center gap-2 text-gray-500'>
+                              <CalendarOutlined className='text-gray-400' />
+                              <span>
+                                Created: <span className='font-medium'>{new Date(group.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -107,15 +205,17 @@ export default function CheckGroup() {
                 </div>
               ))}
             </div>
+          )}
           </div>
-        </main>
 
-        <div className='mt-6 pt-4 border-t flex flex-col items-center'>
-          <PaginationButton currentPage={pageNumber + 1} totalPages={totalPages} onPageChange={handlePageChange} />
-          <div className='text-sm text-gray-500 mt-2'>
-            Page {pageNumber + 1} / {totalPages} (Total {totalElements} items)
-          </div>
-        </div>
+          {totalPages > 1 && (
+            <div className='mt-6 pt-4 border-t flex flex-col items-center'>
+              <PaginationButton currentPage={pageNumber + 1} totalPages={totalPages} onPageChange={handlePageChange} />
+              <div className='text-sm text-gray-500 mt-2'>
+                Page {pageNumber + 1} / {totalPages} (Total {totalFiltered} items)
+              </div>
+            </div>
+          )}
       </div>
 
       {selectedGroup && <PropupImage group={selectedGroup} onClose={() => setSelectedGroup(null)} />}

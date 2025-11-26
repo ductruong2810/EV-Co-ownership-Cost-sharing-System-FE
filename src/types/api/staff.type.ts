@@ -45,6 +45,10 @@ export interface groupStaffItem {
   status: 'PENDING' | 'ACTIVE' | 'INACTIVE'
   description: string
   memberCapacity: number
+  createdAt?: string
+  updatedAt?: string
+  vehicleDescription?: string
+  rejectionReason?: string
 }
 
 export interface GroupStaffList {
