@@ -154,16 +154,27 @@ class Http {
         // Validation errors (422) are handled by forms, don't show toast
         // Don't show toast for 401 if we're handling refresh token
         // Skip global toast for upload endpoints (they have custom error handling)
-        const isHandlingRefresh = error.response?.status === HttpStatusCode.Unauthorized && 
-                                  !error.config?.url?.includes('/auth/refresh') &&
-                                  !(error.config as InternalAxiosRequestConfig & { _retry?: boolean })?._retry
+        const isAuthEndpoint =
+          error.config?.url?.includes('/auth/login') ||
+          error.config?.url?.includes('/auth/register') ||
+          error.config?.url?.includes('/auth/forgot-password')
+
+        const isHandlingRefresh =
+          error.response?.status === HttpStatusCode.Unauthorized &&
+          !error.config?.url?.includes('/auth/refresh') &&
+          !(error.config as InternalAxiosRequestConfig & { _retry?: boolean })?._retry &&
+          !isAuthEndpoint
         
         const isUploadEndpoint = error.config?.url?.includes('/documents/upload-batch') ||
                                  error.config?.url?.includes('/documents/preview-ocr') ||
                                  error.config?.url?.includes('/groups/with-vehicle') ||
                                  error.config?.url?.includes('/ocr/')
 
-        if (error.response?.status !== HttpStatusCode.UnprocessableEntity && !isHandlingRefresh && !isUploadEndpoint) {
+        if (
+          error.response?.status !== HttpStatusCode.UnprocessableEntity &&
+          !isHandlingRefresh &&
+          !isUploadEndpoint
+        ) {
           try {
             const message = getUserFriendlyError(error)
             toast.error(message, {
