@@ -1,5 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
+import { useState } from 'react'
 
 import { CarOutlined, FileTextOutlined, ThunderboltOutlined, WarningOutlined } from '@ant-design/icons'
 import { useMutation } from '@tanstack/react-query'
@@ -8,11 +9,13 @@ import { toast } from 'react-toastify'
 import userApi from '../../../../apis/user.api'
 import Skeleton from '../../../../components/Skeleton'
 import { checkoutSchema } from '../../../../utils/rule'
+import SignaturePad from '../../../../components/SignaturePad/SignaturePad'
 
 export interface CheckoutForm {
   odometer: string
   batteryLevel: string
   notes: string
+  signature?: string
 }
 
 export default function CheckOutResult() {
@@ -20,6 +23,7 @@ export default function CheckOutResult() {
   console.log(typeof bookingId)
 
   const navigate = useNavigate()
+  const [signature, setSignature] = useState<string | null>(null)
 
   const {
     register,
@@ -43,7 +47,8 @@ export default function CheckOutResult() {
   const onSubmit = (data: CheckoutForm) => {
     const payload = {
       ...data,
-      bookingId: Number(bookingId)
+      bookingId: Number(bookingId),
+      signature: signature || undefined
     }
 
     console.log('Checkout data:', payload)
@@ -125,6 +130,16 @@ export default function CheckOutResult() {
                 {errors.notes.message}
               </p>
             )}
+          </div>
+
+          {/* Signature Pad */}
+          <div>
+            <SignaturePad
+              onSignatureChange={setSignature}
+              width={600}
+              height={200}
+              required={false}
+            />
           </div>
 
           {/* Button */}

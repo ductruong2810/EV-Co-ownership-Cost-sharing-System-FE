@@ -69,6 +69,18 @@ const staffApi = {
   //hiển thị thêm các thông tin xem chi tiết
   getUserDetailInStaffById(userId: string) {
     return http.get<UserDetails>(`api/staff/users/${userId}`)
+  },
+
+  // Xuất báo cáo tài chính tổng hợp cho tất cả groups
+  exportAllGroupsFinancialReport(params?: {
+    fundType?: string
+    from?: string
+    to?: string
+  }) {
+    return http.get<Blob>('api/staff/financial-reports/export-all', {
+      params,
+      responseType: 'blob'
+    })
   }
 }
 

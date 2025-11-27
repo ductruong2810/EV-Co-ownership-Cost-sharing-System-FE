@@ -22,16 +22,16 @@ export default function IssueReport() {
   const [description, setDescription] = useState('')
 
   const members = ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Thị D']
-  const categories = ['Hư hỏng xe', 'Trả xe muộn', 'Vệ sinh kém', 'Hành vi xấu']
+  const categories = ['Vehicle Damage', 'Late Return', 'Poor Cleanliness', 'Bad Behavior']
 
   const [issues, setIssues] = useState<Issue[]>([
     {
       id: '1',
       reporter: 'Nguyễn Văn A',
       target: 'Trần Thị B',
-      category: 'Trả xe muộn',
-      title: 'Trả xe muộn 2 giờ',
-      description: 'Hẹn trả xe lúc 18:00 nhưng đến 20:00 mới trả',
+      category: 'Late Return',
+      title: 'Returned vehicle 2 hours late',
+      description: 'Scheduled return at 18:00 but returned at 20:00',
       severity: 'medium',
       status: 'pending',
       date: '2025-10-13'
@@ -40,9 +40,9 @@ export default function IssueReport() {
       id: '2',
       reporter: 'Lê Văn C',
       target: 'Nguyễn Văn A',
-      category: 'Hư hỏng xe',
-      title: 'Gương chiếu hậu bị vỡ',
-      description: 'Gương bên phải bị nứt sau khi sử dụng xe',
+      category: 'Vehicle Damage',
+      title: 'Side mirror broken',
+      description: 'Right side mirror cracked after vehicle use',
       severity: 'high',
       status: 'pending',
       date: '2025-10-12'
@@ -51,9 +51,9 @@ export default function IssueReport() {
       id: '3',
       reporter: 'Phạm Thị D',
       target: 'Lê Văn C',
-      category: 'Vệ sinh kém',
-      title: 'Xe không được vệ sinh',
-      description: 'Nội thất xe còn rác và bụi bẩn',
+      category: 'Poor Cleanliness',
+      title: 'Vehicle not cleaned',
+      description: 'Vehicle interior still has trash and dust',
       severity: 'low',
       status: 'resolved',
       date: '2025-10-10'
@@ -61,12 +61,12 @@ export default function IssueReport() {
   ])
 
   const handleSubmit = () => {
-    if (!selectedMember || !title || !description) return alert('Vui lòng điền đầy đủ thông tin!')
+    if (!selectedMember || !title || !description) return alert('Please fill in all information!')
 
     setIssues([
       {
         id: Date.now().toString(),
-        reporter: 'Bạn',
+        reporter: 'You',
         target: selectedMember,
         category: categories[parseInt(category)],
         title,
@@ -122,7 +122,7 @@ export default function IssueReport() {
                 <h1 className='text-4xl font-black bg-gradient-to-r from-cyan-300 via-teal-300 to-cyan-400 bg-clip-text text-transparent mb-1'>
                   Issue Report
                 </h1>
-                <p className='text-cyan-400/70'>Quản lý và giải quyết vấn đề trong nhóm</p>
+                <p className='text-cyan-400/70'>Manage and resolve issues in the group</p>
               </div>
             </div>
             <motion.button
@@ -136,7 +136,7 @@ export default function IssueReport() {
                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none'>
                   <path d='M12 5v14M5 12h14' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' />
                 </svg>
-                Báo cáo mới
+                New Report
               </div>
             </motion.button>
           </div>
@@ -153,7 +153,7 @@ export default function IssueReport() {
             >
               <div className='bg-gradient-to-br from-[#1a4d4d]/70 to-[#0f4545]/70 backdrop-blur-2xl rounded-2xl border border-cyan-500/30 p-6 shadow-2xl'>
                 <div className='flex items-center justify-between mb-5'>
-                  <h2 className='text-xl font-bold text-cyan-300'>Tạo báo cáo mới</h2>
+                  <h2 className='text-xl font-bold text-cyan-300'>Create New Report</h2>
                   <button
                     onClick={() => setShowForm(false)}
                     className='w-8 h-8 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition-all group'
@@ -177,7 +177,7 @@ export default function IssueReport() {
                       onChange={(e) => setSelectedMember(e.target.value)}
                       className='px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none transition-all'
                     >
-                      <option value=''>Chọn thành viên</option>
+                      <option value=''>Select Member</option>
                       {members.map((m, i) => (
                         <option key={i} value={m}>
                           {m}
@@ -203,9 +203,9 @@ export default function IssueReport() {
                       onChange={(e) => setSeverity(e.target.value as any)}
                       className='px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none transition-all'
                     >
-                      <option value='low'>Nhẹ</option>
-                      <option value='medium'>Trung bình</option>
-                      <option value='high'>Nghiêm trọng</option>
+                      <option value='low'>Low</option>
+                      <option value='medium'>Medium</option>
+                      <option value='high'>High</option>
                     </select>
                   </div>
 
@@ -213,14 +213,14 @@ export default function IssueReport() {
                     type='text'
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder='Tiêu đề vấn đề...'
+                    placeholder='Issue title...'
                     className='w-full px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium placeholder-cyan-600 focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none transition-all'
                   />
 
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder='Mô tả chi tiết vấn đề...'
+                    placeholder='Detailed issue description...'
                     rows={4}
                     className='w-full px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium placeholder-cyan-600 focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none resize-none transition-all'
                   />
@@ -230,13 +230,13 @@ export default function IssueReport() {
                       onClick={() => setShowForm(false)}
                       className='px-5 py-3 bg-cyan-500/10 text-cyan-400 rounded-xl font-semibold hover:bg-cyan-500/20 transition-all border border-cyan-500/30'
                     >
-                      Hủy
+                      Cancel
                     </button>
                     <button
                       onClick={handleSubmit}
                       className='flex-1 py-3 bg-gradient-to-r from-teal-400 to-cyan-400 text-[#0a3d3d] rounded-xl font-bold hover:from-teal-500 hover:to-cyan-500 transition-all shadow-lg'
                     >
-                      Gửi báo cáo
+                      Submit Report
                     </button>
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function IssueReport() {
                   <path d='M3 10h18' stroke='currentColor' strokeWidth='2' />
                 </svg>
               </div>
-              <p className='text-cyan-400/60 font-medium'>Chưa có báo cáo nào</p>
+              <p className='text-cyan-400/60 font-medium'>No reports yet</p>
             </div>
           ) : (
             issues.map((issue, i) => (
@@ -286,17 +286,17 @@ export default function IssueReport() {
                       </span>
                       <span className={`px-3 py-1 text-xs font-bold rounded-full ${getSeverityStyle(issue.severity)}`}>
                         {issue.severity === 'high'
-                          ? 'Nghiêm trọng'
+                          ? 'High'
                           : issue.severity === 'medium'
-                            ? 'Trung bình'
-                            : 'Nhẹ'}
+                            ? 'Medium'
+                            : 'Low'}
                       </span>
                       {issue.status === 'resolved' && (
                         <span className='px-3 py-1 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-400/40 flex items-center gap-1'>
                           <svg width='12' height='12' viewBox='0 0 24 24' fill='none'>
                             <path d='M5 13l4 4L19 7' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' />
                           </svg>
-                          Đã giải quyết
+                          Resolved
                         </span>
                       )}
                     </div>
@@ -333,7 +333,7 @@ export default function IssueReport() {
                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none'>
                           <path d='M5 13l4 4L19 7' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' />
                         </svg>
-                        Đánh dấu đã giải quyết
+                        Mark as Resolved
                       </motion.button>
                     )}
                   </div>

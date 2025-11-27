@@ -19,7 +19,7 @@ export default function FeedBackAdmin() {
   const [adminNote, setAdminNote] = useState('')
   const navigate = useNavigate()
 
-  // chấp nhận feedback
+  // Accept feedback
   const accepctFeedback = useMutation({
     mutationFn: ({ feedbackId, adminNote }: { feedbackId: string; adminNote: string }) =>
       userApi.acceptFeedback({ feedbackId, adminNote })
@@ -32,14 +32,14 @@ export default function FeedBackAdmin() {
 
   const handleAcceptFeedback = (feedbackId: string, adminNote: string) => {
     if (adminNote.trim().length === 0) {
-      toast.error('vui lòng nhập thông tin hợp đồng sửa đổi trước khi chấp nhận feedback')
+      toast.error('Please enter contract modification information before accepting feedback')
       return
     }
     accepctFeedback.mutate(
       { feedbackId, adminNote },
       {
         onSuccess: () => {
-          toast.success('đã chấp nhận feedback thành công')
+          toast.success('Feedback accepted successfully')
           setAdminNote('')
           queryClient.invalidateQueries({ queryKey: ['feedback-by-contract-id', contractId] })
         }
@@ -49,14 +49,14 @@ export default function FeedBackAdmin() {
 
   const handleRejectFeedback = ({ feedbackId, reason }: { feedbackId: string; reason: string }) => {
     if (reason.trim().length === 0) {
-      toast.error('vui lòng nhập lý do trước khi từ chối feedback')
+      toast.error('Please enter a reason before rejecting feedback')
       return
     }
     rejectFeedback.mutate(
       { feedbackId, adminNote: reason },
       {
         onSuccess: () => {
-          toast.success('đã từ chối feedback thành công')
+          toast.success('Feedback rejected successfully')
           setAdminNote('')
           queryClient.invalidateQueries({ queryKey: ['feedback-by-contract-id', contractId] })
         }
@@ -134,7 +134,7 @@ export default function FeedBackAdmin() {
               className='flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors'
             >
               <LeftOutlined className='text-lg' />
-              <span className='font-medium'>Quay lại</span>
+              <span className='font-medium'>Go Back</span>
             </button>
             <div className='border-l border-gray-300 h-6'></div>
             <div>
@@ -356,7 +356,7 @@ export default function FeedBackAdmin() {
                       placeholder={
                         selectedFeedback?.status === 'PENDING'
                           ? 'Feedback này đã được xử lý'
-                          : 'Nhập ghi chú về cách xử lý feedback này...'
+                          : 'Enter note on how to handle this feedback...'
                       }
                     />
                   </div>
@@ -371,7 +371,7 @@ export default function FeedBackAdmin() {
                           disabled={accepctFeedback.isPending}
                         >
                           <CheckCircleOutlined />
-                          {accepctFeedback.isPending ? 'Đang xử lý...' : 'Chấp nhận Feedback'}
+                          {accepctFeedback.isPending ? 'Processing...' : 'Accept Feedback'}
                         </button>
 
                         <button
@@ -385,7 +385,7 @@ export default function FeedBackAdmin() {
                           disabled={rejectFeedback.isPending}
                         >
                           <CloseCircleOutlined />
-                          {rejectFeedback.isPending ? 'Đang xử lý...' : 'Từ chối Feedback'}
+                          {rejectFeedback.isPending ? 'Processing...' : 'Reject Feedback'}
                         </button>
                       </>
                     ) : (

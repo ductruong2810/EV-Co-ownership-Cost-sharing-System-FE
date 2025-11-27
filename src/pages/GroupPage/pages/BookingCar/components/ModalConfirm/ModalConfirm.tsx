@@ -90,18 +90,18 @@ export default function ModalConfirm({
           <div className='bg-gradient-to-br from-[#06B6D4] to-[#0EA5E9] p-4 rounded-2xl shadow-xl'>
             <CalendarOutlined style={{ fontSize: '28px', color: 'white' }} />
           </div>
-          <span className='text-3xl font-black text-[#06B6D4] tracking-tight'>Xác nhận đặt xe </span>
+          <span className='text-3xl font-black text-[#06B6D4] tracking-tight'>Confirm Booking</span>
         </div>
       }
       open={visible}
-      onCancel={onClose} // Xử lý khi bấm Hủy
+      onCancel={onClose} // Handle cancel button click
       footer={<>{actionButtons}</>}
       width={750}
     >
       {selectedSlot && (
         <div className='space-y-5 py-6'>
           {[
-            { icon: <CarOutlined />, label: 'Xe', value: 'VinFast VF8 Plus (30A-123.45)' },
+            { icon: <CarOutlined />, label: 'Vehicle', value: 'VinFast VF8 Plus (30A-123.45)' },
             {
               icon: <ClockCircleOutlined />,
               label: 'Time',

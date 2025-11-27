@@ -33,7 +33,7 @@ export default function EmptyGroup() {
               transition={{ delay: 0.3, duration: 0.7 }}
               className='absolute bottom-4 text-xs text-white font-semibold px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30'
             >
-              EV Sharing – Tương lai xanh
+              EV Sharing – Green Future
             </motion.div>
           </div>
         </motion.div>
@@ -44,7 +44,7 @@ export default function EmptyGroup() {
             No groups available
           </h3>
           <p className='mt-4 text-base md:text-lg text-white/80 leading-relaxed font-medium'>
-            Tạo nhóm quản lý đồng sở hữu xe điện để chia sẻ chi phí sạc, bảo trì và quyền sử dụng minh bạch.
+            Create an electric vehicle co-ownership group to share charging costs, maintenance, and transparent usage rights.
           </p>
 
           {/* Buttons */}
@@ -73,10 +73,10 @@ export default function EmptyGroup() {
           {/* Feature list */}
           <div className='mt-8 grid grid-cols-2 gap-3 text-sm text-white/80 font-medium'>
             {[
-              { label: 'Theo dõi chi phí sạc', color: 'bg-cyan-300' },
-              { label: 'Chia sẻ quyền sử dụng', color: 'bg-sky-300' },
-              { label: 'Bảo trì minh bạch', color: 'bg-indigo-300' },
-              { label: 'Lịch sử sử dụng rõ ràng', color: 'bg-cyan-200' }
+              { label: 'Track charging costs', color: 'bg-cyan-300' },
+              { label: 'Share usage rights', color: 'bg-sky-300' },
+              { label: 'Transparent maintenance', color: 'bg-indigo-300' },
+              { label: 'Clear usage history', color: 'bg-cyan-200' }
             ].map((item, idx) => (
               <div key={idx} className='flex items-center gap-2'>
                 <span className={`w-2 h-2 rounded-full ${item.color} shadow-[0_0_8px_currentColor]`} />

@@ -23,8 +23,11 @@ export default function CheckQR() {
   // file input
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+  const [scannedQrCode, setScannedQrCode] = useState<string | null>(null)
+
   const QRVerify = useMutation({
     mutationFn: (qrCode: string) => {
+      setScannedQrCode(qrCode) // Store QR code for later use
       return groupApi.verifyCheckIn(qrCode)
     },
     onSuccess: (response) => {
@@ -39,6 +42,10 @@ export default function CheckQR() {
         console.log(response?.data?.bookingId)
 
         if (response?.data?.status === 'success') {
+          // Store QR code in localStorage for signature confirmation
+          if (scannedQrCode) {
+            localStorage.setItem('pendingCheckInQr', scannedQrCode)
+          }
           navigate(
             `/dashboard/viewGroups/${groupId}/check-in-result/${response?.data?.status}/${startTime}/${endTime}/${brand}/${licensePlate}`
           )
@@ -99,7 +106,7 @@ export default function CheckQR() {
       } else if (cameraError.name === 'NotReadableError') {
         toast.error('Camera is being used by another app')
       } else {
-        toast.error(`Lỗi: ${cameraError.message}`)
+        toast.error(`Error: ${cameraError.message}`)
       }
     }
   }, [])

@@ -13,6 +13,7 @@ import CheckLicense from '../pages/AdminDashboard/pages/CheckLicense'
 import CheckVehicleReport from '../pages/AdminDashboard/pages/CheckVehicleReport'
 import DisputeList from '../pages/AdminDashboard/pages/Disputes/DisputeList'
 import DisputeDetail from '../pages/AdminDashboard/pages/Disputes/DisputeDetail'
+import FinancialReports from '../pages/AdminDashboard/pages/FinancialReports/FinancialReports'
 import CreateStaff from '../pages/AdminDashboard/pages/CreateStaff'
 import CreateTechnician from '../pages/AdminDashboard/pages/CreateTechnician'
 import EditContract from '../pages/AdminDashboard/pages/EditContract'
@@ -178,7 +179,8 @@ function Routers() {
                     { path: path.checkBooking, element: <CheckBooking /> },
                     { path: path.bookingQr, element: <BookingQr /> },
                     { path: path.disputes, element: <DisputeList /> },
-                    { path: path.disputeDetail, element: <DisputeDetail /> }
+                    { path: path.disputeDetail, element: <DisputeDetail /> },
+                    { path: path.financialReports, element: <FinancialReports /> }
                   ]
                 }
               ]
@@ -204,7 +206,8 @@ function Routers() {
                     { path: 'feedbackCo-Owner/:contractId/:groupId/:groupName', element: <FeedbackCoOwner /> },
                     { path: 'editContractDetail/:contractId/:groupId', element: <ModalEditContract /> },
                     { path: 'createStaff', element: <CreateStaff /> },
-                    { path: 'createTechnician', element: <CreateTechnician /> }
+                    { path: 'createTechnician', element: <CreateTechnician /> },
+                    { path: path.financialReports, element: <FinancialReports /> }
                   ]
                 }
               ]

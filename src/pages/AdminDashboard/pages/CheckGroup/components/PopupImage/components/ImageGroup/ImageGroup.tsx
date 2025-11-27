@@ -29,7 +29,7 @@ export default function ImageGroup({ label, images }: { label: string; images: i
       <div className='bg-gradient-to-r from-gray-50 to-gray-100 px-5 py-3 border-b flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
-          <h3 className='font-bold text-gray-800 text-base'>Ảnh {label}</h3>
+          <h3 className='font-bold text-gray-800 text-base'>Image {label}</h3>
         </div>
       </div>
 
@@ -38,7 +38,7 @@ export default function ImageGroup({ label, images }: { label: string; images: i
         <img
           src={getDecryptedImageUrl(currentImage.imageUrl)}
           //  hiển thị ảnh với alt tương ứng
-          alt={`Ảnh ${label} ${currentIndex + 1}`}
+          alt={`Image ${label} ${currentIndex + 1}`}
           className={`w-full h-full object-contain transition-opacity duration-200 ${
             isTransitioning ? 'opacity-0' : 'opacity-100'
           }`}
@@ -57,8 +57,8 @@ export default function ImageGroup({ label, images }: { label: string; images: i
             <button
               onClick={handleRotateImage}
               className='absolute top-4 right-4 p-3 bg-white hover:bg-blue-500 text-gray-700 hover:text-white rounded-full shadow-xl transition-all duration-300 hover:rotate-180 hover:scale-110 z-10 opacity-0 group-hover:opacity-100'
-              aria-label='Xoay ảnh'
-              title='Xem ảnh tiếp theo'
+              aria-label='Rotate image'
+              title='View next image'
             >
               <ReloadOutlined className='text-xl' />
             </button>

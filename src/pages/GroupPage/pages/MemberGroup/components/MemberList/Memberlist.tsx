@@ -15,9 +15,9 @@ interface IMemberlistProps {
 
 export default function Memberlist({ members, amount, groupId, currentUserRole, contractStatus }: IMemberlistProps) {
   const queryClient = useQueryClient()
-  // mở modal xóa thành viên
+  // Open delete member modal
   const [isModalOpen, setIsModalOpen] = useState(false)
-  // lưu thành viên bị xóa
+  // Store member to be deleted
   const [selectedMember, setSelectedMember] = useState<{ userId: number; userName: string } | null>(null)
 
   const deleteMemberMuation = useMutation({
@@ -25,7 +25,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
       return groupApi.deleteMember(groupId, userId.toString())
     },
     onSuccess: () => {
-      toast.success('Xóa thành viên thành công!')
+      toast.success('Member removed successfully!')
       queryClient.invalidateQueries({ queryKey: ['members', groupId] })
       setIsModalOpen(false)
       setSelectedMember(null)
@@ -65,7 +65,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
           </h2>
         </div>
 
-        {/* Danh sách thành viên */}
+        {/* Member List */}
         {members.length > 0 ? (
           <ul className='divide-y divide-white/10'>
             {members.map((member) => (
@@ -90,8 +90,8 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
                   </div>
                 </div>
 
-                {/* Nút xóa thành viên */}
-                {/* nếu không phải  admin và hiện tại là member và hợp đông chưa kí thì hiện nút xóa */}
+                {/* Delete Member Button */}
+                {/* Show delete button if current user is admin, target is member, and contract not signed */}
                 {member?.groupRole === 'MEMBER' && currentUserRole === 'ADMIN' && !contractStatus && (
                   <button
                     onClick={() => handleOpenModal(member.userId!, member.userName || 'Member')}
@@ -107,23 +107,22 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
             ))}
           </ul>
         ) : (
-          // neu khong co thanh vien
+          // If no members
           <div className='py-24 px-6 flex flex-col items-center justify-center'>
             <div className='w-32 h-32 rounded-full bg-gradient-to-br from-cyan-400/20 to-sky-500/20 border-[3px] border-cyan-200/40 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(6,182,212,0.3)]'>
               <TeamOutlined className='text-6xl text-cyan-200/70 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]' />
             </div>
             <h3 className='text-2xl font-bold text-white mb-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'>
-              Chưa có thành viên nào
+              No members yet
             </h3>
             <p className='text-white/75 text-center max-w-md mb-6 font-medium'>
-              Hãy bắt đầu bằng cách mời thành viên đầu tiên vào nhóm của bạn. Họ sẽ nhận được email mời và có thể tham
-              gia ngay.
+              Start by inviting the first member to your group. They will receive an invitation email and can join immediately.
             </p>
           </div>
         )}
       </div>
 
-      {/* Modal xác nhận xóa */}
+      {/* Delete Confirmation Modal */}
       {isModalOpen && (
         <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm'>
           <div className='bg-white rounded-2xl shadow-2xl w-[500px] max-w-[90vw] overflow-hidden'>
@@ -131,7 +130,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
             <div className='px-6 py-4 bg-red-500 flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <ExclamationCircleOutlined className='text-2xl text-white' />
-                <h3 className='text-lg font-bold text-white'>Xác nhận xóa thành viên</h3>
+                <h3 className='text-lg font-bold text-white'>Confirm Remove Member</h3>
               </div>
               <button
                 onClick={handleCloseModal}
@@ -145,10 +144,10 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
             {/* Content */}
             <div className='px-6 py-6'>
               <p className='text-gray-700 text-base mb-2'>
-                Bạn có chắc chắn muốn xóa thành viên{' '}
-                <span className='font-bold text-red-600'>"{selectedMember?.userName}"</span> khỏi nhóm?
+                Are you sure you want to remove member{' '}
+                <span className='font-bold text-red-600'>"{selectedMember?.userName}"</span> from the group?
               </p>
-              <p className='text-gray-500 text-sm'>Hành động này không thể hoàn tác.</p>
+              <p className='text-gray-500 text-sm'>This action cannot be undone.</p>
             </div>
 
             {/* Footer */}
@@ -158,7 +157,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
                 disabled={deleteMemberMuation.isPending}
                 className='px-6 py-2.5 rounded-lg font-medium text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                Hủy
+                Cancel
               </button>
 
               <button
@@ -166,7 +165,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
                 disabled={deleteMemberMuation.isPending}
                 className='px-6 py-2.5 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                {deleteMemberMuation.isPending ? 'Đang xóa...' : 'Xóa'}
+                {deleteMemberMuation.isPending ? 'Removing...' : 'Remove'}
               </button>
             </div>
           </div>

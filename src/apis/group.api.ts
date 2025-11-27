@@ -131,6 +131,10 @@ const groupApi = {
   verifyCheckIn: (qrCode: string) => {
     return http.post<CheckInResponse>('api/vehicle-checks/qr-scan', { qrCode })
   },
+  // confirm check-in with signature
+  confirmCheckIn: (qrCode: string, signature?: string) => {
+    return http.post<CheckInResponse>('api/vehicle-checks/checkin/confirm', { qrCode, signature })
+  },
   // smart AI suggestions & analytics
   getSmartSuggestions: (groupId: string) => {
     return http.get<SmartSuggestionResponse>(`api/calendar/groups/${groupId}/smart-insights`)

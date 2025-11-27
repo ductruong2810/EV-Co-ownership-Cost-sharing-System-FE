@@ -120,7 +120,7 @@ const userApi = {
   },
 
   // send report checkout
-  sendCheckoutReport(body: CheckoutForm) {
+  sendCheckoutReport(body: CheckoutForm & { signature?: string }) {
     return http.post('api/vehicle-checks/checkout/submit', body)
   },
   // show page notification checkout

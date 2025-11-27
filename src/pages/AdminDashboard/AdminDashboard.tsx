@@ -213,6 +213,26 @@ export default function AdminDashboard() {
                     )}
                   </NavLink>
                 </li>
+                <li>
+                  <NavLink
+                    to={path.financialReports}
+                    className={({ isActive }) => {
+                      const activeClass = isActive
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-100'
+                      return `flex items-center ${sidebarCollapsed ? 'justify-center' : ''} rounded-lg ${activeClass} ${
+                        sidebarCollapsed ? 'p-3' : 'p-3'
+                      } text-sm font-medium transition-all duration-200`
+                    }}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <FileTextOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                        {!sidebarCollapsed && <span>Financial Reports</span>}
+                      </>
+                    )}
+                  </NavLink>
+                </li>
                 <div className='h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-3'></div>
               </div>
             )}

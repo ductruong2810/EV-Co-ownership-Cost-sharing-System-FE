@@ -46,7 +46,8 @@ const path = {
   checkBooking: 'checkBooking',
   bookingQr: 'bookingQr/:userId/:groupId',
   disputes: 'disputes',
-  disputeDetail: 'disputes/:disputeId'
+  disputeDetail: 'disputes/:disputeId',
+  financialReports: 'financialReports'
 } as const
 
 export default path
