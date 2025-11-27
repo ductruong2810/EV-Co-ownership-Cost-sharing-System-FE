@@ -21,7 +21,7 @@ export default function MemberGroup() {
     reset,
     formState: { errors }
   } = useForm<InviteSchema>({
-    resolver: yupResolver(inviteSchema)
+    resolver: yupResolver<FieldValues>(inviteSchema)
   })
   // hiển thị thông tin các member trong group
 

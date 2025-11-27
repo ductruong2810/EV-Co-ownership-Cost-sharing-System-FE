@@ -4,7 +4,7 @@ import authApi from '../../apis/auth.api'
 import { forgotPasswordSchema, type ForgotPasswordType } from '../../utils/rule'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import path from '../../constants/path'
 
 export default function ForgotPassword() {
@@ -13,7 +13,7 @@ export default function ForgotPassword() {
     handleSubmit,
     formState: { errors }
   } = useForm<ForgotPasswordType>({
-    resolver: yupResolver(forgotPasswordSchema)
+    resolver: yupResolver<FieldValues>(forgotPasswordSchema)
   })
   const navigate = useNavigate()
 

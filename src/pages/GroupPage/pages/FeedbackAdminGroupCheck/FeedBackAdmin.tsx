@@ -1,7 +1,7 @@
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, LeftOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 
 import MainContent from './components/MainContent'

@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons'
 import { Space, Modal, Avatar as AvatarIcon } from 'antd'
 import { useContext, useState } from 'react'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import path from '../../constants/path'
 import useCustomFloating from '../../hooks/useCustomFloating'
 import formatTimeAgo from '../../utils/caculatimeNotification'

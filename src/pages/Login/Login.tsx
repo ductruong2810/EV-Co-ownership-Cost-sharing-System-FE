@@ -4,7 +4,7 @@ import classNames from 'classnames'
 import { motion } from 'framer-motion'
 import { useContext } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import authApi from '../../apis/auth.api'
 import path from '../../constants/path'
@@ -21,7 +21,7 @@ export default function Login() {
     handleSubmit,
     formState: { errors }
   } = useForm<LoginSchema>({
-    resolver: yupResolver(loginSchema)
+    resolver: yupResolver<LoginSchema>(loginSchema)
   })
 
   const { setIsAuthenticated } = useContext(AppContext)

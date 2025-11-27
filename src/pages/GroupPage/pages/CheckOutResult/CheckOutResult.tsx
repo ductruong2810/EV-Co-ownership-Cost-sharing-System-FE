@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { CarOutlined, FileTextOutlined, ThunderboltOutlined, WarningOutlined } from '@ant-design/icons'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import userApi from '../../../../apis/user.api'
 import Skeleton from '../../../../components/Skeleton'
@@ -30,7 +30,7 @@ export default function CheckOutResult() {
     handleSubmit,
     formState: { errors }
   } = useForm<CheckoutForm>({
-    resolver: yupResolver(checkoutSchema)
+    resolver: yupResolver<FieldValues>(checkoutSchema)
   })
 
   const sendReport = useMutation({

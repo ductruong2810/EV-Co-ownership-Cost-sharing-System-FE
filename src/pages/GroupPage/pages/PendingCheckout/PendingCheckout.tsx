@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useParams } from 'react-router'
+import { useParams } from 'react-router-dom'
 import userApi from '../../../../apis/user.api'
 import Skeleton from '../../../../components/Skeleton'
 import PendingComponent from './PendingComponent'

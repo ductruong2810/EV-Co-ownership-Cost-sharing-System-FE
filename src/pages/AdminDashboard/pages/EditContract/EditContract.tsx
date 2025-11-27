@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react'
 import { Input, Select } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import adminApi from '../../../../apis/admin.api'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import Skeleton from '../../../../components/Skeleton'
 import logger from '../../../../utils/logger'
 

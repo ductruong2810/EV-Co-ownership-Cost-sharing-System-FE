@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink } from 'react-router-dom'
 import path from '../../constants/path'
 import classNames from 'classnames'
 

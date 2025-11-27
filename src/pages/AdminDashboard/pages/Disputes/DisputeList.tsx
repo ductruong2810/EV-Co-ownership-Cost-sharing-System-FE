@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Table, Tag, Select } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import disputeApi from '../../../../apis/dispute.api'
 import type { DisputeSummary } from '../../../../types/api/dispute.type'
 

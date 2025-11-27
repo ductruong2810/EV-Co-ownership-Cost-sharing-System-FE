@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import jsQR from 'jsqr'
 import { useMutation } from '@tanstack/react-query'
 import groupApi from '../../../../apis/group.api'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import { getGroupIdFromLS } from '../../../../utils/auth'
 
 interface CameraError extends Error {

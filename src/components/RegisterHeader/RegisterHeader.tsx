@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { Link, NavLink, useLocation } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import path from '../../constants/path'
 import { LOGO_URL } from '../../constants/images'
 

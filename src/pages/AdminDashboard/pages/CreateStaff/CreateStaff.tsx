@@ -46,7 +46,7 @@ export default function CreateStaff() {
     formState: { errors },
     reset
   } = useForm<CreateStaffForm>({
-    resolver: yupResolver(createStaffSchema)
+    resolver: yupResolver<FieldValues>(createStaffSchema)
   })
 
   // Query to get all staff

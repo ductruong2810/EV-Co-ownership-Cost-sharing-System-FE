@@ -46,7 +46,7 @@ export default function CreateTechnician() {
     formState: { errors },
     reset
   } = useForm<CreateTechnicianForm>({
-    resolver: yupResolver(createTechnicianSchema)
+    resolver: yupResolver<FieldValues>(createTechnicianSchema)
   })
 
   // Query to get all technicians

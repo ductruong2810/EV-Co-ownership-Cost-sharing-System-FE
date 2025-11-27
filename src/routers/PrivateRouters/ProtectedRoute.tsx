@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import { AppContext } from '../../contexts/app.context'
-import { Navigate, Outlet } from 'react-router'
+import { Navigate, Outlet } from 'react-router-dom'
 import path from '../../constants/path'
 
 function ProtectedRoute() {

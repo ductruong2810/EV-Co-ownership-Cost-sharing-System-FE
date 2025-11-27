@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import path from '../../../../constants/path'
 import { CloseCircleOutlined, HomeOutlined, ScanOutlined } from '@ant-design/icons'
 import { Button } from 'antd'

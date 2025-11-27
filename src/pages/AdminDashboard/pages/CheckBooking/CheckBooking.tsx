@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react'
 import staffApi from '../../../../apis/staff.api'
 import Skeleton from '../../../../components/Skeleton'
 import type { GetGroupById, UserOfStaff } from '../../../../types/api/staff.type'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import EmptyState from '../EmptyState'
 
 const { Option } = Select

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import path from '../../../../constants/path'
 import logo from '../../../../assets/z7052214352472_9110bb340043f5ad4f507f5a29909fc3.png'
 

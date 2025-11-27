@@ -1,7 +1,7 @@
 import { UsergroupAddOutlined } from '@ant-design/icons'
 import { Avatar, Tooltip } from 'antd'
 import { useContext } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import groupApi from '../../../../../../apis/group.api'
 import { GroupContext } from '../../../../../../hooks/useGroupList'
 import type { GroupItem } from '../../../../../../types/api/group.type'

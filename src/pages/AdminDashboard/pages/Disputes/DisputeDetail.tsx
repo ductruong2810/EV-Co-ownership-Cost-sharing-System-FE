@@ -1,6 +1,6 @@
 import { Button, Card, Descriptions, Form, Input, Select, Space, Tag } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect } from 'react'
 import disputeApi from '../../../../apis/dispute.api'
 import type { DisputeComment } from '../../../../types/api/dispute.type'

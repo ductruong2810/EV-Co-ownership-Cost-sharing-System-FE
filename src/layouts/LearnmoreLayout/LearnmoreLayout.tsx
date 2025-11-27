@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { Outlet } from 'react-router-dom'
 
 import LearnmoreHeader from '../../components/LearnmoreHeader'
 import Footer from '../../components/Footer/Footer'

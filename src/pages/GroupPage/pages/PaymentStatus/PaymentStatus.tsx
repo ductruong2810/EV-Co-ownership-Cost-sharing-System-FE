@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import groupApi from '../../../../apis/group.api'
 import { formatToVND } from '../../../../utils/formatPrice'
 import { useEffect } from 'react'

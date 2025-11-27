@@ -20,7 +20,7 @@ function ResetPassword() {
     handleSubmit,
     formState: { errors }
   } = useForm<ResetPasswordType>({
-    resolver: yupResolver(resetPasswordSchema)
+    resolver: yupResolver<FieldValues>(resetPasswordSchema)
   })
 
   const resetPasswordMutation = useMutation({

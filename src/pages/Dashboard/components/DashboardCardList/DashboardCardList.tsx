@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useRef } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import groupApi from '../../../../apis/group.api'
 import path from '../../../../constants/path'
 import DashboardCardElement from './DashboardCardElement'

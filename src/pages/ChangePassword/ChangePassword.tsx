@@ -18,7 +18,7 @@ export default function ChangePassword() {
     handleSubmit,
     formState: { errors }
   } = useForm<ChangePasswordSchema>({
-    resolver: yupResolver(changePasswordSchema)
+    resolver: yupResolver<FieldValues>(changePasswordSchema)
   })
 
   const [show, setShow] = useState({

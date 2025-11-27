@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router-dom'
 import authApi from '../../apis/auth.api'
 import path from '../../constants/path'
 import { registerSchema, type RegisterSchema } from '../../utils/rule'
@@ -15,7 +15,7 @@ export default function Register() {
     handleSubmit,
     formState: { errors }
   } = useForm<RegisterSchema>({
-    resolver: yupResolver(registerSchema)
+    resolver: yupResolver<FieldValues>(registerSchema)
   })
 
   const navigate = useNavigate()

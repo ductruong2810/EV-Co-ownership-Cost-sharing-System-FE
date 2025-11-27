@@ -2,7 +2,7 @@
 import { ClockCircleOutlined, ToolOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import { Card, Tag } from 'antd'
-import { useParams } from 'react-router'
+import { useParams } from 'react-router-dom'
 import groupApi from '../../../../apis/group.api'
 
 import { setGroupIdToLS } from '../../../../utils/auth'

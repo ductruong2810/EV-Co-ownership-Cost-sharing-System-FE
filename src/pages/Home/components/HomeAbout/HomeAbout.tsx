@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
-import { useLocation } from 'react-router'
+import { useLocation } from 'react-router-dom'
 export default function HomeAbout() {
   //Trên đường dẫn lấy sau dấu #
   const { hash } = useLocation()

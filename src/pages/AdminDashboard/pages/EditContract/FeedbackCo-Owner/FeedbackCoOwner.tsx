@@ -1,7 +1,7 @@
 import { CheckCircleOutlined, ClockCircleOutlined, LeftOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 import adminApi from '../../../../../apis/admin.api'
 import type { FeedbackItem } from '../../../../../types/api/admin.type'
 import MainContent from './components/MainContent'

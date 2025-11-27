@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import path from '../../constants/path'
 import { useMutation } from '@tanstack/react-query'
 import authApi from '../../apis/auth.api'

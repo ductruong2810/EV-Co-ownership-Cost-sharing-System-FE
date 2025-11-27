@@ -6,10 +6,10 @@ if (typeof global === 'undefined') {
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
+import App from './App'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { AppProvider } from './contexts/app.context.tsx'
+import { AppProvider } from './contexts/app.context'
 
 // Create a client
 const queryClient = new QueryClient({

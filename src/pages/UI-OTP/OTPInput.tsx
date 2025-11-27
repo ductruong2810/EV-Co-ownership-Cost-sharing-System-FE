@@ -1,7 +1,7 @@
 import { ArrowLeftOutlined, CheckCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import authApi from '../../apis/auth.api'
 import Skeleton from '../../components/Skeleton'

@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import type { SubmitHandler } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { Fragment } from 'react/jsx-runtime'
 import { useEffect, useState } from 'react'
@@ -26,8 +26,8 @@ export default function CreateGroups() {
     watch,
     setValue,
     formState: { errors }
-  } = useForm({
-    resolver: yupResolver(createGroupSchema),
+  } = useForm<FieldValues>({
+    resolver: yupResolver<FieldValues>(createGroupSchema),
     mode: 'onSubmit',
     defaultValues: {
       vehicleImage: null,
