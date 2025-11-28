@@ -1,8 +1,9 @@
 import axios, { AxiosError, HttpStatusCode, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
 import config from '../constants/config'
 import { clearLS, getAccessTokenFromLS, getRefreshTokenFromLS, setAccessTokenToLS, setRefreshTokenToLS } from './auth'
-import { toast } from 'react-toastify'
-import { getUserFriendlyError, logError } from './errorHandler'
+import { logError, convertToErrorInfo } from './errorHandler'
+import { showErrorToast } from '../components/Error/ErrorToast'
+import { ErrorSeverity } from '../types/error.type'
 import logger from './logger'
 import authApi from '../apis/auth.api'
 
@@ -170,28 +171,50 @@ class Http {
                                  error.config?.url?.includes('/groups/with-vehicle') ||
                                  error.config?.url?.includes('/ocr/')
 
+        // Only show toast if not handled elsewhere and not a validation/upload/auth error
         if (
           error.response?.status !== HttpStatusCode.UnprocessableEntity &&
           !isHandlingRefresh &&
-          !isUploadEndpoint
+          !isUploadEndpoint &&
+          !isAuthEndpoint
         ) {
           try {
-            const message = getUserFriendlyError(error)
-            toast.error(message, {
-              autoClose: 3000,
-              position: 'top-right'
-            })
+            const errorInfo = convertToErrorInfo(error)
+            
+            // Create unique toast ID based on URL and status to prevent duplicates from same request
+            const url = error.config?.url || 'unknown'
+            const status = error.response?.status || 0
+            const toastId = `http-error-${url}-${status}`
+            
+            // Show toast for non-critical errors
+            if (errorInfo.severity !== ErrorSeverity.CRITICAL) {
+              showErrorToast(errorInfo, {
+                toastId, // Same toastId for same URL+status prevents duplicates
+                autoClose: errorInfo.severity === ErrorSeverity.HIGH ? 5000 : 3000
+              })
+            } else {
+              // Critical errors should be handled by ErrorModal (can be added later)
+              showErrorToast(errorInfo, {
+                toastId, // Same toastId for same URL+status prevents duplicates
+                autoClose: false
+              })
+            }
           } catch (e) {
-            // Nếu có lỗi khi parse error message, hiển thị message mặc định
+            // Fallback if error conversion fails
             logger.error('Error parsing error message:', e)
             const errorData = error.response?.data as any
             const defaultMessage = errorData?.message || 
                                   errorData?.error || 
                                   error.message || 
                                   'An error occurred. Please try again.'
-            toast.error(defaultMessage, {
-              autoClose: 3000,
-              position: 'top-right'
+            
+            showErrorToast({
+              type: 'UNKNOWN' as any,
+              severity: ErrorSeverity.MEDIUM,
+              message: defaultMessage,
+              timestamp: new Date()
+            }, {
+              toastId: `http-error-fallback-${Date.now()}`
             })
           }
         }

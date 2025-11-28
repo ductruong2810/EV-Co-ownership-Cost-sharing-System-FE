@@ -48,6 +48,7 @@ import Learnmore from '../pages/Learnmore'
 import Login from '../pages/Login'
 import MyAccount from '../pages/MyAccount'
 import NotFound from '../pages/NotFound'
+import ErrorPage from '../components/Error/ErrorPage'
 import PaymentHistory from '../pages/PaymentHistory'
 import Register from '../pages/Register'
 import ResetPassword from '../pages/ResetPassword'
@@ -61,7 +62,8 @@ import CheckOutResult from '../pages/GroupPage/pages/CheckOutResult'
 import CheckQRFail from '../pages/GroupPage/pages/CheckQRFail/CheckQRFail'
 
 function Routers() {
-  const routers = createBrowserRouter([
+  const routers = createBrowserRouter(
+    [
     // --- PUBLIC ROUTE ---
     {
       path: '/',
@@ -163,9 +165,43 @@ function Routers() {
           ]
         },
 
-        // --- STAFF & ADMIN & TECHNICIAN (Shared Routes) ---
+        // --- ADMIN ONLY (Extra Routes) - Phải đặt trước STAFF để ADMIN match route này trước ---
         {
-          element: <RoleCheck allowedRoles={['STAFF', 'ADMIN']} />,
+          element: <RoleCheck allowedRoles={['ADMIN']} />,
+          children: [
+            {
+              path: path.adminDashboard,
+              element: <ManagerLayout />,
+              children: [
+                {
+                  element: <AdminDashboard />,
+                  children: [
+                    { index: true, element: <AdminDashboardPage /> },
+                    { path: 'dashboard', element: <AdminDashboardPage /> },
+                    { path: 'groups', element: <CheckGroup /> },
+                    { path: 'checkContract', element: <CheckContract /> },
+                    { path: 'editContract', element: <EditContract /> },
+                    { path: 'feedbackCo-Owner/:contractId/:groupId/:groupName', element: <FeedbackCoOwner /> },
+                    { path: 'editContractDetail/:contractId/:groupId', element: <ModalEditContract /> },
+                    { path: 'createStaff', element: <CreateStaff /> },
+                    { path: 'createTechnician', element: <CreateTechnician /> },
+                    { path: path.financialReports, element: <FinancialReports /> },
+                    // Shared routes cho ADMIN
+                    { path: path.checkLicense, element: <CheckLicense /> },
+                    { path: path.checkBooking, element: <CheckBooking /> },
+                    { path: path.bookingQr, element: <BookingQr /> },
+                    { path: path.disputes, element: <DisputeList /> },
+                    { path: path.disputeDetail, element: <DisputeDetail /> }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        // --- STAFF ONLY (Shared Routes) ---
+        {
+          element: <RoleCheck allowedRoles={['STAFF']} />,
           children: [
             {
               path: path.adminDashboard,
@@ -186,45 +222,29 @@ function Routers() {
               ]
             }
           ]
-        },
-
-        // --- ADMIN ONLY (Extra Routes) ---
-        {
-          element: <RoleCheck allowedRoles={['ADMIN']} />,
-          children: [
-            {
-              path: path.adminDashboard,
-              element: <ManagerLayout />,
-              children: [
-                {
-                  element: <AdminDashboard />,
-                  children: [
-                    { index: true, element: <AdminDashboardPage /> },
-                    { path: 'dashboard', element: <AdminDashboardPage /> },
-                    { path: 'checkContract', element: <CheckContract /> },
-                    { path: 'editContract', element: <EditContract /> },
-                    { path: 'feedbackCo-Owner/:contractId/:groupId/:groupName', element: <FeedbackCoOwner /> },
-                    { path: 'editContractDetail/:contractId/:groupId', element: <ModalEditContract /> },
-                    { path: 'createStaff', element: <CreateStaff /> },
-                    { path: 'createTechnician', element: <CreateTechnician /> },
-                    { path: path.financialReports, element: <FinancialReports /> }
-                  ]
-                }
-              ]
-            }
-          ]
         }
       ]
     },
 
     { path: '/demoOTP', element: <OTPInput /> },
 
+    // Error pages
+    { path: '/404', element: <ErrorPage statusCode={404} /> },
+    { path: '/500', element: <ErrorPage statusCode={500} /> },
+    { path: '/403', element: <ErrorPage statusCode={403} /> },
+    { path: '/401', element: <ErrorPage statusCode={401} /> },
+
     {
       path: '*',
       element: <RegisterLayout />,
       children: [{ path: '*', element: <NotFound /> }]
     }
-  ])
+  ],
+  {
+    future: {
+      v7_startTransition: true
+    }
+  })
 
   return <RouterProvider router={routers} />
 }

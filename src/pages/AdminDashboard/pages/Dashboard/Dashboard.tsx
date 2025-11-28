@@ -10,7 +10,13 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  LineChartOutlined
+  LineChartOutlined,
+  WarningOutlined,
+  ToolOutlined,
+  FundProjectionScreenOutlined,
+  ExclamationCircleOutlined,
+  BankOutlined,
+  ShoppingOutlined
 } from '@ant-design/icons'
 import { Column, Pie, Line, Bar } from '@ant-design/plots'
 import type { PieConfig, ColumnConfig, LineConfig, BarConfig } from '@ant-design/plots'
@@ -25,15 +31,23 @@ const { RangePicker } = DatePicker
 const { MonthPicker } = DatePicker
 const { Option } = Select
 
-const formatCurrency = (amount: number) => {
+const formatCurrency = (amount: number | null | undefined) => {
+  // Handle null, undefined, NaN, or invalid numbers
+  if (amount === null || amount === undefined || isNaN(Number(amount)) || !isFinite(Number(amount))) {
+    return '0 ₫'
+  }
+  const numAmount = Number(amount)
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND'
-  }).format(amount)
+  }).format(numAmount)
 }
 
 // Format currency for display in cards (shorter format for large numbers)
-const formatCurrencyCompact = (amount: number) => {
+const formatCurrencyCompact = (amount: number | undefined | null) => {
+  if (!amount || isNaN(amount) || amount === 0) {
+    return '0 ₫'
+  }
   if (amount >= 1000000000) {
     // Billions - format as "X.XXB ₫"
     return `${(amount / 1000000000).toFixed(2)}B ₫`
@@ -169,17 +183,97 @@ export default function Dashboard() {
     queryFn: () => {
       const params: any = { periodType }
       if (dateRange[0] && dateRange[1]) {
-        params.fromDate = dateRange[0].format('YYYY-MM-DD')
-        params.toDate = dateRange[1].format('YYYY-MM-DD')
+        // Backend expects 'from' and 'to' with ISO_DATE_TIME format (includes time)
+        params.from = dateRange[0].startOf('day').format('YYYY-MM-DDTHH:mm:ss')
+        params.to = dateRange[1].endOf('day').format('YYYY-MM-DDTHH:mm:ss')
       }
       return adminApi.getDashboardStatistics(params)
     },
-    refetchInterval: 30000,
+    refetchInterval: (query) => {
+      // Disable auto-refetch nếu có lỗi network/server
+      const error = query.state.error as any
+      const isNetworkError = !error?.response || error?.code === 'ECONNABORTED'
+      const isServerError = error?.response?.status >= 500
+      
+      // Nếu backend down, không auto-refetch (tránh spam requests)
+      if (isNetworkError || isServerError) {
+        return false
+      }
+      return 30000 // Normal: refetch every 30s
+    },
     retry: 1, // Chỉ retry 1 lần khi lỗi
     retryOnMount: false // Không retry khi mount lại
   })
 
-  const statistics: DashboardStatistics | undefined = data?.data?.data
+  const rawStatistics = data?.data
+
+  // Debug: Log raw statistics to see what backend returns
+  if (rawStatistics) {
+    console.log('🔍 Raw Statistics from Backend:', {
+      totalPaymentAmount: rawStatistics.totalPaymentAmount,
+      totalExpenseAmount: rawStatistics.totalExpenseAmount,
+      payments: rawStatistics.payments,
+      totalPayments: rawStatistics.totalPayments
+    })
+  }
+
+  // Map backend response to frontend expected format
+  const statistics: DashboardStatistics | undefined = rawStatistics ? {
+    totalUsers: rawStatistics.totalUsers || 0,
+    activeUsers: rawStatistics.usersByStatus?.ACTIVE || 0,
+    totalCoOwners: rawStatistics.usersByRole?.CO_OWNER || 0,
+    totalStaff: rawStatistics.usersByRole?.STAFF || 0,
+    totalTechnicians: rawStatistics.usersByRole?.TECHNICIAN || 0,
+    totalAdmins: rawStatistics.usersByRole?.ADMIN || 0,
+    totalGroups: rawStatistics.totalGroups || 0,
+    activeGroups: rawStatistics.groupsByStatus?.ACTIVE || 0,
+    pendingGroups: rawStatistics.groupsByStatus?.PENDING || 0,
+    closedGroups: rawStatistics.groupsByStatus?.CLOSED || 0,
+    totalVehicles: rawStatistics.totalVehicles || 0,
+    totalContracts: rawStatistics.totalContracts || 0,
+    pendingContracts: rawStatistics.contractsByStatus?.PENDING || 0,
+    signedContracts: rawStatistics.contractsByStatus?.SIGNED || 0,
+    approvedContracts: rawStatistics.contractsByStatus?.APPROVED || 0,
+    rejectedContracts: rawStatistics.contractsByStatus?.REJECTED || 0,
+    // Revenue: Try payments.totalAmount first (nested DTO), then fallback to totalPaymentAmount
+    totalRevenue: (() => {
+      const paymentAmount = rawStatistics.payments?.totalAmount || rawStatistics.totalPaymentAmount
+      if (paymentAmount != null) {
+        const numAmount = Number(paymentAmount)
+        if (!isNaN(numAmount) && isFinite(numAmount)) {
+          return numAmount
+        }
+      }
+      return 0
+    })(),
+    totalPayments: rawStatistics.totalPayments || 0,
+    // Use nested DTO if available, fallback to Map
+    successfulPayments: rawStatistics.payments?.completed || rawStatistics.paymentsByStatus?.COMPLETED || 0,
+    pendingPayments: rawStatistics.payments?.pending || rawStatistics.paymentsByStatus?.PENDING || 0,
+    failedPayments: rawStatistics.payments?.failed || rawStatistics.paymentsByStatus?.FAILED || 0,
+    totalBookings: rawStatistics.totalBookings || 0,
+    confirmedBookings: rawStatistics.bookingsByStatus?.CONFIRMED || 0,
+    completedBookings: rawStatistics.bookingsByStatus?.COMPLETED || 0,
+    newUsersLast30Days: 0, // Backend doesn't provide this yet
+    newGroupsLast30Days: 0, // Backend doesn't provide this yet
+    newContractsLast30Days: 0, // Backend doesn't provide this yet
+    usersByRole: rawStatistics.usersByRole || {},
+    groupsByStatus: rawStatistics.groupsByStatus || {},
+    contractsByStatus: rawStatistics.contractsByStatus || {},
+    revenueByMonth: rawStatistics.revenueByPeriod || {}, // Use revenueByPeriod from backend
+    // Additional fields from backend
+    totalDisputes: rawStatistics.totalDisputes || 0,
+    disputesByStatus: rawStatistics.disputesByStatus || {},
+    totalIncidents: rawStatistics.totalIncidents || 0,
+    incidentsByStatus: rawStatistics.incidentsByStatus || {},
+    totalMaintenances: rawStatistics.totalMaintenances || 0,
+    maintenancesByStatus: rawStatistics.maintenancesByStatus || {},
+    bookingsByStatus: rawStatistics.bookingsByStatus || {},
+    totalExpenses: rawStatistics.totalExpenses || 0,
+    totalExpenseAmount: (rawStatistics.totalExpenseAmount && !isNaN(Number(rawStatistics.totalExpenseAmount))) ? Number(rawStatistics.totalExpenseAmount) : 0,
+    totalFunds: rawStatistics.totalFunds || 0,
+    totalFundBalance: rawStatistics.totalFundBalance ? Number(rawStatistics.totalFundBalance) : 0
+  } : undefined
 
   // Helper function to format role name
   const formatRoleName = (role: string) => {
@@ -236,9 +330,9 @@ export default function Dashboard() {
 
   // Payment Status Data for Pie Chart
   const paymentStatusData = statistics ? [
-    { type: 'Success', value: statistics.successfulPayments || 0 },
-    { type: 'Pending', value: statistics.pendingPayments || 0 },
-    { type: 'Failed', value: statistics.failedPayments || 0 }
+    { type: 'Success', value: Number(statistics.successfulPayments) || 0 },
+    { type: 'Pending', value: Number(statistics.pendingPayments) || 0 },
+    { type: 'Failed', value: Number(statistics.failedPayments) || 0 }
   ].filter((d) => d.value > 0) : []
 
   // Revenue Data for Line Chart (trend)
@@ -263,11 +357,18 @@ export default function Dashboard() {
       return datum.color || roleColorMap[datum.type] || '#1890ff'
     },
     label: {
-      offset: 12,
-      content: (item: any) => `${item.type}: ${item.value} users`,
+      type: 'inner',
+      offset: '-30%',
+      content: ({ type, value }: any) => {
+        if (!type || value === undefined || value === null) return ''
+        return `${type}\n${value}`
+      },
       style: {
         fontSize: 12,
-        fontWeight: 500
+        fontWeight: 600,
+        textAlign: 'center',
+        fill: '#ffffff', // White text for better visibility
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)' // Shadow for better readability
       }
     },
     legend: {
@@ -300,6 +401,9 @@ export default function Dashboard() {
     }))
     .filter((d) => d.value > 0)
 
+  // Debug: Log groups by status data
+  console.log('Groups by status data:', groupsByStatusData)
+
   const groupsByStatusPieConfig: PieConfig = {
     data: groupsByStatusData,
     angleField: 'value',
@@ -307,9 +411,18 @@ export default function Dashboard() {
     radius: 0.8,
     color: ['#52c41a', '#faad14', '#ff4d4f'], // Green, Yellow, Red for Active, Pending, Inactive
     label: {
-      offset: 12,
-      content: (item: any) => `${item.type}: ${item.value}`,
-      style: { fontWeight: 500 }
+      type: 'inner',
+      offset: '-30%',
+      content: ({ type, value }: any) => {
+        if (!type || value === undefined || value === null) return ''
+        return `${type}\n${value}`
+      },
+      style: { 
+        fontWeight: 600,
+        textAlign: 'center',
+        fill: '#ffffff', // White text for better visibility
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)' // Shadow for better readability
+      }
     },
     legend: {
       position: 'bottom'
@@ -333,6 +446,12 @@ export default function Dashboard() {
       formatter: (datum: any) => {
         const value = Number(datum.revenue)
         return value > 0 ? formatCurrency(value) : ''
+      },
+      style: {
+        fill: '#1f2937', // Dark gray instead of black
+        fontSize: 12,
+        fontWeight: 600,
+        textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)' // White shadow for contrast
       }
     },
     meta: {
@@ -346,7 +465,12 @@ export default function Dashboard() {
     },
     xAxis: {
       label: {
-        autoRotate: false
+        autoRotate: false,
+        style: {
+          fill: '#4b5563', // Medium gray instead of black
+          fontSize: 12,
+          fontWeight: 500
+        }
       }
     },
     yAxis: {
@@ -359,6 +483,11 @@ export default function Dashboard() {
             return `${(value / 1000).toFixed(1)}K`
           }
           return value.toString()
+        },
+        style: {
+          fill: '#4b5563', // Medium gray instead of black
+          fontSize: 12,
+          fontWeight: 500
         }
       }
     },
@@ -373,13 +502,179 @@ export default function Dashboard() {
     radius: 0.8,
     color: ['#52c41a', '#faad14', '#ff4d4f'], // Green, Yellow, Red
     label: {
-      offset: 12,
-      content: (item: any) => `${item.type}: ${item.value}`,
-      style: { fontWeight: 500 }
+      type: 'inner',
+      offset: '-30%',
+      content: ({ type, value }: any) => {
+        if (!type || value === undefined || value === null || isNaN(value)) return ''
+        return `${type}\n${value}`
+      },
+      style: { 
+        fontWeight: 600,
+        textAlign: 'center',
+        fill: '#ffffff', // White text for better visibility
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)' // Shadow for better readability
+      }
     },
     interactions: [{ type: 'elementActive' }],
     legend: {
       position: 'bottom'
+    },
+    autoFit: true
+  }
+
+  // 4. Bookings by Status Data and Chart
+  const bookingsByStatusEntries = statistics ? Object.entries(statistics.bookingsByStatus || {}) : []
+  const bookingsByStatusData = bookingsByStatusEntries
+    .map(([status, count]) => ({
+      type: formatStatusName(status),
+      value: Number(count) || 0
+    }))
+    .filter((d) => d.value > 0)
+
+  const bookingsByStatusPieConfig: PieConfig = {
+    data: bookingsByStatusData,
+    angleField: 'value',
+    colorField: 'type',
+    radius: 0.8,
+    color: ['#1890ff', '#52c41a', '#faad14', '#ff4d4f'], // Blue, Green, Yellow, Red
+    label: {
+      type: 'inner',
+      offset: '-30%',
+      content: ({ type, value }: any) => {
+        if (!type || value === undefined || value === null || isNaN(value)) return ''
+        return `${type}\n${value}`
+      },
+      style: { 
+        fontWeight: 500,
+        textAlign: 'center'
+      }
+    },
+    legend: {
+      position: 'bottom'
+    },
+    interactions: [{ type: 'elementActive' }],
+    autoFit: true
+  }
+
+  // 5. Contracts by Status Data and Chart
+  const contractsByStatusEntries = statistics ? Object.entries(statistics.contractsByStatus || {}) : []
+  const contractsByStatusData = contractsByStatusEntries
+    .map(([status, count]) => ({
+      type: formatStatusName(status),
+      value: Number(count) || 0
+    }))
+    .filter((d) => d.value > 0)
+
+  const contractsByStatusPieConfig: PieConfig = {
+    data: contractsByStatusData,
+    angleField: 'value',
+    colorField: 'type',
+    radius: 0.8,
+    color: ['#faad14', '#52c41a', '#ff4d4f', '#1890ff'], // Yellow, Green, Red, Blue
+    label: {
+      type: 'inner',
+      offset: '-30%',
+      content: ({ type, value }: any) => {
+        if (!type || value === undefined || value === null || isNaN(value)) return ''
+        return `${type}\n${value}`
+      },
+      style: { 
+        fontWeight: 500,
+        textAlign: 'center'
+      }
+    },
+    legend: {
+      position: 'bottom'
+    },
+    interactions: [{ type: 'elementActive' }],
+    autoFit: true
+  }
+
+  // 6. Expenses vs Revenue Comparison Chart
+  // Debug: Log financial data
+  if (statistics) {
+    console.log('💰 Financial Data:', {
+      totalRevenue: statistics.totalRevenue,
+      totalExpenseAmount: statistics.totalExpenseAmount,
+      rawTotalRevenue: rawStatistics?.totalPaymentAmount,
+      rawTotalExpenseAmount: rawStatistics?.totalExpenseAmount,
+      paymentsObject: rawStatistics?.payments
+    })
+  }
+
+  const financialComparisonData = statistics ? [
+    {
+      type: 'Revenue',
+      amount: (() => {
+        // Try multiple sources for revenue
+        const rev = statistics.totalRevenue || 
+                   rawStatistics?.payments?.totalAmount || 
+                   rawStatistics?.totalPaymentAmount || 
+                   0
+        const numRev = Number(rev)
+        return (rev !== null && rev !== undefined && !isNaN(numRev) && isFinite(numRev)) ? numRev : 0
+      })()
+    },
+    {
+      type: 'Expenses',
+      amount: (() => {
+        const exp = statistics.totalExpenseAmount || rawStatistics?.totalExpenseAmount || 0
+        const numExp = Number(exp)
+        return (exp !== null && exp !== undefined && !isNaN(numExp) && isFinite(numExp)) ? numExp : 0
+      })()
+    }
+  ] : [] // Always show both Revenue and Expenses, even if 0
+
+  const financialComparisonConfig: ColumnConfig = {
+    data: financialComparisonData,
+    xField: 'type',
+    yField: 'amount',
+    color: ['#52c41a', '#ff4d4f'], // Green for Revenue, Red for Expenses
+    label: {
+      position: 'top',
+      formatter: (datum: any) => {
+        const amount = datum.amount
+        // Don't show label if amount is 0, null, undefined, or invalid
+        if (amount === null || amount === undefined || isNaN(Number(amount)) || !isFinite(Number(amount)) || Number(amount) === 0) {
+          return '' // Return empty string to hide label
+        }
+        return formatCurrency(Number(amount))
+      },
+      style: {
+        fill: '#1f2937', // Dark gray instead of black for better readability
+        fontSize: 13,
+        fontWeight: 600,
+        textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)' // White shadow for contrast
+      }
+    },
+    meta: {
+      amount: {
+        alias: 'Amount',
+        formatter: (value: number) => {
+          if (value === null || value === undefined || isNaN(Number(value)) || !isFinite(Number(value))) {
+            return '0 ₫'
+          }
+          return formatCurrency(Number(value))
+        }
+      }
+    },
+    xAxis: {
+      label: {
+        style: {
+          fill: '#4b5563', // Medium gray instead of black
+          fontSize: 13,
+          fontWeight: 500
+        }
+      }
+    },
+    yAxis: {
+      label: {
+        style: {
+          fill: '#4b5563', // Medium gray instead of black
+          fontSize: 12,
+          fontWeight: 500
+        }
+      }
     },
     autoFit: true
   }
@@ -405,14 +700,25 @@ export default function Dashboard() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6'>
-      <div className='max-w-7xl mx-auto'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        {/* Header Section */}
         <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Dashboard Report</h1>
-          <p className='text-gray-600'>System overview and statistics</p>
+          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+            <div>
+              <h1 className='text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-2'>
+                Dashboard Report
+              </h1>
+              <p className='text-gray-600 text-lg'>System overview and statistics</p>
+            </div>
+            <div className='flex items-center gap-2 text-sm text-gray-500'>
+              <CalendarOutlined />
+              <span>{dayjs().format('DD MMMM YYYY')}</span>
+            </div>
+          </div>
         </div>
 
-        {/* Error Alert - Always show filters even when error */}
+        {/* Error Alert */}
         {error && (
           <Alert
             message='Failed to load data'
@@ -420,181 +726,193 @@ export default function Dashboard() {
             type='error'
             showIcon
             closable
-            className='mb-4'
+            className='mb-6 rounded-lg shadow-sm border-l-4 border-red-500'
             action={
-              <Button size='small' onClick={() => refetch()}>
+              <Button size='small' type='primary' onClick={() => refetch()}>
                 Retry
               </Button>
             }
           />
         )}
 
-        {/* Loading overlay - Only show spinner, keep filters visible */}
+        {/* Loading State */}
         {isLoading && (
-          <div className='mb-4 flex items-center justify-center py-4'>
-            <Spin size='small' /> <span className='ml-2 text-gray-600'>Loading data...</span>
+          <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+            <Spin size='large' />
+            <span className='ml-3 text-gray-600 font-medium'>Loading dashboard data...</span>
           </div>
         )}
         
         {/* Date Filter Section */}
-        <Card className='shadow-lg border border-gray-200 mb-6'>
-            <div className='mb-4'>
-              <span className='text-sm font-semibold text-gray-700'>Filter by time:</span>
-            </div>
-            
-            {/* Preset Buttons */}
-            <div className='mb-4 flex flex-wrap gap-2'>
+        <Card 
+          className='mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm'
+          styles={{ body: { padding: '24px' } }}
+        >
+          <div className='mb-6'>
+            <h3 className='text-lg font-semibold text-gray-800 mb-1'>Filter by time</h3>
+            <p className='text-sm text-gray-500'>Select a time period to view statistics</p>
+          </div>
+          
+          {/* Preset Buttons */}
+          <div className='mb-6 flex flex-wrap gap-2'>
+            {[
+              { key: 'all', label: 'All' },
+              { key: 'today', label: 'Today' },
+              { key: 'thisWeek', label: 'This Week' },
+              { key: 'thisMonth', label: 'This Month' },
+              { key: 'last7Days', label: 'Last 7 Days' },
+              { key: 'last30Days', label: 'Last 30 Days' }
+            ].map((preset) => (
               <Button
-                type={isPresetActive('all') ? 'primary' : 'default'}
-                onClick={() => handlePresetClick('all')}
-                className='shadow-sm'
+                key={preset.key}
+                type={isPresetActive(preset.key) ? 'primary' : 'default'}
+                onClick={() => handlePresetClick(preset.key)}
+                className={`transition-all duration-200 ${
+                  isPresetActive(preset.key)
+                    ? 'shadow-md scale-105'
+                    : 'hover:shadow-sm hover:scale-102'
+                }`}
+                size='middle'
               >
-                All
+                {preset.label}
               </Button>
-              <Button
-                type={isPresetActive('today') ? 'primary' : 'default'}
-                onClick={() => handlePresetClick('today')}
-                className='shadow-sm'
-              >
-                Today
-              </Button>
-              <Button
-                type={isPresetActive('thisWeek') ? 'primary' : 'default'}
-                onClick={() => handlePresetClick('thisWeek')}
-                className='shadow-sm'
-              >
-                This Week
-              </Button>
-              <Button
-                type={isPresetActive('thisMonth') ? 'primary' : 'default'}
-                onClick={() => handlePresetClick('thisMonth')}
-                className='shadow-sm'
-              >
-                This Month
-              </Button>
-              <Button
-                type={isPresetActive('last7Days') ? 'primary' : 'default'}
-                onClick={() => handlePresetClick('last7Days')}
-                className='shadow-sm'
-              >
-                Last 7 Days
-              </Button>
-              <Button
-                type={isPresetActive('last30Days') ? 'primary' : 'default'}
-                onClick={() => handlePresetClick('last30Days')}
-                className='shadow-sm'
-              >
-                Last 30 Days
-              </Button>
-            </div>
+            ))}
+          </div>
 
-            {/* Date Filters */}
-            <Space wrap className='w-full'>
-          <Select
-            value={periodType}
-            onChange={(value) => setPeriodType(value)}
-                style={{ width: 140 }}
-                className='shadow-sm'
-          >
-                <Option value='DAY'>By Day</Option>
-            <Option value='WEEK'>By Week</Option>
-            <Option value='MONTH'>By Month</Option>
-          </Select>
-              
-              <MonthPicker
-                value={selectedMonth}
-                onChange={handleMonthChange}
-                format='MM/YYYY'
-                placeholder='Select month'
-                style={{ width: 160 }}
-                className='shadow-sm'
-              />
-              
-          <RangePicker
-            value={dateRange}
-            onChange={handleRangeChange}
-            format='DD/MM/YYYY'
-            placeholder={['From date', 'To date']}
-                style={{ width: 320 }}
-                className='shadow-sm'
-          />
-            </Space>
-          </Card>
+          {/* Date Filters */}
+          <div className='flex flex-wrap gap-3 items-center'>
+            <Select
+              value={periodType}
+              onChange={(value) => setPeriodType(value)}
+              style={{ width: 140 }}
+              className='rounded-lg'
+            >
+              <Option value='DAY'>By Day</Option>
+              <Option value='WEEK'>By Week</Option>
+              <Option value='MONTH'>By Month</Option>
+            </Select>
+            
+            <MonthPicker
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              format='MM/YYYY'
+              placeholder='Select month'
+              style={{ width: 160 }}
+              className='rounded-lg'
+            />
+            
+            <RangePicker
+              value={dateRange}
+              onChange={handleRangeChange}
+              format='DD/MM/YYYY'
+              placeholder={['From date', 'To date']}
+              style={{ width: 320 }}
+              className='rounded-lg'
+            />
+          </div>
+        </Card>
 
         {/* Main Content */}
-      {/* Overview Cards */}
+        {/* Overview Cards */}
         {statistics ? (
-          <Row gutter={[20, 20]} className='mb-8'>
-        <Col xs={24} sm={12} lg={6}>
+          <Row gutter={[24, 24]} className='mb-8'>
+            <Col xs={24} sm={12} lg={6}>
               <Card 
-                className='shadow-md hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-green-500 h-full'
-                bodyStyle={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-green-50 to-emerald-50'
+                styles={{ body: { padding: '28px' } }}
               >
-            <Statistic
-                  title={<span className='text-gray-600 font-medium'>Total Users</span>}
-              value={statistics.totalUsers}
-                  prefix={<UserOutlined className='text-green-500' />}
-                  valueStyle={{ color: '#3f8600', fontSize: '28px', fontWeight: 'bold' }}
-            />
-                <div className='mt-3 pt-3 border-t border-gray-100'>
-                  <span className='text-sm text-gray-500'>Active: </span>
-                  <span className='text-sm font-semibold text-green-600'>{statistics.activeUsers}</span>
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-green-100'>
+                    <UserOutlined className='text-2xl text-green-600' />
+                  </div>
                 </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-              <Card 
-                className='shadow-md hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-blue-500 h-full'
-                bodyStyle={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}
-              >
-            <Statistic
-                  title={<span className='text-gray-600 font-medium'>Total Groups</span>}
-              value={statistics.totalGroups}
-                  prefix={<TeamOutlined className='text-blue-500' />}
-                  valueStyle={{ color: '#1890ff', fontSize: '28px', fontWeight: 'bold' }}
-            />
-                <div className='mt-3 pt-3 border-t border-gray-100'>
-                  <span className='text-sm text-gray-500'>Active: </span>
-                  <span className='text-sm font-semibold text-blue-600'>{statistics.activeGroups}</span>
+                <Statistic
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Users</span>}
+                  value={statistics.totalUsers}
+                  valueStyle={{ color: '#059669', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
+                />
+                <div className='mt-4 pt-4 border-t border-green-100'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500 font-medium'>Active Users</span>
+                    <span className='text-sm font-bold text-green-600'>{statistics.activeUsers}</span>
+                  </div>
                 </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
+              </Card>
+            </Col>
+            
+            <Col xs={24} sm={12} lg={6}>
               <Card 
-                className='shadow-md hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-purple-500 h-full'
-                bodyStyle={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-cyan-50'
+                styles={{ body: { padding: '28px' } }}
               >
-            <Statistic
-                  title={<span className='text-gray-600 font-medium'>Total Vehicles</span>}
-              value={statistics.totalVehicles}
-                  prefix={<CarOutlined className='text-purple-500' />}
-                  valueStyle={{ color: '#722ed1', fontSize: '28px', fontWeight: 'bold' }}
-            />
-                <div className='mt-3 pt-3 border-t border-gray-100'>
-                  <span className='text-sm text-gray-500'>All vehicles in system</span>
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-blue-100'>
+                    <TeamOutlined className='text-2xl text-blue-600' />
+                  </div>
                 </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
+                <Statistic
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Groups</span>}
+                  value={statistics.totalGroups}
+                  valueStyle={{ color: '#0284c7', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
+                />
+                <div className='mt-4 pt-4 border-t border-blue-100'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500 font-medium'>Active Groups</span>
+                    <span className='text-sm font-bold text-blue-600'>{statistics.activeGroups}</span>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+            
+            <Col xs={24} sm={12} lg={6}>
               <Card 
-                className='shadow-md hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-red-500 h-full'
-                bodyStyle={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-violet-50'
+                styles={{ body: { padding: '28px' } }}
               >
-            <Statistic
-                  title={<span className='text-gray-600 font-medium'>Total Revenue</span>}
-              value={formatCurrencyCompact(statistics.totalRevenue)}
-                  prefix={<DollarOutlined className='text-red-500' />}
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-purple-100'>
+                    <CarOutlined className='text-2xl text-purple-600' />
+                  </div>
+                </div>
+                <Statistic
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Vehicles</span>}
+                  value={statistics.totalVehicles}
+                  valueStyle={{ color: '#7c3aed', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
+                />
+                <div className='mt-4 pt-4 border-t border-purple-100'>
+                  <span className='text-xs text-gray-500 font-medium'>All vehicles in system</span>
+                </div>
+              </Card>
+            </Col>
+            
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-red-50 to-rose-50'
+                styles={{ body: { padding: '28px' } }}
+              >
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-red-100'>
+                    <DollarOutlined className='text-2xl text-red-600' />
+                  </div>
+                </div>
+                <Statistic
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Revenue</span>}
+                  value={formatCurrencyCompact(statistics.totalRevenue)}
                   valueStyle={{ 
-                    color: '#cf1322', 
+                    color: '#dc2626', 
                     fontSize: '28px', 
-                    fontWeight: 'bold',
+                    fontWeight: '700',
+                    lineHeight: '1.2',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}
                 />
-                <div className='mt-3 pt-3 border-t border-gray-100'>
-                  <span className='text-sm text-gray-500'>{statistics.successfulPayments} successful transactions</span>
+                <div className='mt-4 pt-4 border-t border-red-100'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500 font-medium'>Transactions</span>
+                    <span className='text-sm font-bold text-red-600'>{statistics.successfulPayments} successful</span>
+                  </div>
                 </div>
               </Card>
             </Col>
@@ -611,90 +929,94 @@ export default function Dashboard() {
       </Row>
         )}
 
-        {/* Charts Row - Only show when statistics exists - Using Pie charts for simplicity */}
+        {/* Charts Row */}
         {statistics && (
-          <Row gutter={[20, 20]} className='mb-8'>
+          <Row gutter={[24, 24]} className='mb-8'>
             {/* Pie Chart: Users by Role */}
             <Col xs={24} lg={8}>
               <Card 
-                title={<span className='text-lg font-semibold text-gray-800'>Users by Role</span>}
-                className='shadow-md hover:shadow-lg transition-shadow duration-300'
-                bodyStyle={{ padding: '20px' }}
+                className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '20px 24px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '8px 8px 0 0'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold text-lg'>Users by Role</span>}
               >
                 {finalUsersByRoleData.length > 0 ? (
                   <div style={{ height: 320 }}>
                     <Pie {...usersByRolePieConfig} />
-              </div>
-            ) : (
-                  <div className='flex h-[320px] items-center justify-center text-gray-400'>
-                    No user data available
                   </div>
-            )}
-          </Card>
-        </Col>
+                ) : (
+                  <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
+                    <div className='text-center'>
+                      <UserOutlined className='text-4xl mb-2 opacity-50' />
+                      <p className='text-sm'>No user data available</p>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </Col>
 
             {/* Pie Chart: Groups by Status */}
             <Col xs={24} lg={8}>
               <Card 
-                title={<span className='text-lg font-semibold text-gray-800'>Groups by Status</span>}
-                className='shadow-md hover:shadow-lg transition-shadow duration-300'
-                bodyStyle={{ padding: '20px' }}
+                className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '20px 24px',
+                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    borderRadius: '8px 8px 0 0'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold text-lg'>Groups by Status</span>}
               >
                 {groupsByStatusData.length > 0 ? (
                   <div style={{ height: 320 }}>
                     <Pie {...groupsByStatusPieConfig} />
-              </div>
-            ) : (
-                  <div className='flex h-[320px] items-center justify-center text-gray-400'>
-                    No group data available
                   </div>
-            )}
-          </Card>
-        </Col>
+                ) : (
+                  <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
+                    <div className='text-center'>
+                      <TeamOutlined className='text-4xl mb-2 opacity-50' />
+                      <p className='text-sm'>No group data available</p>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </Col>
 
             {/* Pie Chart: Payment Status */}
             <Col xs={24} lg={8}>
               <Card 
-                title={<span className='text-lg font-semibold text-gray-800'>Transaction Status</span>}
-                className='shadow-md hover:shadow-lg transition-shadow duration-300'
-                bodyStyle={{ padding: '20px' }}
+                className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '20px 24px',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    borderRadius: '8px 8px 0 0'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold text-lg'>Transaction Status</span>}
               >
                 {paymentStatusData.length > 0 ? (
                   <div style={{ height: 320 }}>
                     <Pie {...paymentPieConfig} data={paymentStatusData} />
-              </div>
-            ) : (
-                  <div className='flex h-[320px] items-center justify-center text-gray-400'>
-                    No transaction data available
-                  </div>
-            )}
-          </Card>
-        </Col>
-          </Row>
-        )}
-
-        {/* Revenue Trend Line Chart - Full Width */}
-        {statistics && (
-          <Row gutter={[20, 20]} className='mb-8'>
-            <Col xs={24}>
-              <Card 
-                title={<span className='text-lg font-semibold text-gray-800'>Revenue Trend by {getPeriodLabel()}</span>}
-                className='shadow-md hover:shadow-lg transition-shadow duration-300'
-                bodyStyle={{ padding: '24px' }}
-              >
-                {hasRevenueData && hasPositiveRevenue ? (
-                  <div style={{ height: 380 }}>
-                    <Line {...lineConfig} />
-                  </div>
-                ) : hasRevenueData ? (
-                  <div className='flex h-[380px] flex-col items-center justify-center gap-2 text-center'>
-                    <LineChartOutlined className='text-4xl text-emerald-500' />
-                    <p className='text-base font-semibold text-gray-600'>No revenue in this time period</p>
-                    <p className='text-sm text-gray-400'>Try selecting a wider range or another date filter.</p>
                   </div>
                 ) : (
-                  <div className='flex h-[380px] items-center justify-center text-gray-400'>
-                    No revenue data available for this time period
+                  <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
+                    <div className='text-center'>
+                      <DollarOutlined className='text-4xl mb-2 opacity-50' />
+                      <p className='text-sm'>No transaction data available</p>
+                    </div>
                   </div>
                 )}
               </Card>
@@ -702,130 +1024,534 @@ export default function Dashboard() {
           </Row>
         )}
 
-      {/* Statistics Cards */}
+        {/* Revenue Trend Line Chart - Full Width */}
         {statistics && (
-          <Row gutter={[20, 20]} className='mb-8'>
-        <Col xs={24} lg={8}>
+          <Row gutter={[24, 24]} className='mb-8'>
+            <Col xs={24}>
               <Card 
-                title={<span className='text-lg font-semibold text-gray-800'>User Statistics</span>}
-                className='h-full shadow-md hover:shadow-lg transition-shadow duration-300'
-                bodyStyle={{ padding: '24px' }}
+                className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '20px 24px',
+                    background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                    borderRadius: '8px 8px 0 0'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold text-lg'>Revenue Trend by {getPeriodLabel()}</span>}
               >
-                <Row gutter={[16, 20]}>
-              <Col span={12}>
+                {hasRevenueData && hasPositiveRevenue ? (
+                  <div style={{ height: 380 }}>
+                    <Line {...lineConfig} />
+                  </div>
+                ) : hasRevenueData ? (
+                  <div className='flex h-[380px] flex-col items-center justify-center gap-3 text-center bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg'>
+                    <LineChartOutlined className='text-5xl text-emerald-500 opacity-60' />
+                    <p className='text-base font-semibold text-gray-700'>No revenue in this time period</p>
+                    <p className='text-sm text-gray-500 max-w-md'>Try selecting a wider range or another date filter to view revenue data.</p>
+                  </div>
+                ) : (
+                  <div className='flex h-[380px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
+                    <div className='text-center'>
+                      <LineChartOutlined className='text-5xl mb-3 opacity-50' />
+                      <p className='text-sm font-medium'>No revenue data available for this time period</p>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {/* Statistics Cards */}
+        {statistics && (
+          <Row gutter={[24, 24]} className='mb-8'>
+            <Col xs={24} lg={8}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '18px 24px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold'>User Statistics</span>}
+              >
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
                     <Statistic 
-                      title={<span className='text-gray-600 text-sm'>Co-Owners</span>} 
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Co-Owners</span>} 
                       value={statistics.totalCoOwners} 
-                      prefix={<UserOutlined className='text-green-500' />}
-                      valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+                      prefix={<UserOutlined className='text-green-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#059669' }}
                     />
-              </Col>
-              <Col span={12}>
+                  </div>
+                  <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
                     <Statistic 
-                      title={<span className='text-gray-600 text-sm'>Staff</span>} 
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Staff</span>} 
                       value={statistics.totalStaff} 
-                      prefix={<UserOutlined className='text-blue-500' />}
-                      valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+                      prefix={<UserOutlined className='text-blue-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
                     />
-              </Col>
-              <Col span={12}>
+                  </div>
+                  <div className='p-4 bg-purple-50 rounded-lg border border-purple-100'>
                     <Statistic 
-                      title={<span className='text-gray-600 text-sm'>Technicians</span>} 
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Technicians</span>} 
                       value={statistics.totalTechnicians} 
-                      prefix={<UserOutlined className='text-purple-500' />}
-                      valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+                      prefix={<UserOutlined className='text-purple-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#7c3aed' }}
                     />
-              </Col>
-              <Col span={12}>
+                  </div>
+                  <div className='p-4 bg-red-50 rounded-lg border border-red-100'>
                     <Statistic 
-                      title={<span className='text-gray-600 text-sm'>Admins</span>} 
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Admins</span>} 
                       value={statistics.totalAdmins} 
-                      prefix={<UserOutlined className='text-red-500' />}
-                      valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+                      prefix={<UserOutlined className='text-red-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#dc2626' }}
                     />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
+                  </div>
+                </div>
+              </Card>
+            </Col>
 
-        <Col xs={24} lg={8}>
+            <Col xs={24} lg={8}>
               <Card 
-                title={<span className='text-lg font-semibold text-gray-800'>Transaction Statistics</span>}
-                className='h-full shadow-md hover:shadow-lg transition-shadow duration-300'
-                bodyStyle={{ padding: '24px' }}
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '18px 24px',
+                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold'>Transaction Statistics</span>}
               >
-                <Row gutter={[16, 20]}>
-              <Col span={12}>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
                     <Statistic 
-                      title={<span className='text-gray-600 text-sm'>Total Transactions</span>} 
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total</span>} 
                       value={statistics.totalPayments} 
-                      prefix={<DollarOutlined className='text-blue-500' />}
-                      valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+                      prefix={<DollarOutlined className='text-blue-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
                     />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                      title={<span className='text-gray-600 text-sm'>Success</span>}
-                  value={statistics.successfulPayments}
-                      prefix={<CheckCircleOutlined className='text-green-500' />}
-                      valueStyle={{ color: '#3f8600', fontSize: '20px', fontWeight: 'bold' }}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                      title={<span className='text-gray-600 text-sm'>Pending</span>}
-                  value={statistics.pendingPayments}
-                      prefix={<ClockCircleOutlined className='text-yellow-500' />}
-                      valueStyle={{ color: '#faad14', fontSize: '20px', fontWeight: 'bold' }}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                      title={<span className='text-gray-600 text-sm'>Failed</span>}
-                  value={statistics.failedPayments}
-                      prefix={<CloseCircleOutlined className='text-red-500' />}
-                      valueStyle={{ color: '#cf1322', fontSize: '20px', fontWeight: 'bold' }}
-                />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
+                  </div>
+                  <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Success</span>}
+                      value={statistics.successfulPayments}
+                      prefix={<CheckCircleOutlined className='text-green-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#059669' }}
+                    />
+                  </div>
+                  <div className='p-4 bg-yellow-50 rounded-lg border border-yellow-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Pending</span>}
+                      value={statistics.pendingPayments}
+                      prefix={<ClockCircleOutlined className='text-yellow-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#d97706' }}
+                    />
+                  </div>
+                  <div className='p-4 bg-red-50 rounded-lg border border-red-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Failed</span>}
+                      value={statistics.failedPayments}
+                      prefix={<CloseCircleOutlined className='text-red-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#dc2626' }}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </Col>
 
-        <Col xs={24} lg={8}>
+            <Col xs={24} lg={8}>
               <Card 
-                title={<span className='text-lg font-semibold text-gray-800'>Recent Activity (30 Days)</span>}
-                className='h-full shadow-md hover:shadow-lg transition-shadow duration-300'
-                bodyStyle={{ padding: '24px' }}
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '18px 24px',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold'>Recent Activity (30 Days)</span>}
               >
-                <Row gutter={[16, 20]}>
-              <Col span={12}>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Users</span>}
+                      value={statistics.newUsersLast30Days}
+                      prefix={<UserOutlined className='text-green-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#059669' }}
+                    />
+                  </div>
+                  <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Groups</span>}
+                      value={statistics.newGroupsLast30Days}
+                      prefix={<TeamOutlined className='text-blue-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
+                    />
+                  </div>
+                  <div className='p-4 bg-purple-50 rounded-lg border border-purple-100 col-span-2'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Contracts</span>}
+                      value={statistics.newContractsLast30Days}
+                      prefix={<FileTextOutlined className='text-purple-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#7c3aed' }}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {/* Operational Overview Section */}
+        {statistics && (
+          <Row gutter={[24, 24]} className='mb-8'>
+            <Col xs={24}>
+              <h2 className='text-2xl font-bold text-gray-800 mb-4'>Operational Overview</h2>
+            </Col>
+            
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-indigo-50'
+                styles={{ body: { padding: '28px' } }}
+              >
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-blue-100'>
+                    <CalendarOutlined className='text-2xl text-blue-600' />
+                  </div>
+                </div>
                 <Statistic
-                      title={<span className='text-gray-600 text-sm'>New Users</span>}
-                  value={statistics.newUsersLast30Days}
-                      prefix={<UserOutlined className='text-green-500' />}
-                      valueStyle={{ color: '#3f8600', fontSize: '20px', fontWeight: 'bold' }}
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Bookings</span>}
+                  value={statistics.totalBookings || 0}
+                  valueStyle={{ color: '#0284c7', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
-              </Col>
-              <Col span={12}>
+                <div className='mt-4 pt-4 border-t border-blue-100'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500 font-medium'>Completed</span>
+                    <span className='text-sm font-bold text-blue-600'>{statistics.completedBookings || 0}</span>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-orange-50 to-amber-50'
+                styles={{ body: { padding: '28px' } }}
+              >
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-orange-100'>
+                    <WarningOutlined className='text-2xl text-orange-600' />
+                  </div>
+                </div>
                 <Statistic
-                      title={<span className='text-gray-600 text-sm'>New Groups</span>}
-                  value={statistics.newGroupsLast30Days}
-                      prefix={<TeamOutlined className='text-blue-500' />}
-                      valueStyle={{ color: '#1890ff', fontSize: '20px', fontWeight: 'bold' }}
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Disputes</span>}
+                  value={statistics.totalDisputes || 0}
+                  valueStyle={{ color: '#ea580c', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
-              </Col>
-              <Col span={12}>
+                <div className='mt-4 pt-4 border-t border-orange-100'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500 font-medium'>Open</span>
+                    <span className='text-sm font-bold text-orange-600'>{statistics.disputesByStatus?.OPEN || 0}</span>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-red-50 to-rose-50'
+                styles={{ body: { padding: '28px' } }}
+              >
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-red-100'>
+                    <ExclamationCircleOutlined className='text-2xl text-red-600' />
+                  </div>
+                </div>
                 <Statistic
-                      title={<span className='text-gray-600 text-sm'>New Contracts</span>}
-                  value={statistics.newContractsLast30Days}
-                      prefix={<FileTextOutlined className='text-purple-500' />}
-                      valueStyle={{ color: '#722ed1', fontSize: '20px', fontWeight: 'bold' }}
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Incidents</span>}
+                  value={statistics.totalIncidents || 0}
+                  valueStyle={{ color: '#dc2626', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
+                <div className='mt-4 pt-4 border-t border-red-100'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500 font-medium'>Pending</span>
+                    <span className='text-sm font-bold text-red-600'>{statistics.incidentsByStatus?.PENDING || 0}</span>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-violet-50'
+                styles={{ body: { padding: '28px' } }}
+              >
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='p-3 rounded-xl bg-purple-100'>
+                    <ToolOutlined className='text-2xl text-purple-600' />
+                  </div>
+                </div>
+                <Statistic
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Maintenances</span>}
+                  value={statistics.totalMaintenances || 0}
+                  valueStyle={{ color: '#7c3aed', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
+                />
+                <div className='mt-4 pt-4 border-t border-purple-100'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-xs text-gray-500 font-medium'>In Progress</span>
+                    <span className='text-sm font-bold text-purple-600'>{statistics.maintenancesByStatus?.IN_PROGRESS || 0}</span>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {/* Additional Charts Row - Bookings & Contracts */}
+        {statistics && (
+          <Row gutter={[24, 24]} className='mb-8'>
+            <Col xs={24} lg={12}>
+              <Card 
+                className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '20px 24px',
+                    background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+                    borderRadius: '8px 8px 0 0'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold text-lg'>Bookings by Status</span>}
+              >
+                {bookingsByStatusData.length > 0 ? (
+                  <div style={{ height: 320 }}>
+                    <Pie {...bookingsByStatusPieConfig} />
+                  </div>
+                ) : (
+                  <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
+                    <div className='text-center'>
+                      <CalendarOutlined className='text-4xl mb-2 opacity-50' />
+                      <p className='text-sm'>No booking data available</p>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </Col>
+
+            <Col xs={24} lg={12}>
+              <Card 
+                className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '20px 24px',
+                    background: 'linear-gradient(135deg, #faad14 0%, #d48806 100%)',
+                    borderRadius: '8px 8px 0 0'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold text-lg'>Contracts by Status</span>}
+              >
+                {contractsByStatusData.length > 0 ? (
+                  <div style={{ height: 320 }}>
+                    <Pie {...contractsByStatusPieConfig} />
+                  </div>
+                ) : (
+                  <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
+                    <div className='text-center'>
+                      <FileTextOutlined className='text-4xl mb-2 opacity-50' />
+                      <p className='text-sm'>No contract data available</p>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {/* Financial Overview Section */}
+        {statistics && (
+          <Row gutter={[24, 24]} className='mb-8'>
+            <Col xs={24}>
+              <h2 className='text-2xl font-bold text-gray-800 mb-4'>Financial Overview</h2>
+            </Col>
+
+            <Col xs={24} lg={16}>
+              <Card 
+                className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '20px 24px',
+                    background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+                    borderRadius: '8px 8px 0 0'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold text-lg'>Revenue vs Expenses</span>}
+              >
+                {financialComparisonData.length > 0 ? (
+                  <div style={{ height: 300 }}>
+                    <Column {...financialComparisonConfig} />
+                  </div>
+                ) : (
+                  <div className='flex h-[300px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
+                    <div className='text-center'>
+                      <DollarOutlined className='text-4xl mb-2 opacity-50' />
+                      <p className='text-sm'>No financial data available</p>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </Col>
+
+            <Col xs={24} lg={8}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '18px 24px',
+                    background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold'>Fund Information</span>}
+              >
+                <div className='space-y-4'>
+                  <div className='p-4 bg-purple-50 rounded-lg border border-purple-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Funds</span>}
+                      value={statistics.totalFunds || 0}
+                      prefix={<FundProjectionScreenOutlined className='text-purple-600' />}
+                      valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#7c3aed' }}
+                    />
+                  </div>
+                  <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Balance</span>}
+                      value={formatCurrencyCompact(statistics.totalFundBalance || 0)}
+                      prefix={<BankOutlined className='text-green-600' />}
+                      valueStyle={{ 
+                        fontSize: '20px', 
+                        fontWeight: '700', 
+                        color: '#059669',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    />
+                  </div>
+                  <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Expenses</span>}
+                      value={formatCurrencyCompact(statistics.totalExpenseAmount || 0)}
+                      prefix={<ShoppingOutlined className='text-blue-600' />}
+                      valueStyle={{ 
+                        fontSize: '20px', 
+                        fontWeight: '700', 
+                        color: '#0284c7',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    />
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {/* System Health Section */}
+        {statistics && (
+          <Row gutter={[24, 24]} className='mb-8'>
+            <Col xs={24}>
+              <h2 className='text-2xl font-bold text-gray-800 mb-4'>System Health</h2>
+            </Col>
+
+            <Col xs={24} lg={12}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '18px 24px',
+                    background: 'linear-gradient(135deg, #fa8c16 0%, #d46b08 100%)'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold'>Disputes Tracking</span>}
+              >
+                <div className='grid grid-cols-3 gap-4'>
+                  <div className='p-4 bg-orange-50 rounded-lg border border-orange-100 text-center'>
+                    <div className='text-2xl font-bold text-orange-600 mb-1'>
+                      {statistics.disputesByStatus?.OPEN || 0}
+                    </div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>Open</div>
+                  </div>
+                  <div className='p-4 bg-green-50 rounded-lg border border-green-100 text-center'>
+                    <div className='text-2xl font-bold text-green-600 mb-1'>
+                      {statistics.disputesByStatus?.RESOLVED || 0}
+                    </div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>Resolved</div>
+                  </div>
+                  <div className='p-4 bg-red-50 rounded-lg border border-red-100 text-center'>
+                    <div className='text-2xl font-bold text-red-600 mb-1'>
+                      {statistics.disputesByStatus?.REJECTED || 0}
+                    </div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>Rejected</div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+
+            <Col xs={24} lg={12}>
+              <Card 
+                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
+                styles={{ 
+                  header: { 
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '18px 24px',
+                    background: 'linear-gradient(135deg, #f5222d 0%, #cf1322 100%)'
+                  },
+                  body: { padding: '24px' } 
+                }}
+                title={<span className='text-white font-semibold'>Incidents Tracking</span>}
+              >
+                <div className='grid grid-cols-3 gap-4'>
+                  <div className='p-4 bg-yellow-50 rounded-lg border border-yellow-100 text-center'>
+                    <div className='text-2xl font-bold text-yellow-600 mb-1'>
+                      {statistics.incidentsByStatus?.PENDING || 0}
+                    </div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>Pending</div>
+                  </div>
+                  <div className='p-4 bg-green-50 rounded-lg border border-green-100 text-center'>
+                    <div className='text-2xl font-bold text-green-600 mb-1'>
+                      {statistics.incidentsByStatus?.APPROVED || 0}
+                    </div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>Approved</div>
+                  </div>
+                  <div className='p-4 bg-red-50 rounded-lg border border-red-100 text-center'>
+                    <div className='text-2xl font-bold text-red-600 mb-1'>
+                      {statistics.incidentsByStatus?.REJECTED || 0}
+                    </div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>Rejected</div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          </Row>
         )}
       </div>
     </div>

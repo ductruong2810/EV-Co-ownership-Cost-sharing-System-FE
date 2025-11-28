@@ -17,7 +17,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import authApi from '../../apis/auth.api'
 import { clearLS, getAccessTokenFromLS, getEmailAccountFromLS, getUserIdFromLS } from '../../utils/auth'
 import { AppContext } from '../../contexts/app.context'
-import { toast } from 'react-toastify'
+import { showSuccessToast } from '../Error'
 import classNames from 'classnames'
 import type { GetAllNotifications } from '../../types/api/user.type'
 import userApi from '../../apis/user.api'
@@ -104,11 +104,14 @@ function NavHeader() {
     const accessToken = getAccessTokenFromLS()
     logoutMutation.mutate(accessToken, {
       onSuccess: () => {
-        setIsAuthenticated(false)
-        clearLS()
-        toast.success('Logout successfully!', {
-          autoClose: 1000
-        })
+        // Hiển thị toast TRƯỚC khi redirect
+        showSuccessToast('You have been logged out successfully. See you again!', 'Logout Successful')
+        
+        // Delay redirect để user thấy toast
+        setTimeout(() => {
+          setIsAuthenticated(false)
+          clearLS()
+        }, 500) // 500ms delay để toast hiển thị
       }
     })
   }

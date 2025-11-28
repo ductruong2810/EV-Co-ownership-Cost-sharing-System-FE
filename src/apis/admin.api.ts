@@ -95,7 +95,7 @@ const adminApi = {
   },
 
   // ========== Dashboard Statistics ==========
-  getDashboardStatistics: (params?: { fromDate?: string; toDate?: string; periodType?: string }) => {
+  getDashboardStatistics: (params?: { from?: string; to?: string; periodType?: string }) => {
     return http.get('api/admin/dashboard/statistics', { params })
   }
 }

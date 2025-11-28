@@ -30,6 +30,18 @@ export interface DashboardStatistics {
   groupsByStatus: Record<string, number>
   contractsByStatus: Record<string, number>
   revenueByMonth: Record<string, number>
+  // Additional fields
+  totalDisputes?: number
+  disputesByStatus?: Record<string, number>
+  totalIncidents?: number
+  incidentsByStatus?: Record<string, number>
+  totalMaintenances?: number
+  maintenancesByStatus?: Record<string, number>
+  bookingsByStatus?: Record<string, number>
+  totalExpenses?: number
+  totalExpenseAmount?: number
+  totalFunds?: number
+  totalFundBalance?: number
 }
 
 

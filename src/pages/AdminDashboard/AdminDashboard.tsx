@@ -25,9 +25,16 @@ export default function AdminDashboard() {
   const [periodType, setPeriodType] = useState<string>('DAY')
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
   
+  // Check if we're on dashboard page (index route or /dashboard)
+  const isDashboardPage = location.pathname === '/manager' || 
+                          location.pathname === '/manager/' || 
+                          location.pathname.includes('/manager/dashboard')
+  
   // Check if we're on dashboard page and get periodType from localStorage
   useEffect(() => {
-    const isDashboard = location.pathname.includes('/dashboard')
+    const isDashboard = location.pathname.includes('/dashboard') || 
+                       location.pathname === '/manager' || 
+                       location.pathname === '/manager/'
     if (isDashboard) {
       const storedPeriodType = localStorage.getItem('dashboardPeriodType') || 'DAY'
       setPeriodType(storedPeriodType)
@@ -68,8 +75,6 @@ export default function AdminDashboard() {
     }
   }
   
-  const isDashboardPage = location.pathname.includes('/dashboard')
-  
   logger.debug('Admin Dashboard - Current role:', role)
   return (
     <div className='flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100'>
@@ -109,26 +114,34 @@ export default function AdminDashboard() {
                 <li>
                   <NavLink
                     to='dashboard'
+                    end={false}
                     className={({ isActive }) => {
-                      const activeClass = isActive 
+                      // Dashboard should be active on index route (/manager) or /dashboard route
+                      const shouldBeActive = isActive || isDashboardPage
+                      
+                      const activeClass = shouldBeActive 
                         ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
                         : 'text-gray-700 hover:bg-gray-100'
                       return `flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} rounded-lg ${activeClass} ${sidebarCollapsed ? 'p-3' : 'p-3'} text-sm font-medium transition-all duration-200 relative`
                     }}
                   >
-                    {({ isActive }) => (
-                      <>
-                        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : ''}`}>
-                          <DashboardOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                          {!sidebarCollapsed && <span>Dashboard</span>}
-                        </div>
-                        {!sidebarCollapsed && isActive && isDashboardPage && (
-                          <span className='ml-2 px-2.5 py-1 text-xs font-semibold text-white bg-white/20 backdrop-blur-sm rounded-full shadow-sm border border-white/30'>
-                            {getPeriodLabel(periodType)}
-                          </span>
-                        )}
-                      </>
-                    )}
+                    {({ isActive }) => {
+                      const shouldBeActive = isActive || isDashboardPage
+                      
+                      return (
+                        <>
+                          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : ''}`}>
+                            <DashboardOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                            {!sidebarCollapsed && <span>Dashboard</span>}
+                          </div>
+                          {!sidebarCollapsed && shouldBeActive && isDashboardPage && (
+                            <span className='ml-2 px-2.5 py-1 text-xs font-semibold text-white bg-white/20 backdrop-blur-sm rounded-full shadow-sm border border-white/30'>
+                              {getPeriodLabel(periodType)}
+                            </span>
+                          )}
+                        </>
+                      )
+                    }}
                   </NavLink>
                 </li>
                 <div className='h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-3'></div>
@@ -140,8 +153,7 @@ export default function AdminDashboard() {
                 {/* Review & Verification Section */}
                 <li>
                   <NavLink
-                    to=''
-                    end
+                    to='groups'
                     className={({ isActive }) => {
                       const activeClass = isActive 
                         ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 

@@ -77,12 +77,16 @@ export default function CheckGroup() {
   }
 
   if (allGroupData.length === 0) {
-    return <EmptyState />
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6'>
+        <div className='max-w-6xl mx-auto'>
+          <EmptyState />
+        </div>
+      </div>
+    )
   }
 
-  return isPending ? (
-    <Skeleton />
-  ) : (
+  return (
     <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6'>
       <div className='max-w-6xl mx-auto'>
         <div className='mb-8'>

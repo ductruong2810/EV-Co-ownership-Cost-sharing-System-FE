@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios'
 import logger from './logger'
+import { ErrorInfo, ErrorType, ErrorSeverity } from '../types/error.type'
 
 /**
  * Extract user-friendly error message from AxiosError
@@ -68,6 +69,70 @@ export function getUserFriendlyError(error: unknown): string {
       return 'Service unavailable. Please try again later.'
     default:
       return data?.message || data?.error || axiosError.message || 'An unexpected error occurred.'
+  }
+}
+
+/**
+ * Convert AxiosError to ErrorInfo
+ */
+export function convertToErrorInfo(error: unknown, options?: Partial<ErrorInfo>): ErrorInfo {
+  const axiosError = error as AxiosError
+
+  if (!axiosError.response) {
+    // Network error
+    return {
+      type: ErrorType.NETWORK,
+      severity: ErrorSeverity.HIGH,
+      message: getUserFriendlyError(error),
+      timestamp: new Date(),
+      retryable: true,
+      ...options
+    }
+  }
+
+  const status = axiosError.response.status
+  let type = ErrorType.UNKNOWN
+  let severity = ErrorSeverity.MEDIUM
+
+  switch (status) {
+    case 400:
+      type = ErrorType.CLIENT
+      severity = ErrorSeverity.LOW
+      break
+    case 401:
+      type = ErrorType.AUTHENTICATION
+      severity = ErrorSeverity.HIGH
+      break
+    case 403:
+      type = ErrorType.AUTHORIZATION
+      severity = ErrorSeverity.MEDIUM
+      break
+    case 404:
+      type = ErrorType.NOT_FOUND
+      severity = ErrorSeverity.LOW
+      break
+    case 422:
+      type = ErrorType.VALIDATION
+      severity = ErrorSeverity.LOW
+      break
+    case 500:
+    case 503:
+      type = ErrorType.SERVER
+      severity = ErrorSeverity.HIGH
+      break
+  }
+
+  const data = axiosError.response.data as any
+  const message = getUserFriendlyError(error)
+
+  return {
+    type,
+    severity,
+    message,
+    code: status,
+    timestamp: new Date(),
+    retryable: type === ErrorType.NETWORK || type === ErrorType.SERVER,
+    ...options
   }
 }
 

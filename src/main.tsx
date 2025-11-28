@@ -12,11 +12,18 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AppProvider } from './contexts/app.context'
 
 // Create a client
+// Note: Errors are handled by axios interceptor in http.ts
+// React Query will not show duplicate toasts because errors are caught at the HTTP level
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 0
+      // Errors are handled by http.ts interceptor, no need for global onError
+    },
+    mutations: {
+      retry: 0
+      // Errors are handled by http.ts interceptor, no need for global onError
     }
   }
 })

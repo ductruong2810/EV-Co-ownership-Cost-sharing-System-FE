@@ -22,7 +22,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '~': path.resolve(__dirname, './src')
-    }
+    },
+    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json']
   },
   build: {
     chunkSizeWarningLimit: 2000,

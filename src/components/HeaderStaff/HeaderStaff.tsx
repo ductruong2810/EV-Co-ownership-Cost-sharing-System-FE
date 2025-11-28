@@ -5,7 +5,7 @@ import authApi from '../../apis/auth.api'
 import { clearLS, getAccessTokenFromLS, getRoleFromLS } from '../../utils/auth'
 import { useContext } from 'react'
 import { AppContext } from '../../contexts/app.context'
-import { toast } from 'react-toastify'
+import { showSuccessToast } from '../Error'
 import { LOGO_URL } from '../../constants/images'
 
 function HeaderStaff() {
@@ -27,22 +27,25 @@ function HeaderStaff() {
     logoutMutation.mutate(accessToken, {
       //Truyền token gốc (không có "Bearer")
       onSuccess: () => {
-        //Set lại biến này để move ra trang ngoài
-        setIsAuthenticated(false)
-        //Xóa trên localstorage
-        clearLS()
-        toast.success('Logout successfully!', {
-          autoClose: 1000
-        })
+        // Hiển thị toast TRƯỚC khi redirect
+        showSuccessToast('You have been logged out successfully. See you again!', 'Logout Successful')
+        
+        // Delay redirect để user thấy toast
+        setTimeout(() => {
+          //Set lại biến này để move ra trang ngoài
+          setIsAuthenticated(false)
+          //Xóa trên localstorage
+          clearLS()
+        }, 500) // 500ms delay để toast hiển thị
       }
     })
   }
 
   return (
-    <header className='bg-white top-0 z-50 overflow-x-auto '>
+    <header className='bg-white top-0 z-50 overflow-x-auto sticky'>
       <div className='flex justify-between items-center px-6'>
         <Link
-          to={path.adminDashboard}
+          to={path.home}
           className='flex w-28 h-28 items-center mr-24 hover:scale-90 transition-transform'
         >
           <img src={LOGO_URL.white} alt='' />
@@ -59,7 +62,7 @@ function HeaderStaff() {
           <button
             onClick={handleLogout}
             className='font-semibold text-center w-32 text-[14px] py-3 text-white rounded-lg transition 
-           duration-300 bg-[#17a984] hover:text-black '
+           duration-300 bg-brand-600 hover:bg-brand-500 hover:shadow-lg'
           >
             Logout
           </button>

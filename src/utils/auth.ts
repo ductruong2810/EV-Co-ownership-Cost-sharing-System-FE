@@ -46,3 +46,16 @@ export const getEmailAccountFromLS = () => localStorage.getItem('emailAccount') 
 export const getRoleFromLS = () => localStorage.getItem('role') || ''
 export const getUserIdFromLS = () => localStorage.getItem('userId') || ''
 export const getGroupIdFromLS = () => localStorage.getItem('groupId') || ''
+
+// Remember me functions
+export const setRememberedEmailToLS = (email: string) => {
+  localStorage.setItem('rememberedEmail', email)
+}
+
+export const getRememberedEmailFromLS = () => {
+  return localStorage.getItem('rememberedEmail') || ''
+}
+
+export const clearRememberedEmailFromLS = () => {
+  localStorage.removeItem('rememberedEmail')
+}
