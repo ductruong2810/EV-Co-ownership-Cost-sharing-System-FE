@@ -663,7 +663,7 @@ export default function CheckLicense() {
                   onClick={handleBulkApprove}
                   loading={bulkApproveMutation.isPending}
                   size='large'
-                  className='bg-emerald-600 hover:bg-emerald-700 border-0 shadow-md hover:shadow-lg'
+                  className='bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 border-0 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200'
                 >
                   Approve Selected
                 </Button>
@@ -673,7 +673,7 @@ export default function CheckLicense() {
                   onClick={handleBulkReject}
                   loading={bulkRejectMutation.isPending}
                   size='large'
-                  className='shadow-md hover:shadow-lg'
+                  className='bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 border-0 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200'
                 >
                   Reject Selected
                 </Button>
@@ -683,7 +683,7 @@ export default function CheckLicense() {
                     setShowBulkActions(false)
                   }}
                   size='large'
-                  className='border-gray-300'
+                  className='border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200'
                 >
                   Clear
                 </Button>

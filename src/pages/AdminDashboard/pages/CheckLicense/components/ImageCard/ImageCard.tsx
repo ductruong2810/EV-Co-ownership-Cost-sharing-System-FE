@@ -139,27 +139,27 @@ const ImageCard: FC<ImageCardProps> = ({
               )}
             </div>
             {status === 'PENDING' && (
-              <div className='flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-200 mt-auto'>
+              <div className='flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-auto'>
                 <button
                   onClick={handleApprove}
-                  className='flex-1 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2.5 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md h-[44px]'
+                  className='flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg py-3 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] h-[44px] group'
                 >
-                  <svg className='w-4 h-4 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <svg className='w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M5 13l4 4L19 7' />
                   </svg>
-                  <span>Approve</span>
+                  <span className='font-semibold'>Approve</span>
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowRejectModal(true)
                   }}
-                  className='flex-1 bg-red-500 hover:bg-red-600 text-white rounded-lg py-2.5 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md h-[44px]'
+                  className='flex-1 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-lg py-3 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] h-[44px] group border-2 border-transparent hover:border-red-300'
                 >
-                  <svg className='w-4 h-4 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <svg className='w-5 h-5 flex-shrink-0 group-hover:rotate-90 transition-transform duration-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M6 18L18 6M6 6l12 12' />
                   </svg>
-                  <span>Reject</span>
+                  <span className='font-semibold'>Reject</span>
                 </button>
               </div>
             )}
@@ -200,15 +200,18 @@ const ImageCard: FC<ImageCardProps> = ({
             <div className='flex gap-3 justify-end pt-2'>
               <button
                 onClick={() => setShowRejectModal(false)}
-                className='px-5 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors'
+                className='px-5 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-200'
               >
                 Cancel
               </button>
               <button
                 onClick={handleRejectSubmit}
-                className='px-5 py-2.5 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors shadow-md hover:shadow-lg'
+                className='px-6 py-2.5 rounded-lg bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 group'
               >
-                Submit Rejection
+                <svg className='w-4 h-4 group-hover:rotate-90 transition-transform duration-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M6 18L18 6M6 6l12 12' />
+                </svg>
+                <span>Submit Rejection</span>
               </button>
             </div>
           </div>
