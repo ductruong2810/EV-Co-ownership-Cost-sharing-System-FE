@@ -75,9 +75,9 @@ const ImageCard: FC<ImageCardProps> = ({
 
   const infoRow = (label: string, value?: string | null) =>
     value ? (
-      <div className='flex flex-col'>
+      <div className='flex flex-col min-w-0'>
         <span className='text-[11px] font-semibold text-gray-500 uppercase'>{label}</span>
-        <span className='text-sm text-gray-900 break-words'>{value}</span>
+        <span className='text-sm text-gray-900 break-words overflow-wrap-anywhere hyphens-auto' style={{ wordBreak: 'break-word' }}>{value}</span>
       </div>
     ) : null
 
@@ -91,14 +91,16 @@ const ImageCard: FC<ImageCardProps> = ({
     }
 
     return (
-      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm min-w-0'>
         {infoRow('Document #', documentInfo.documentNumber)}
         {infoRow('Date of Birth', documentInfo.dateOfBirth)}
         {infoRow('Issue Date', documentInfo.issueDate)}
         {infoRow('Expiry Date', documentInfo.expiryDate)}
-        {infoRow('Address', documentInfo.address)}
+        <div className='sm:col-span-2 min-w-0'>
+          {infoRow('Address', documentInfo.address)}
+        </div>
         {documentInfo.reviewNote && (
-          <div className='sm:col-span-2'>
+          <div className='sm:col-span-2 min-w-0'>
             {infoRow('Last review note', documentInfo.reviewNote)}
           </div>
         )}
@@ -112,8 +114,8 @@ const ImageCard: FC<ImageCardProps> = ({
         <h5 className='text-gray-800 font-bold text-sm uppercase tracking-wide'>{alt}</h5>
         <StatusBadge status={status} />
       </div>
-      <div className='bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200'>
-        <div className='flex flex-col lg:flex-row gap-4 lg:items-stretch'>
+      <div className='bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden'>
+        <div className='flex flex-col lg:flex-row gap-4 lg:items-stretch min-w-0'>
           <div
             className='relative cursor-pointer rounded-xl overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-all duration-200 lg:w-1/2 group flex-shrink-0'
             onClick={() => setSelected(image)}
@@ -127,11 +129,11 @@ const ImageCard: FC<ImageCardProps> = ({
               Click to enlarge
             </span>
           </div>
-          <div className='flex flex-col lg:w-1/2'>
-            <div className='flex-1 mb-4'>
-              <div className='mb-3'>{renderInfo()}</div>
+          <div className='flex flex-col lg:w-1/2 min-w-0 overflow-hidden'>
+            <div className='flex-1 mb-4 min-w-0 overflow-hidden'>
+              <div className='mb-3 min-w-0'>{renderInfo()}</div>
               {documentInfo?.uploadedAt && (
-                <p className='text-xs text-gray-500'>
+                <p className='text-xs text-gray-500 break-words'>
                   Uploaded: {new Date(documentInfo.uploadedAt).toLocaleString()}
                 </p>
               )}
