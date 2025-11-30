@@ -307,9 +307,12 @@ export default function CheckLicense() {
   const ImageCardAny = ImageCardComponent as ComponentType<any>
 
   const SummaryCard = ({ label, value, accent }: { label: string; value: number; accent: string }) => (
-    <div className={`rounded-xl border-2 px-5 py-4 text-sm font-semibold shadow-sm hover:shadow-md transition-shadow duration-200 ${accent}`}>
-      <p className='text-[11px] uppercase tracking-wide text-gray-500 font-bold mb-2'>{label}</p>
-      <p className='text-3xl font-bold'>{value.toLocaleString()}</p>
+    <div className={`rounded-2xl border-2 px-6 py-5 text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:-translate-y-1 backdrop-blur-sm bg-white/90 ${accent}`}>
+      <p className='text-[11px] uppercase tracking-wider text-gray-600 font-bold mb-3 flex items-center gap-2'>
+        <span className='w-2 h-2 rounded-full bg-current opacity-60' />
+        {label}
+      </p>
+      <p className='text-4xl font-extrabold bg-gradient-to-br from-gray-800 to-gray-600 bg-clip-text text-transparent'>{value.toLocaleString()}</p>
     </div>
   )
 
@@ -328,17 +331,17 @@ export default function CheckLicense() {
     const { title, shortTitle, accent } = DOC_CONFIG[docType]
 
     return (
-      <div className='bg-gray-50 rounded-xl border border-gray-200 shadow-sm overflow-hidden'>
-        <div className='px-4 py-3 bg-white border-b border-gray-200 rounded-t-xl'>
+      <div className='bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden'>
+        <div className='px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200/50'>
           <span
-            className='text-xs font-bold uppercase px-3 py-1 rounded-full text-white'
+            className='text-xs font-extrabold uppercase px-4 py-1.5 rounded-full text-white shadow-lg'
             style={{ backgroundColor: accent }}
           >
             {shortTitle}
           </span>
-          <span className='text-sm font-semibold text-gray-700 ml-2 break-words'>{title}</span>
+          <span className='text-sm font-bold text-gray-800 ml-3 break-words'>{title}</span>
         </div>
-        <div className='p-4 space-y-4 min-w-0'>
+        <div className='p-5 space-y-5 min-w-0'>
           <ImageCardAny
             image={doc.frontImage}
             alt='Front side'
@@ -511,14 +514,21 @@ export default function CheckLicense() {
   if (members.length === 0) return <EmptyState />
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-4 sm:p-6'>
-      <div className='max-w-7xl mx-auto'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-4 sm:p-6 relative overflow-hidden'>
+      {/* Decorative background elements */}
+      <div className='absolute top-0 right-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2' />
+      <div className='absolute bottom-0 left-0 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2' />
+      
+      <div className='max-w-7xl mx-auto relative z-10'>
         <div className='mb-8'>
-          <div className='flex items-start justify-between mb-4'>
+          <div className='flex items-start justify-between mb-6'>
             <div>
-              <h1 className='text-3xl font-bold text-gray-900 mb-2'>Document Verification</h1>
-              <p className='text-gray-600 text-sm'>
-                Review and verify user documents • Total: <span className='font-semibold text-blue-600'>{members.length}</span>{' '}
+              <h1 className='text-4xl font-extrabold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-3'>
+                Document Verification
+              </h1>
+              <p className='text-gray-600 text-sm flex items-center gap-2'>
+                <span className='w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse' />
+                Review and verify user documents • Total: <span className='font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md'>{members.length}</span>{' '}
                 pending documents
               </p>
             </div>
@@ -527,7 +537,7 @@ export default function CheckLicense() {
                 const modal = document.getElementById('review-guidelines-modal')
                 if (modal) (modal as any).showModal()
               }}
-              className='px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md border border-blue-200 hover:border-blue-300'
+              className='px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
             >
               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path
@@ -542,7 +552,7 @@ export default function CheckLicense() {
           </div>
 
           {/* Review Guidelines Info Card */}
-          <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-6'>
+          <div className='bg-white/80 backdrop-blur-sm border border-blue-200/50 rounded-2xl p-6 mb-6 shadow-lg hover:shadow-xl transition-all duration-300'>
             <div className='flex items-start gap-3'>
               <div className='flex-shrink-0 mt-1'>
                 <svg className='w-6 h-6 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -614,13 +624,13 @@ export default function CheckLicense() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             allowClear
-            className='flex-1 shadow-sm'
+            className='flex-1 shadow-lg border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 rounded-xl transition-all duration-200'
             size='large'
           />
           <Select 
             value={statusFilter} 
             onChange={setStatusFilter} 
-            className='w-full sm:w-48 shadow-sm' 
+            className='w-full sm:w-48 shadow-lg border-2 border-gray-200 hover:border-blue-300 rounded-xl transition-all duration-200' 
             size='large'
           >
             <Option value='ALL'>All Status</Option>
@@ -710,7 +720,7 @@ export default function CheckLicense() {
           <div className='grid gap-6 lg:grid-cols-[1.2fr,1.8fr]'>
             {/* Left Panel - User List */}
             <div className='space-y-3'>
-              <div className='flex items-center gap-2 mb-3 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-200 shadow-sm'>
+              <div className='flex items-center gap-2 mb-4 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border-2 border-gray-200/50 shadow-lg'>
                 <Checkbox
                   checked={
                     filteredMembers.length > 0 &&
@@ -721,9 +731,9 @@ export default function CheckLicense() {
                   }
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
-                <span className='text-sm font-semibold text-gray-700'>Select All</span>
+                <span className='text-sm font-bold text-gray-800'>Select All</span>
                 {selectedDocuments.size > 0 && (
-                  <span className='ml-auto text-xs text-gray-500 font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full'>
+                  <span className='ml-auto text-xs font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-full shadow-md'>
                     {selectedDocuments.size} selected
                   </span>
                 )}
@@ -740,12 +750,12 @@ export default function CheckLicense() {
                   return (
                     <div
                       key={member.id}
-                      className={`w-full rounded-xl border-2 px-4 py-3 transition-all duration-200 cursor-pointer ${
+                      className={`w-full rounded-2xl border-2 px-5 py-4 transition-all duration-300 cursor-pointer backdrop-blur-sm ${
                         isActive
-                          ? 'border-blue-500 bg-blue-50 shadow-lg scale-[1.02]'
+                          ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-xl scale-[1.02] ring-2 ring-blue-200'
                           : isSelected
-                            ? 'border-indigo-300 bg-indigo-50 shadow-md'
-                            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md hover:scale-[1.01]'
+                            ? 'border-indigo-400 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg'
+                            : 'border-gray-200/50 bg-white/80 hover:border-blue-300 hover:shadow-xl hover:scale-[1.01] hover:bg-white'
                       }`}
                       onClick={() => setSelectedMemberId(member.id)}
                     >
@@ -794,18 +804,21 @@ export default function CheckLicense() {
             </div>
 
             {/* Right Panel - Document Details */}
-            <div className='rounded-2xl border-2 border-gray-200 bg-white p-6 shadow-lg'>
+            <div className='rounded-3xl border-2 border-gray-200/50 bg-white/90 backdrop-blur-md p-8 shadow-2xl'>
               {selectedMember ? (
                 <div className='space-y-6'>
                   {/* User Header */}
-                  <div className='flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-gray-200'>
+                  <div className='flex flex-wrap items-start justify-between gap-4 pb-6 border-b-2 border-gray-200'>
                     <div className='flex-1 min-w-0'>
-                      <p className='text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1'>Selected user</p>
-                      <h2 className='text-2xl font-bold text-gray-900 mb-1'>{selectedMember.name}</h2>
-                      <p className='text-sm text-gray-600 mb-2'>{selectedMember.email}</p>
+                      <p className='text-xs uppercase tracking-wider text-gray-500 font-bold mb-2 flex items-center gap-2'>
+                        <span className='w-2 h-2 rounded-full bg-blue-500 animate-pulse' />
+                        Selected user
+                      </p>
+                      <h2 className='text-3xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2'>{selectedMember.name}</h2>
+                      <p className='text-sm text-gray-600 mb-3'>{selectedMember.email}</p>
                       <button
                         onClick={() => handleViewDetail(selectedMember.id)}
-                        className='rounded-lg border-2 border-blue-500 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors duration-200 flex items-center gap-2'
+                        className='rounded-xl border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-2.5 text-sm font-bold text-blue-700 hover:from-blue-100 hover:to-indigo-100 transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105'
                       >
                         <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
@@ -814,11 +827,11 @@ export default function CheckLicense() {
                         View OCR details
                       </button>
                     </div>
-                    <div className='flex flex-col gap-2'>
-                      <Tag color='green' className='rounded-full px-3 py-1 font-semibold'>
+                    <div className='flex flex-col gap-3'>
+                      <Tag color='green' className='rounded-full px-4 py-1.5 font-bold text-sm shadow-md'>
                         {selectedMember.cccd.frontStatus}/{selectedMember.cccd.backStatus} CCCD
                       </Tag>
-                      <Tag color='cyan' className='rounded-full px-3 py-1 font-semibold'>
+                      <Tag color='cyan' className='rounded-full px-4 py-1.5 font-bold text-sm shadow-md'>
                         {selectedMember.gplx.frontStatus}/{selectedMember.gplx.backStatus} DL
                       </Tag>
                     </div>

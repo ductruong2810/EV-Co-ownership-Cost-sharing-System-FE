@@ -109,15 +109,18 @@ const ImageCard: FC<ImageCardProps> = ({
   }
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-4'>
       <div className='flex items-center justify-between'>
-        <h5 className='text-gray-800 font-bold text-sm uppercase tracking-wide'>{alt}</h5>
+        <h5 className='text-gray-900 font-extrabold text-sm uppercase tracking-wider flex items-center gap-2'>
+          <span className='w-1.5 h-1.5 rounded-full bg-blue-500' />
+          {alt}
+        </h5>
         <StatusBadge status={status} />
       </div>
-      <div className='bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden'>
+      <div className='bg-white/90 backdrop-blur-sm border-2 border-gray-200/50 rounded-2xl p-5 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-[1.01]'>
         <div className='flex flex-col lg:flex-row gap-4 lg:items-stretch min-w-0'>
           <div
-            className='relative cursor-pointer rounded-xl overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-all duration-200 lg:w-1/2 group flex-shrink-0'
+            className='relative cursor-pointer rounded-2xl overflow-hidden border-2 border-gray-300 hover:border-indigo-500 transition-all duration-300 lg:w-1/2 group flex-shrink-0 shadow-lg hover:shadow-xl'
             onClick={() => setSelected(image)}
           >
             <img
