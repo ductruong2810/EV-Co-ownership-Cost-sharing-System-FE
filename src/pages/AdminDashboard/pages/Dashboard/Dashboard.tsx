@@ -23,7 +23,7 @@ import { useNavigate } from 'react-router-dom'
 import { Column, Pie, Line, Bar } from '@ant-design/plots'
 import type { PieConfig, ColumnConfig, LineConfig, BarConfig } from '@ant-design/plots'
 import dayjs, { Dayjs } from 'dayjs'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { ReactNode } from 'react'
 import adminApi from '../../../../apis/admin.api'
 import type { DashboardStatistics } from '../../../../types/api/dashboard.type'
@@ -230,15 +230,34 @@ export default function Dashboard() {
 
   const rawStatistics = data?.data
 
+  // Use ref to track previous rawStatistics for stable comparison
+  const prevRawStatisticsRef = useRef<string | null>(null)
+  const rawStatisticsKey = useMemo(() => {
+    if (!rawStatistics) {
+      prevRawStatisticsRef.current = null
+      return null
+    }
+    // Create a stable key from the data
+    const key = JSON.stringify(rawStatistics)
+    // Only update if data actually changed
+    if (prevRawStatisticsRef.current === key) {
+      return prevRawStatisticsRef.current
+    }
+    prevRawStatisticsRef.current = key
+    return key
+  }, [rawStatistics])
+
   // Debug: Log raw statistics to see what backend returns
-  if (rawStatistics) {
-    console.log('🔍 Raw Statistics from Backend:', {
-      totalPaymentAmount: rawStatistics.totalPaymentAmount,
-      totalExpenseAmount: rawStatistics.totalExpenseAmount,
-      payments: rawStatistics.payments,
-      totalPayments: rawStatistics.totalPayments
-    })
-  }
+  useEffect(() => {
+    if (rawStatistics) {
+      console.log('🔍 Raw Statistics from Backend:', {
+        totalPaymentAmount: rawStatistics.totalPaymentAmount,
+        totalExpenseAmount: rawStatistics.totalExpenseAmount,
+        payments: rawStatistics.payments,
+        totalPayments: rawStatistics.totalPayments
+      })
+    }
+  }, [rawStatisticsKey])
 
   // Map backend response to frontend expected format - Memoize to prevent unnecessary re-renders
   const statistics: DashboardStatistics | undefined = useMemo(() => {
@@ -323,7 +342,7 @@ export default function Dashboard() {
             ? Number(rawStatistics.previousTotalDisputes)
             : undefined
       }
-  }, [rawStatistics])
+  }, [rawStatisticsKey])
 
   const quickStats = useMemo<QuickStatCard[]>(() => {
     if (!statistics) return []
