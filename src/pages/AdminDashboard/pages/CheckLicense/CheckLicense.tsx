@@ -950,10 +950,14 @@ export default function CheckLicense() {
                       View OCR
                     </button>
                     <Tag color='green' className='text-xs'>
-                      {selectedMember.cccd.frontStatus}/{selectedMember.cccd.backStatus} CCCD
+                      {selectedMember.cccd.frontStatus === selectedMember.cccd.backStatus
+                        ? `${selectedMember.cccd.frontStatus} CCCD`
+                        : `${selectedMember.cccd.frontStatus}/${selectedMember.cccd.backStatus} CCCD`}
                     </Tag>
                     <Tag color='cyan' className='text-xs'>
-                      {selectedMember.gplx.frontStatus}/{selectedMember.gplx.backStatus} DL
+                      {selectedMember.gplx.frontStatus === selectedMember.gplx.backStatus
+                        ? `${selectedMember.gplx.frontStatus} DL`
+                        : `${selectedMember.gplx.frontStatus}/${selectedMember.gplx.backStatus} DL`}
                     </Tag>
                   </div>
                 </div>
