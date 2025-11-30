@@ -434,7 +434,11 @@ const DisputeList = () => {
                     <Checkbox
                       checked={allSelected}
                       indeterminate={someSelected && !allSelected}
-                      onChange={(e) => handleSelectAll(e.target.checked, column.key)}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        handleSelectAll(e.target.checked, column.key)
+                      }}
+                      onClick={(e) => e.stopPropagation()}
                     />
                     <p className='text-sm font-semibold text-gray-800'>{column.label}</p>
                   </div>
@@ -456,7 +460,10 @@ const DisputeList = () => {
                           <div className='flex items-start gap-2'>
                             <Checkbox
                               checked={isSelected}
-                              onChange={(e) => handleSelectDispute(dispute.disputeId, e.target.checked)}
+                              onChange={(e) => {
+                                e.stopPropagation()
+                                handleSelectDispute(dispute.disputeId, e.target.checked)
+                              }}
                               onClick={(e) => e.stopPropagation()}
                             />
                             <button
