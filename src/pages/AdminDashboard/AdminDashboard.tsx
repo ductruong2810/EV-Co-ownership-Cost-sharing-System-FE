@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const location = useLocation()
   const [periodType, setPeriodType] = useState<string>('DAY')
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
+  const [scrollY, setScrollY] = useState<number>(0)
   const roleLabel = useMemo(() => {
     switch (role) {
       case 'ADMIN':
@@ -73,6 +74,21 @@ export default function AdminDashboard() {
       }
     }
   }, [location.pathname])
+
+  // Track scroll position for sidebar animation
+  useEffect(() => {
+    const mainContent = document.querySelector('main')
+    if (!mainContent) return
+
+    const handleScroll = () => {
+      setScrollY(mainContent.scrollTop)
+    }
+
+    mainContent.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      mainContent.removeEventListener('scroll', handleScroll)
+    }
+  }, [location.pathname]) // Re-run when route changes to find new main element
   
   // Get period label
   const getPeriodLabel = (type: string) => {
@@ -95,7 +111,15 @@ export default function AdminDashboard() {
       <aside 
         className={`${
           sidebarCollapsed ? 'w-16' : 'w-64'
-        } transition-all duration-300 ease-in-out bg-white shadow-xl border-r border-gray-200 relative`}
+        } transition-all duration-300 ease-in-out bg-white border-r border-gray-200 relative ${
+          scrollY > 20 
+            ? 'shadow-2xl sticky top-0 h-screen z-40' 
+            : 'shadow-xl'
+        }`}
+        style={{
+          transform: scrollY > 20 ? 'translateY(0)' : 'translateY(0)',
+          transition: 'box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out'
+        }}
         aria-label='Sidebar'
       >
         {/* Toggle Button - Always visible at top of sidebar */}
@@ -439,7 +463,7 @@ export default function AdminDashboard() {
       </aside>
       
       {/* Main Content */}
-      <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : ''}`}>
+      <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : ''} overflow-y-auto`}>
         <div className='h-full py-6 px-6'>
           <Outlet />
         </div>
