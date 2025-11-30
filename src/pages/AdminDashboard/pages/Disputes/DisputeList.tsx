@@ -473,7 +473,7 @@ const DisputeList = () => {
                             if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
                               return
                             }
-                            navigate(path.disputeDetail.replace(':disputeId', dispute.disputeId.toString()))
+                            navigate(`/manager/${path.disputeDetail.replace(':disputeId', dispute.disputeId.toString())}`)
                           }}
                         >
                           <div className='flex items-start gap-2'>
@@ -489,7 +489,7 @@ const DisputeList = () => {
                             </div>
                             <div
                               className='flex-1 text-left cursor-pointer'
-                              onClick={() => navigate(path.disputeDetail.replace(':disputeId', dispute.disputeId.toString()))}
+                              onClick={() => navigate(`/manager/${path.disputeDetail.replace(':disputeId', dispute.disputeId.toString())}`)}
                             >
                               <p className='text-sm font-semibold text-slate-900 line-clamp-1'>{dispute.title}</p>
                               <p className='text-xs text-slate-500'>{dispute.groupName}</p>
