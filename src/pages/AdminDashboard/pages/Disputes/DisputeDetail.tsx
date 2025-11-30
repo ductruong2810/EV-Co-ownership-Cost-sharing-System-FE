@@ -1,9 +1,8 @@
-import { Button, Card, Descriptions, Form, Input, Select, Space, Tag } from 'antd'
+import { Button, Card, Descriptions, Form, Select, Space, Tag } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect } from 'react'
 import disputeApi from '../../../../apis/dispute.api'
-import type { DisputeComment } from '../../../../types/api/dispute.type'
 
 const statusOptions = [
   { label: 'Open', value: 'OPEN' },
@@ -12,17 +11,12 @@ const statusOptions = [
   { label: 'Rejected', value: 'REJECTED' }
 ]
 
-const visibilityOptions = [
-  { label: 'Public', value: 'PUBLIC' },
-  { label: 'Internal', value: 'INTERNAL' }
-]
 
 const DisputeDetail = () => {
   const { disputeId } = useParams<{ disputeId: string }>()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [statusForm] = Form.useForm()
-  const [commentForm] = Form.useForm()
 
   const { data, isLoading } = useQuery({
     queryKey: ['dispute-detail', disputeId],
@@ -31,21 +25,22 @@ const DisputeDetail = () => {
   })
 
   const updateStatusMutation = useMutation({
-    mutationFn: (values: { status?: string; resolutionNote?: string }) =>
-      disputeApi.updateStatus(disputeId as string, values),
+    mutationFn: (status: string) => disputeApi.updateStatus(disputeId as string, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dispute-detail', disputeId] })
+      queryClient.invalidateQueries({ queryKey: ['disputes'] })
     }
   })
 
-  const addCommentMutation = useMutation({
-    mutationFn: (values: { visibility: string; content: string }) =>
-      disputeApi.addComment(disputeId as string, values),
-    onSuccess: () => {
-      commentForm.resetFields()
-      queryClient.invalidateQueries({ queryKey: ['dispute-detail', disputeId] })
-    }
-  })
+  // Note: Comments API is not available in backend yet
+  // const addCommentMutation = useMutation({
+  //   mutationFn: (values: { visibility: string; content: string }) =>
+  //     disputeApi.addComment(disputeId as string, values),
+  //   onSuccess: () => {
+  //     commentForm.resetFields()
+  //     queryClient.invalidateQueries({ queryKey: ['dispute-detail', disputeId] })
+  //   }
+  // })
 
   if (!disputeId) {
     return <div>Invalid dispute id</div>
@@ -56,8 +51,7 @@ const DisputeDetail = () => {
   useEffect(() => {
     if (detail) {
       statusForm.setFieldsValue({
-        status: detail.status,
-        resolutionNote: detail.resolutionNote
+        status: detail.status
       })
     }
   }, [detail, statusForm])
@@ -79,15 +73,10 @@ const DisputeDetail = () => {
             </Descriptions.Item>
             <Descriptions.Item label='Type'>{detail.type}</Descriptions.Item>
             <Descriptions.Item label='Group'>{detail.groupName}</Descriptions.Item>
-            <Descriptions.Item label='Vehicle'>{detail.vehicleInfo || '—'}</Descriptions.Item>
-            <Descriptions.Item label='Reporter'>{detail.reporter?.fullName}</Descriptions.Item>
-            <Descriptions.Item label='Target'>{detail.targetUser?.fullName || '—'}</Descriptions.Item>
-            <Descriptions.Item label='Assigned to'>{detail.assignedStaff?.fullName || 'Unassigned'}</Descriptions.Item>
+            <Descriptions.Item label='Reporter'>{detail.reporter?.fullName || '—'}</Descriptions.Item>
+            <Descriptions.Item label='Resolved by'>{detail.assignedStaff?.fullName || 'Unassigned'}</Descriptions.Item>
             <Descriptions.Item label='Description' span={2}>
               {detail.description || '—'}
-            </Descriptions.Item>
-            <Descriptions.Item label='Evidence' span={2}>
-              {detail.evidenceUrls || '—'}
             </Descriptions.Item>
             <Descriptions.Item label='Resolution note' span={2}>
               {detail.resolutionNote || '—'}
@@ -100,24 +89,31 @@ const DisputeDetail = () => {
         <Form
           layout='vertical'
           form={statusForm}
-          onFinish={(values) => updateStatusMutation.mutate(values)}
+          onFinish={(values) => {
+            if (values.status) {
+              updateStatusMutation.mutate(values.status)
+            }
+          }}
           initialValues={{ status: detail?.status }}
         >
-          <Form.Item label='Status' name='status'>
+          <Form.Item label='Status' name='status' rules={[{ required: true, message: 'Please select a status' }]}>
             <Select options={statusOptions} />
-          </Form.Item>
-          <Form.Item label='Resolution note' name='resolutionNote'>
-            <Input.TextArea rows={3} />
           </Form.Item>
           <Space>
             <Button type='primary' htmlType='submit' loading={updateStatusMutation.isPending}>
-              Save
+              Update Status
             </Button>
           </Space>
         </Form>
+        <div className='mt-4 p-3 bg-blue-50 rounded-lg'>
+          <p className='text-sm text-blue-700'>
+            <strong>Note:</strong> To add a resolution note, use the "Resolve" action instead of updating status.
+          </p>
+        </div>
       </Card>
 
-      <Card title='Comments' className='rounded-2xl shadow-lg'>
+      {/* Comments section removed - backend doesn't support comments yet */}
+      {/* <Card title='Comments' className='rounded-2xl shadow-lg'>
         <div className='space-y-3 mb-6'>
           {detail?.comments?.length ? (
             detail.comments.map((comment: DisputeComment) => (
@@ -148,7 +144,7 @@ const DisputeDetail = () => {
             Add comment
           </Button>
         </Form>
-      </Card>
+      </Card> */}
     </div>
   )
 }

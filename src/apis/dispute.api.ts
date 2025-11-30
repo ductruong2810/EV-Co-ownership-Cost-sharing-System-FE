@@ -1,8 +1,9 @@
-import type { DisputeDetail, DisputeSummary, DisputeComment } from '../types/api/dispute.type'
+import type { DisputeDetail, DisputeSummary, DisputeComment, DisputeResponseDTO } from '../types/api/dispute.type'
+import { mapDisputeResponseToSummary, mapDisputeResponseToDetail } from '../types/api/dispute.type'
 import http from '../utils/http'
 
 const disputeApi = {
-  list: (params: {
+  list: async (params: {
     status?: string
     disputeType?: string
     groupId?: number
@@ -11,22 +12,37 @@ const disputeApi = {
     page?: number
     size?: number
   }) => {
-    return http.get<{ content: DisputeSummary[]; totalElements: number }>('api/disputes', {
+    const response = await http.get<{ content: DisputeResponseDTO[]; totalElements: number }>('api/disputes', {
       params
     })
+    // Map backend response to frontend format
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        content: response.data.content.map(mapDisputeResponseToSummary)
+      }
+    }
   },
-  detail: (disputeId: string) => {
-    return http.get<DisputeDetail>(`api/disputes/${disputeId}`)
+  detail: async (disputeId: string) => {
+    const response = await http.get<DisputeResponseDTO>(`api/disputes/${disputeId}`)
+    // Map backend response to frontend format
+    return {
+      ...response,
+      data: mapDisputeResponseToDetail(response.data)
+    }
   },
-  updateStatus: (disputeId: string, body: { status?: string; resolutionNote?: string; assignedStaffId?: string }) => {
-    return http.post<DisputeDetail>(`api/disputes/${disputeId}/status`, body)
+  updateStatus: (disputeId: string, status: string) => {
+    // Backend expects PUT with query param: PUT /api/disputes/{id}/status?status=OPEN
+    return http.put<DisputeResponseDTO>(`api/disputes/${disputeId}/status?status=${status}`)
   },
   resolveDispute: (disputeId: number, body: { status: 'RESOLVED' | 'REJECTED'; resolutionNote?: string }) => {
-    return http.put<DisputeDetail>(`api/disputes/${disputeId}/resolve`, body)
-  },
-  addComment: (disputeId: string, body: { visibility: string; content: string }) => {
-    return http.post<DisputeComment>(`api/disputes/${disputeId}/comments`, body)
+    return http.put<DisputeResponseDTO>(`api/disputes/${disputeId}/resolve`, body)
   }
+  // Note: Comments API is not available in backend yet
+  // addComment: (disputeId: string, body: { visibility: string; content: string }) => {
+  //   return http.post<DisputeComment>(`api/disputes/${disputeId}/comments`, body)
+  // }
 }
 
 export default disputeApi
