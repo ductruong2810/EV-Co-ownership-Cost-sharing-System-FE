@@ -19,7 +19,6 @@ import {
 import { getRoleFromLS } from '../../utils/auth'
 import path from '../../constants/path'
 import logger from '../../utils/logger'
-import CheckLicenseModal from './pages/CheckLicense/CheckLicenseModal'
 
 export default function AdminDashboard() {
   const role = getRoleFromLS()
@@ -27,7 +26,6 @@ export default function AdminDashboard() {
   const [periodType, setPeriodType] = useState<string>('DAY')
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
   const [scrollY, setScrollY] = useState<number>(0)
-  const [checkLicenseModalOpen, setCheckLicenseModalOpen] = useState<boolean>(false)
   const roleLabel = useMemo(() => {
     switch (role) {
       case 'ADMIN':
@@ -219,13 +217,22 @@ export default function AdminDashboard() {
                   </NavLink>
                 </li>
                 <li>
-                  <button
-                    onClick={() => setCheckLicenseModalOpen(true)}
-                    className={`flex items-center ${sidebarCollapsed ? 'justify-center' : ''} w-full rounded-lg text-gray-700 hover:bg-gray-100 ${sidebarCollapsed ? 'p-3' : 'p-3'} text-sm font-medium transition-all duration-200`}
+                  <NavLink
+                    to={path.checkLicense}
+                    className={({ isActive }) => {
+                      const activeClass = isActive 
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                      return `flex items-center ${sidebarCollapsed ? 'justify-center' : ''} rounded-lg ${activeClass} ${sidebarCollapsed ? 'p-3' : 'p-3'} text-sm font-medium transition-all duration-200`
+                    }}
                   >
-                    <IdcardOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                    {!sidebarCollapsed && <span>Documents</span>}
-                  </button>
+                    {({ isActive }) => (
+                      <>
+                        <IdcardOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                        {!sidebarCollapsed && <span>Documents</span>}
+                      </>
+                    )}
+                  </NavLink>
                 </li>
                 <li>
                   <NavLink
@@ -461,12 +468,6 @@ export default function AdminDashboard() {
           <Outlet />
         </div>
       </main>
-
-      {/* Check License Modal */}
-      <CheckLicenseModal 
-        open={checkLicenseModalOpen} 
-        onClose={() => setCheckLicenseModalOpen(false)} 
-      />
     </div>
   )
 }
