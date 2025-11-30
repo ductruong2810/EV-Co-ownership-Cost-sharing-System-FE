@@ -498,7 +498,7 @@ export default function Dashboard() {
       return datum.color || roleColorMap[datum.type] || '#1890ff'
     },
     label: {
-      type: 'inner',
+      type: 'spider',
       offset: '-30%',
       content: ({ type, value }: any) => {
         if (!type || value === undefined || value === null) return ''
@@ -552,7 +552,7 @@ export default function Dashboard() {
     radius: 0.8,
     color: ['#52c41a', '#faad14', '#ff4d4f'], // Green, Yellow, Red for Active, Pending, Inactive
     label: {
-      type: 'inner',
+      type: 'spider',
       offset: '-30%',
       content: ({ type, value }: any) => {
         if (!type || value === undefined || value === null) return ''
@@ -643,7 +643,7 @@ export default function Dashboard() {
     radius: 0.8,
     color: ['#52c41a', '#faad14', '#ff4d4f'], // Green, Yellow, Red
     label: {
-      type: 'inner',
+      type: 'spider',
       offset: '-30%',
       content: ({ type, value }: any) => {
         if (!type || value === undefined || value === null || isNaN(value)) return ''
@@ -679,7 +679,7 @@ export default function Dashboard() {
     radius: 0.8,
     color: ['#1890ff', '#52c41a', '#faad14', '#ff4d4f'], // Blue, Green, Yellow, Red
     label: {
-      type: 'inner',
+      type: 'spider',
       offset: '-30%',
       content: ({ type, value }: any) => {
         if (!type || value === undefined || value === null || isNaN(value)) return ''
@@ -713,7 +713,7 @@ export default function Dashboard() {
     radius: 0.8,
     color: ['#faad14', '#52c41a', '#ff4d4f', '#1890ff'], // Yellow, Green, Red, Blue
     label: {
-      type: 'inner',
+      type: 'spider',
       offset: '-30%',
       content: ({ type, value }: any) => {
         if (!type || value === undefined || value === null || isNaN(value)) return ''
