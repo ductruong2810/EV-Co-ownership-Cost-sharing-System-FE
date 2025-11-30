@@ -262,8 +262,23 @@ export default function CheckLicense() {
     }
   }
 
-  const updateStatus = (id: string, type: DocType, side: Side, status: Status) => {
+  const updateStatus = async (id: string, type: DocType, side: Side, status: Status) => {
+    // Update local state immediately for better UX
     setMembers((m) => m.map((x) => (x.id === id ? { ...x, [type]: { ...x[type], [`${side}Status`]: status } } : x)))
+    
+    // Reload data from server to ensure consistency
+    setLoading(true)
+    try {
+      const res = await staffApi.getUsersPendingLicense()
+      if (res.data && Array.isArray(res.data)) {
+        setMembers(res.data.map(mapUserToMember))
+      }
+    } catch (error) {
+      console.error('Error reloading data:', error)
+      message.error('Failed to reload data. Please refresh the page.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const approveBothSides = async (memberId: string, docType: DocType) => {
