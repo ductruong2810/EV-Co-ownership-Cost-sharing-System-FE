@@ -16,6 +16,7 @@ interface ImageCardProps {
   documentId?: number
   setSelected: (image: string) => void
   documentInfo?: DocumentInfo | null
+  hideActions?: boolean
 }
 
 const ImageCard: FC<ImageCardProps> = ({
@@ -26,7 +27,8 @@ const ImageCard: FC<ImageCardProps> = ({
   onReject,
   documentId,
   setSelected,
-  documentInfo
+  documentInfo,
+  hideActions = false
 }) => {
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
@@ -141,7 +143,7 @@ const ImageCard: FC<ImageCardProps> = ({
                 </p>
               )}
             </div>
-            {status === 'PENDING' && (
+            {status === 'PENDING' && !hideActions && (
               <div className='flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-auto'>
                 <button
                   onClick={handleApprove}

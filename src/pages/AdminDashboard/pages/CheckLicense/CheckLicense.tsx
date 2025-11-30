@@ -533,6 +533,7 @@ export default function CheckLicense() {
             onApprove={() => onUpdateStatus(member.id, docType, 'front', 'APPROVED')}
             onReject={() => onUpdateStatus(member.id, docType, 'front', 'REJECTED')}
             documentInfo={doc.frontInfo}
+            hideActions={bothPending}
           />
           <ImageCardAny
             image={doc.backImage}
@@ -543,6 +544,7 @@ export default function CheckLicense() {
             onApprove={() => onUpdateStatus(member.id, docType, 'back', 'APPROVED')}
             onReject={() => onUpdateStatus(member.id, docType, 'back', 'REJECTED')}
             documentInfo={doc.backInfo}
+            hideActions={bothPending}
           />
         </div>
       </div>
