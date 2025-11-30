@@ -456,19 +456,28 @@ const DisputeList = () => {
                           className={`w-full rounded-2xl border ${
                             isSelected ? 'border-blue-500 bg-blue-50' : 'border-white bg-white/90'
                           } p-3 shadow hover:shadow-md transition-all`}
+                          onClick={(e) => {
+                            // Prevent card click from triggering checkbox
+                            if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
+                              return
+                            }
+                            navigate(`disputes/${dispute.disputeId}`)
+                          }}
                         >
                           <div className='flex items-start gap-2'>
-                            <Checkbox
-                              checked={isSelected}
-                              onChange={(e) => {
-                                e.stopPropagation()
-                                handleSelectDispute(dispute.disputeId, e.target.checked)
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <button
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Checkbox
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  e.stopPropagation()
+                                  handleSelectDispute(dispute.disputeId, e.target.checked)
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                            <div
+                              className='flex-1 text-left cursor-pointer'
                               onClick={() => navigate(`disputes/${dispute.disputeId}`)}
-                              className='flex-1 text-left'
                             >
                               <p className='text-sm font-semibold text-slate-900 line-clamp-1'>{dispute.title}</p>
                               <p className='text-xs text-slate-500'>{dispute.groupName}</p>
@@ -480,7 +489,7 @@ const DisputeList = () => {
                                   minute: '2-digit'
                                 })}
                               </p>
-                            </button>
+                            </div>
                           </div>
                         </div>
                       )
