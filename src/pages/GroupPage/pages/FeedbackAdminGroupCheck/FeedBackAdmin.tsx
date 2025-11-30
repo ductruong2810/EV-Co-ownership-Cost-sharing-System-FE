@@ -74,10 +74,11 @@ export default function FeedBackAdmin() {
 
   const feedbacks = feedContractQuery?.data?.data
 
-  // Create stable reference for feedbacks array
+  // Create stable key for feedbacks array to prevent unnecessary re-computations
   const feedbacksArray = feedbacks?.feedbacks || []
   const feedbacksKey = useMemo(() => {
-    return JSON.stringify(feedbacksArray.map(f => f.id || f.email))
+    if (feedbacksArray.length === 0) return 'empty'
+    return JSON.stringify(feedbacksArray.map(f => ({ id: f.id, email: f.email })))
   }, [feedbacksArray])
 
   const groupedFeedbacks = useMemo(() => {
