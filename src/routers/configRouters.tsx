@@ -192,8 +192,9 @@ function Routers() {
                     { path: path.checkLicense, element: <CheckLicense /> },
                     { path: path.checkBooking, element: <CheckBooking /> },
                     { path: path.bookingQr, element: <BookingQr /> },
-                    { path: path.disputes, element: <DisputeList /> },
-                    { path: path.disputeDetail, element: <DisputeDetail /> }
+                    // DisputeDetail must come before disputes to match /manager/disputes/:id first
+                    { path: path.disputeDetail, element: <DisputeDetail /> },
+                    { path: path.disputes, element: <DisputeList /> }
                   ]
                 }
               ]
@@ -216,8 +217,9 @@ function Routers() {
                     { path: path.checkLicense, element: <CheckLicense /> },
                     { path: path.checkBooking, element: <CheckBooking /> },
                     { path: path.bookingQr, element: <BookingQr /> },
-                    { path: path.disputes, element: <DisputeList /> },
+                    // DisputeDetail must come before disputes to match /manager/disputes/:id first
                     { path: path.disputeDetail, element: <DisputeDetail /> },
+                    { path: path.disputes, element: <DisputeList /> },
                     { path: path.financialReports, element: <FinancialReports /> }
                   ]
                 }
