@@ -18,10 +18,11 @@ const DisputeDetail = () => {
   const navigate = useNavigate()
   const [statusForm] = Form.useForm()
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, isError } = useQuery({
     queryKey: ['dispute-detail', disputeId],
     queryFn: () => disputeApi.detail(disputeId as string),
-    enabled: !!disputeId
+    enabled: !!disputeId,
+    retry: 1
   })
 
   const updateStatusMutation = useMutation({
@@ -43,7 +44,32 @@ const DisputeDetail = () => {
   // })
 
   if (!disputeId) {
-    return <div>Invalid dispute id</div>
+    return (
+      <div className='p-6'>
+        <div className='rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
+          <p className='text-lg font-semibold text-red-700'>Invalid dispute ID</p>
+          <Button type='link' onClick={() => navigate(-1)} className='mt-4'>
+            ← Back to Disputes
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className='p-6'>
+        <div className='rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
+          <p className='text-lg font-semibold text-red-700'>Dispute Not Found</p>
+          <p className='mt-2 text-sm text-red-600'>
+            The dispute with ID {disputeId} could not be found.
+          </p>
+          <Button type='link' onClick={() => navigate(-1)} className='mt-4'>
+            ← Back to Disputes
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   const detail = data?.data

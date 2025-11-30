@@ -10,6 +10,7 @@ import type { DisputeSummary } from '../../../../types/api/dispute.type'
 import type { groupStaffItem } from '../../../../types/api/staff.type'
 import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState'
+import path from '../../../../constants/path'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -472,7 +473,7 @@ const DisputeList = () => {
                             if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
                               return
                             }
-                            navigate(`disputes/${dispute.disputeId}`)
+                            navigate(path.disputeDetail.replace(':disputeId', dispute.disputeId.toString()))
                           }}
                         >
                           <div className='flex items-start gap-2'>
@@ -488,7 +489,7 @@ const DisputeList = () => {
                             </div>
                             <div
                               className='flex-1 text-left cursor-pointer'
-                              onClick={() => navigate(`disputes/${dispute.disputeId}`)}
+                              onClick={() => navigate(path.disputeDetail.replace(':disputeId', dispute.disputeId.toString()))}
                             >
                               <p className='text-sm font-semibold text-slate-900 line-clamp-1'>{dispute.title}</p>
                               <p className='text-xs text-slate-500'>{dispute.groupName}</p>
