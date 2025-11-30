@@ -189,13 +189,17 @@ const DisputeList = () => {
     const newSelected = new Set(selectedDisputeIds)
 
     if (checked) {
+      // Chọn tất cả disputes trong column này
       disputesInColumn.forEach((d) => newSelected.add(d.disputeId))
     } else {
+      // Bỏ chọn tất cả disputes trong column này
       disputesInColumn.forEach((d) => newSelected.delete(d.disputeId))
     }
 
     setSelectedDisputeIds(newSelected)
-    setShowBulkActions(newSelected.size > 0)
+    // Chỉ hiển thị bulk actions nếu có ít nhất 1 dispute được chọn
+    const visibleSelectedCount = filtered.filter((d) => newSelected.has(d.disputeId)).length
+    setShowBulkActions(visibleSelectedCount > 0)
   }
 
   const handleBulkResolve = () => {
@@ -436,11 +440,15 @@ const DisputeList = () => {
                       indeterminate={someSelected && !allSelected}
                       onChange={(e) => {
                         e.stopPropagation()
-                        handleSelectAll(e.target.checked, column.key)
+                        // e.target.checked sẽ là true nếu đang uncheck → check, false nếu đang check → uncheck
+                        // Nhưng chúng ta muốn: nếu allSelected = false thì check tất cả, nếu allSelected = true thì uncheck tất cả
+                        // Vậy nên dùng !allSelected để toggle
+                        const shouldSelect = !allSelected
+                        handleSelectAll(shouldSelect, column.key)
                       }}
                       onClick={(e) => {
                         e.stopPropagation()
-                        e.preventDefault()
+                        // Không preventDefault để checkbox có thể toggle bình thường
                       }}
                     />
                     <p className='text-sm font-semibold text-gray-800'>{column.label}</p>
