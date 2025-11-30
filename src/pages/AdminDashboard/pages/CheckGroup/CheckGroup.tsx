@@ -139,6 +139,18 @@ export default function CheckGroup() {
 
   const allGroupData: groupStaffItem[] = groupListQuery.data?.data?.content || []
 
+  // Create stable key for allGroupData to prevent unnecessary re-computations
+  const allGroupDataKey = useMemo(() => {
+    if (allGroupData.length === 0) return 'empty'
+    return JSON.stringify(allGroupData.map(g => ({ id: g.groupId, status: g.status, name: g.groupName })))
+  }, [allGroupData])
+
+  // Create stable key for dateRange to prevent unnecessary re-computations
+  const dateRangeKey = useMemo(() => {
+    if (!dateRange[0] || !dateRange[1]) return 'no-range'
+    return `${dateRange[0].format('YYYY-MM-DD')}-${dateRange[1].format('YYYY-MM-DD')}`
+  }, [dateRange])
+
   // Filter and search logic
   const filteredGroups = useMemo(() => {
     let filtered = allGroupData
@@ -177,7 +189,7 @@ export default function CheckGroup() {
     }
 
     return filtered
-  }, [allGroupData, statusFilter, searchTerm, dateRange, minMembers, maxMembers])
+  }, [allGroupDataKey, statusFilter, searchTerm, dateRangeKey, minMembers, maxMembers])
 
   const hasActiveAdvancedFilters = dateRange[0] || dateRange[1] || minMembers !== null || maxMembers !== null
 
@@ -206,6 +218,12 @@ export default function CheckGroup() {
     setCurrentPage(newPage - 1) // Convert to 0-based
   }
 
+  // Create stable key for filteredGroups to prevent unnecessary re-computations
+  const filteredGroupsKey = useMemo(() => {
+    if (filteredGroups.length === 0) return 'empty'
+    return JSON.stringify(filteredGroups.map(g => ({ id: g.groupId, status: g.status })))
+  }, [filteredGroups])
+
   const statusCounts = useMemo(() => {
     return filteredGroups.reduce(
       (acc, group) => {
@@ -214,7 +232,7 @@ export default function CheckGroup() {
       },
       {} as Record<string, number>
     )
-  }, [filteredGroups])
+  }, [filteredGroupsKey])
 
   const summaryMetrics = [
     {
