@@ -257,6 +257,64 @@ export default function CheckGroup() {
     }
   ]
 
+  // Create stable key for selectedGroup to prevent unnecessary re-computations
+  const selectedGroupKey = useMemo(() => {
+    if (!selectedGroup) return null
+    return JSON.stringify({ id: selectedGroup.groupId, status: selectedGroup.status, updatedAt: selectedGroup.updatedAt })
+  }, [selectedGroup])
+
+  // Activity timeline data - MUST be at top level, not inside JSX
+  const activityItems = useMemo<ActivityItem[]>(() => {
+    if (!selectedGroup) return []
+    
+    const activities: ActivityItem[] = []
+    if (selectedGroup.createdAt) {
+      activities.push({
+        id: 'create',
+        type: 'CREATE',
+        title: 'Group Created',
+        description: `Group "${selectedGroup.groupName}" was created`,
+        timestamp: selectedGroup.createdAt,
+        metadata: {
+          groupId: selectedGroup.groupId,
+          memberCapacity: selectedGroup.memberCapacity
+        }
+      })
+    }
+    if (selectedGroup.updatedAt && selectedGroup.updatedAt !== selectedGroup.createdAt) {
+      activities.push({
+        id: 'update',
+        type: 'UPDATE',
+        title: 'Group Updated',
+        description: 'Group information was updated',
+        timestamp: selectedGroup.updatedAt
+      })
+    }
+    if (selectedGroup.status === 'ACTIVE') {
+      activities.push({
+        id: 'approve',
+        type: 'APPROVE',
+        title: 'Group Approved',
+        description: 'Group was approved and activated',
+        timestamp: selectedGroup.updatedAt || selectedGroup.createdAt || new Date().toISOString()
+      })
+    } else if (selectedGroup.status === 'INACTIVE' && selectedGroup.rejectionReason) {
+      activities.push({
+        id: 'reject',
+        type: 'REJECT',
+        title: 'Group Rejected',
+        description: selectedGroup.rejectionReason,
+        timestamp: selectedGroup.updatedAt || selectedGroup.createdAt || new Date().toISOString(),
+        metadata: {
+          reason: selectedGroup.rejectionReason
+        }
+      })
+    }
+    return activities.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
+  }, [selectedGroupKey])
+
   useEffect(() => {
     if (!selectedGroup && groupData.length > 0) {
       setSelectedGroup(groupData[0])
@@ -605,54 +663,7 @@ export default function CheckGroup() {
                 {selectedGroup && (
                   <div className='mt-6'>
                     <ActivityTimeline
-                      activities={useMemo<ActivityItem[]>(() => {
-                        const activities: ActivityItem[] = []
-                        if (selectedGroup.createdAt) {
-                          activities.push({
-                            id: 'create',
-                            type: 'CREATE',
-                            title: 'Group Created',
-                            description: `Group "${selectedGroup.groupName}" was created`,
-                            timestamp: selectedGroup.createdAt,
-                            metadata: {
-                              groupId: selectedGroup.groupId,
-                              memberCapacity: selectedGroup.memberCapacity
-                            }
-                          })
-                        }
-                        if (selectedGroup.updatedAt && selectedGroup.updatedAt !== selectedGroup.createdAt) {
-                          activities.push({
-                            id: 'update',
-                            type: 'UPDATE',
-                            title: 'Group Updated',
-                            description: 'Group information was updated',
-                            timestamp: selectedGroup.updatedAt
-                          })
-                        }
-                        if (selectedGroup.status === 'ACTIVE') {
-                          activities.push({
-                            id: 'approve',
-                            type: 'APPROVE',
-                            title: 'Group Approved',
-                            description: 'Group was approved and activated',
-                            timestamp: selectedGroup.updatedAt || selectedGroup.createdAt || new Date().toISOString()
-                          })
-                        } else if (selectedGroup.status === 'INACTIVE' && selectedGroup.rejectionReason) {
-                          activities.push({
-                            id: 'reject',
-                            type: 'REJECT',
-                            title: 'Group Rejected',
-                            description: selectedGroup.rejectionReason,
-                            timestamp: selectedGroup.updatedAt || selectedGroup.createdAt || new Date().toISOString(),
-                            metadata: {
-                              reason: selectedGroup.rejectionReason
-                            }
-                          })
-                        }
-                        return activities.sort((a, b) => 
-                          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-                        )
-                      }, [selectedGroup])}
+                      activities={activityItems}
                       maxItems={10}
                     />
                   </div>
