@@ -179,7 +179,9 @@ const DisputeList = () => {
       newSelected.delete(disputeId)
     }
     setSelectedDisputeIds(newSelected)
-    setShowBulkActions(newSelected.size > 0)
+    // Only show bulk actions if there are visible selected disputes
+    const visibleSelectedCount = filtered.filter((d) => newSelected.has(d.disputeId)).length
+    setShowBulkActions(visibleSelectedCount > 0)
   }
 
   const handleSelectAll = (checked: boolean, status: string) => {
@@ -197,30 +199,46 @@ const DisputeList = () => {
   }
 
   const handleBulkResolve = () => {
+    // Only get disputes that are currently visible
+    const visibleSelectedIds = filtered.filter((d) => selectedDisputeIds.has(d.disputeId)).map((d) => d.disputeId)
+    
+    if (visibleSelectedIds.length === 0) {
+      message.warning('No visible disputes selected')
+      return
+    }
+
     Modal.confirm({
       title: 'Resolve Selected Disputes',
-      content: `Are you sure you want to resolve ${selectedDisputeIds.size} dispute(s)?`,
+      content: `Are you sure you want to resolve ${visibleSelectedIds.length} dispute(s)?`,
       okText: 'Resolve',
       okType: 'primary',
       cancelText: 'Cancel',
       onOk: () => {
         bulkResolveMutation.mutate({
-          disputeIds: Array.from(selectedDisputeIds)
+          disputeIds: visibleSelectedIds
         })
       }
     })
   }
 
   const handleBulkReject = () => {
+    // Only get disputes that are currently visible
+    const visibleSelectedIds = filtered.filter((d) => selectedDisputeIds.has(d.disputeId)).map((d) => d.disputeId)
+    
+    if (visibleSelectedIds.length === 0) {
+      message.warning('No visible disputes selected')
+      return
+    }
+
     Modal.confirm({
       title: 'Reject Selected Disputes',
-      content: `Are you sure you want to reject ${selectedDisputeIds.size} dispute(s)?`,
+      content: `Are you sure you want to reject ${visibleSelectedIds.length} dispute(s)?`,
       okText: 'Reject',
       okType: 'danger',
       cancelText: 'Cancel',
       onOk: () => {
         bulkRejectMutation.mutate({
-          disputeIds: Array.from(selectedDisputeIds)
+          disputeIds: visibleSelectedIds
         })
       }
     })
@@ -351,10 +369,13 @@ const DisputeList = () => {
       </div>
 
       {/* Bulk Actions Bar */}
-      {showBulkActions && selectedDisputeIds.size > 0 && (
+      {showBulkActions && selectedDisputeIds.size > 0 && (() => {
+        // Count only disputes that are currently visible in the filtered list
+        const visibleSelectedCount = filtered.filter((d) => selectedDisputeIds.has(d.disputeId)).length
+        return visibleSelectedCount > 0 ? (
         <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between'>
           <div className='flex items-center gap-3'>
-            <span className='font-semibold text-blue-900'>{selectedDisputeIds.size} dispute(s) selected</span>
+            <span className='font-semibold text-blue-900'>{visibleSelectedCount} dispute(s) selected</span>
           </div>
           <Space>
             <Button
@@ -374,10 +395,14 @@ const DisputeList = () => {
             >
               Reject Selected
             </Button>
-            <Button onClick={() => setSelectedDisputeIds(new Set())}>Clear Selection</Button>
+            <Button onClick={() => {
+              setSelectedDisputeIds(new Set())
+              setShowBulkActions(false)
+            }}>Clear Selection</Button>
           </Space>
         </div>
-      )}
+        ) : null
+      })()}
 
       <section className='grid gap-3 md:grid-cols-4'>
         <SummaryCard label='Open' value={summary.open} accent='bg-orange-50 text-orange-700 border-orange-100' />
