@@ -23,7 +23,7 @@ class Http {
   constructor() {
     this.instance = axios.create({
       baseURL: config.baseUrl,
-      timeout: 20000, // 20 giây
+      timeout: 60000, // 60 giây - tăng timeout cho Render (có thể chậm do cold start)
       headers: {
         'Content-Type': 'application/json'
       }
