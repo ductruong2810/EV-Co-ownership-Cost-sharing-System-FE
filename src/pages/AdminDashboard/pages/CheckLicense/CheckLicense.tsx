@@ -307,9 +307,9 @@ export default function CheckLicense() {
   const ImageCardAny = ImageCardComponent as ComponentType<any>
 
   const SummaryCard = ({ label, value, accent }: { label: string; value: number; accent: string }) => (
-    <div className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${accent}`}>
-      <p className='text-[11px] uppercase tracking-wide text-gray-400'>{label}</p>
-      <p className='mt-1 text-2xl'>{value}</p>
+    <div className={`rounded-xl border-2 px-5 py-4 text-sm font-semibold shadow-sm hover:shadow-md transition-shadow duration-200 ${accent}`}>
+      <p className='text-[11px] uppercase tracking-wide text-gray-500 font-bold mb-2'>{label}</p>
+      <p className='text-3xl font-bold'>{value.toLocaleString()}</p>
     </div>
   )
 
@@ -511,14 +511,14 @@ export default function CheckLicense() {
   if (members.length === 0) return <EmptyState />
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-6'>
-      <div className='max-w-6xl mx-auto'>
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-4 sm:p-6'>
+      <div className='max-w-7xl mx-auto'>
         <div className='mb-8'>
           <div className='flex items-start justify-between mb-4'>
             <div>
               <h1 className='text-3xl font-bold text-gray-900 mb-2'>Document Verification</h1>
-              <p className='text-gray-600'>
-                Review and verify user documents • Total: <span className='font-semibold'>{members.length}</span>{' '}
+              <p className='text-gray-600 text-sm'>
+                Review and verify user documents • Total: <span className='font-semibold text-blue-600'>{members.length}</span>{' '}
                 pending documents
               </p>
             </div>
@@ -527,7 +527,7 @@ export default function CheckLicense() {
                 const modal = document.getElementById('review-guidelines-modal')
                 if (modal) (modal as any).showModal()
               }}
-              className='px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2'
+              className='px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md border border-blue-200 hover:border-blue-300'
             >
               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path
@@ -614,10 +614,15 @@ export default function CheckLicense() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             allowClear
-            className='flex-1'
+            className='flex-1 shadow-sm'
             size='large'
           />
-          <Select value={statusFilter} onChange={setStatusFilter} className='w-full sm:w-48' size='large'>
+          <Select 
+            value={statusFilter} 
+            onChange={setStatusFilter} 
+            className='w-full sm:w-48 shadow-sm' 
+            size='large'
+          >
             <Option value='ALL'>All Status</Option>
             <Option value='PENDING'>Pending</Option>
             <Option value='APPROVED'>Approved</Option>
@@ -627,29 +632,38 @@ export default function CheckLicense() {
 
         {/* Results count */}
         {filteredMembers.length !== members.length && (
-          <div className='mb-4 text-sm text-gray-600'>
-            Showing {filteredMembers.length} of {members.length} members
-            {searchTerm && ` matching "${searchTerm}"`}
-            {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
+          <div className='mb-4 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600'>
+            <span className='font-semibold'>Showing {filteredMembers.length}</span> of <span className='font-semibold'>{members.length}</span> members
+            {searchTerm && <span className='ml-2'>matching "<span className='font-semibold text-blue-600'>{searchTerm}</span>"</span>}
+            {statusFilter !== 'ALL' && <span className='ml-2'>with status "<span className='font-semibold text-blue-600'>{statusFilter}</span>"</span>}
           </div>
         )}
 
         {/* Bulk Actions Bar */}
         {showBulkActions && selectedDocuments.size > 0 && (
-          <div className='rounded-2xl bg-blue-50 border border-blue-200 p-4 mb-4'>
-            <div className='flex items-center justify-between'>
+          <div className='rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 p-5 mb-6 shadow-lg'>
+            <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
               <div className='flex items-center gap-3'>
-                <span className='text-sm font-semibold text-blue-900'>
-                  {selectedDocuments.size} user(s) selected ({getPendingDocumentIds().length} pending documents)
-                </span>
+                <div className='w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center'>
+                  <span className='text-white font-bold text-lg'>{selectedDocuments.size}</span>
+                </div>
+                <div>
+                  <p className='text-sm font-bold text-blue-900'>
+                    {selectedDocuments.size} user(s) selected
+                  </p>
+                  <p className='text-xs text-blue-700'>
+                    {getPendingDocumentIds().length} pending document(s) ready for review
+                  </p>
+                </div>
               </div>
-              <Space>
+              <Space className='flex-wrap'>
                 <Button
                   icon={<CheckOutlined />}
                   type='primary'
                   onClick={handleBulkApprove}
                   loading={bulkApproveMutation.isPending}
-                  className='bg-emerald-600 hover:bg-emerald-700'
+                  size='large'
+                  className='bg-emerald-600 hover:bg-emerald-700 border-0 shadow-md hover:shadow-lg'
                 >
                   Approve Selected
                 </Button>
@@ -658,6 +672,8 @@ export default function CheckLicense() {
                   danger
                   onClick={handleBulkReject}
                   loading={bulkRejectMutation.isPending}
+                  size='large'
+                  className='shadow-md hover:shadow-lg'
                 >
                   Reject Selected
                 </Button>
@@ -666,8 +682,10 @@ export default function CheckLicense() {
                     setSelectedDocuments(new Set())
                     setShowBulkActions(false)
                   }}
+                  size='large'
+                  className='border-gray-300'
                 >
-                  Clear Selection
+                  Clear
                 </Button>
               </Space>
             </div>
@@ -675,13 +693,24 @@ export default function CheckLicense() {
         )}
 
         {filteredMembers.length === 0 ? (
-          <div className='text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200'>
-            {searchTerm || statusFilter !== 'ALL' ? 'No members match your filters' : 'No members found'}
+          <div className='text-center py-16 text-gray-500 bg-white rounded-xl border-2 border-gray-200 shadow-sm'>
+            <svg className='w-20 h-20 mx-auto mb-4 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+            </svg>
+            <p className='text-lg font-semibold text-gray-700 mb-2'>
+              {searchTerm || statusFilter !== 'ALL' ? 'No members match your filters' : 'No members found'}
+            </p>
+            <p className='text-sm text-gray-500'>
+              {searchTerm || statusFilter !== 'ALL' 
+                ? 'Try adjusting your search or filter criteria' 
+                : 'All documents have been reviewed'}
+            </p>
           </div>
         ) : (
-          <div className='grid gap-4 lg:grid-cols-[1.2fr,1.8fr]'>
-            <div className='space-y-2'>
-              <div className='flex items-center gap-2 mb-2 px-2'>
+          <div className='grid gap-6 lg:grid-cols-[1.2fr,1.8fr]'>
+            {/* Left Panel - User List */}
+            <div className='space-y-3'>
+              <div className='flex items-center gap-2 mb-3 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-200 shadow-sm'>
                 <Checkbox
                   checked={
                     filteredMembers.length > 0 &&
@@ -692,89 +721,110 @@ export default function CheckLicense() {
                   }
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
-                <span className='text-sm font-medium text-gray-700'>Select All</span>
+                <span className='text-sm font-semibold text-gray-700'>Select All</span>
+                {selectedDocuments.size > 0 && (
+                  <span className='ml-auto text-xs text-gray-500 font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full'>
+                    {selectedDocuments.size} selected
+                  </span>
+                )}
               </div>
-              {filteredMembers.map((member) => {
-                const isActive = member.id === selectedMemberId
-                const isSelected = selectedDocuments.has(member.id)
-                const hasPendingDocs =
-                  member.cccd.frontStatus === 'PENDING' ||
-                  member.cccd.backStatus === 'PENDING' ||
-                  member.gplx.frontStatus === 'PENDING' ||
-                  member.gplx.backStatus === 'PENDING'
-                return (
-                  <div
-                    key={member.id}
-                    className={`w-full rounded-2xl border px-4 py-3 transition ${
-                      isActive
-                        ? 'border-blue-400 bg-blue-50/60 shadow-sm'
-                        : isSelected
-                          ? 'border-blue-300 bg-blue-50/40'
-                          : 'border-gray-200 bg-white hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className='flex items-start gap-3'>
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={(e) => {
-                          e.stopPropagation()
-                          handleSelectMember(member.id, e.target.checked)
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        disabled={!hasPendingDocs}
-                        className='mt-1'
-                      />
-                      <button
-                        onClick={() => setSelectedMemberId(member.id)}
-                        className='flex-1 text-left'
-                      >
-                    <div className='flex items-center justify-between gap-2'>
-                      <div>
-                        <p className='text-base font-semibold text-gray-900'>{member.name}</p>
-                        <p className='text-xs text-gray-500'>
-                          {member.email} • {member.phone}
-                        </p>
+              <div className='space-y-2 max-h-[calc(100vh-350px)] overflow-y-auto pr-2'>
+                {filteredMembers.map((member) => {
+                  const isActive = member.id === selectedMemberId
+                  const isSelected = selectedDocuments.has(member.id)
+                  const hasPendingDocs =
+                    member.cccd.frontStatus === 'PENDING' ||
+                    member.cccd.backStatus === 'PENDING' ||
+                    member.gplx.frontStatus === 'PENDING' ||
+                    member.gplx.backStatus === 'PENDING'
+                  return (
+                    <div
+                      key={member.id}
+                      className={`w-full rounded-xl border-2 px-4 py-3 transition-all duration-200 cursor-pointer ${
+                        isActive
+                          ? 'border-blue-500 bg-blue-50 shadow-lg scale-[1.02]'
+                          : isSelected
+                            ? 'border-indigo-300 bg-indigo-50 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md hover:scale-[1.01]'
+                      }`}
+                      onClick={() => setSelectedMemberId(member.id)}
+                    >
+                      <div className='flex items-center justify-between gap-2'>
+                        <div className='flex items-center gap-3 flex-1 min-w-0'>
+                          <Checkbox
+                            checked={isSelected}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              e.stopPropagation()
+                              handleSelectMember(member.id, e.target.checked)
+                            }}
+                            disabled={!hasPendingDocs}
+                          />
+                          <div className='flex-1 min-w-0'>
+                            <p className='text-base font-semibold text-gray-900 truncate'>{member.name}</p>
+                            <p className='text-xs text-gray-500 truncate'>
+                              {member.email}
+                            </p>
+                            <p className='text-xs text-gray-400 truncate'>
+                              {member.phone}
+                            </p>
+                          </div>
+                        </div>
+                        <Tag 
+                          color={
+                            member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
+                              ? 'orange'
+                              : member.cccd.frontStatus === 'APPROVED' && member.gplx.frontStatus === 'APPROVED'
+                                ? 'green'
+                                : 'blue'
+                          } 
+                          className='rounded-full font-medium flex-shrink-0'
+                        >
+                          {member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
+                            ? 'Pending'
+                            : member.cccd.frontStatus === 'APPROVED' && member.gplx.frontStatus === 'APPROVED'
+                              ? 'Approved'
+                              : 'Mixed'}
+                        </Tag>
                       </div>
-                      <Tag color='blue' className='rounded-full'>
-                        {member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
-                          ? 'Pending'
-                          : member.cccd.frontStatus === 'APPROVED' && member.gplx.frontStatus === 'APPROVED'
-                            ? 'Approved'
-                            : 'Mixed'}
-                      </Tag>
                     </div>
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
 
-            <div className='rounded-2xl border border-gray-100 bg-white p-4 shadow-sm'>
+            {/* Right Panel - Document Details */}
+            <div className='rounded-2xl border-2 border-gray-200 bg-white p-6 shadow-lg'>
               {selectedMember ? (
-                <div className='space-y-5'>
-                  <div className='flex flex-wrap items-start justify-between gap-3'>
-                    <div>
-                      <p className='text-xs uppercase tracking-wide text-gray-400'>Selected user</p>
-                      <h2 className='text-2xl font-bold text-gray-900'>{selectedMember.name}</h2>
-                      <p className='text-sm text-gray-500'>{selectedMember.email}</p>
+                <div className='space-y-6'>
+                  {/* User Header */}
+                  <div className='flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-gray-200'>
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1'>Selected user</p>
+                      <h2 className='text-2xl font-bold text-gray-900 mb-1'>{selectedMember.name}</h2>
+                      <p className='text-sm text-gray-600 mb-2'>{selectedMember.email}</p>
                       <button
                         onClick={() => handleViewDetail(selectedMember.id)}
-                        className='mt-2 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50'
+                        className='rounded-lg border-2 border-blue-500 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors duration-200 flex items-center gap-2'
                       >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                        </svg>
                         View OCR details
                       </button>
                     </div>
                     <div className='flex flex-col gap-2'>
-                      <Tag color='green'>
+                      <Tag color='green' className='rounded-full px-3 py-1 font-semibold'>
                         {selectedMember.cccd.frontStatus}/{selectedMember.cccd.backStatus} CCCD
                       </Tag>
-                      <Tag color='cyan'>
+                      <Tag color='cyan' className='rounded-full px-3 py-1 font-semibold'>
                         {selectedMember.gplx.frontStatus}/{selectedMember.gplx.backStatus} DL
                       </Tag>
                     </div>
                   </div>
-                  <div className='grid gap-4 md:grid-cols-2'>
+                  {/* Document Sections */}
+                  <div className='grid gap-6 md:grid-cols-2'>
                     <DocumentSection
                       member={selectedMember}
                       docType='cccd'
@@ -790,8 +840,14 @@ export default function CheckLicense() {
                   </div>
                 </div>
               ) : (
-                <div className='flex h-full items-center justify-center text-gray-400'>
-                  Select a user to review documents.
+                <div className='flex h-[400px] items-center justify-center text-gray-400'>
+                  <div className='text-center'>
+                    <svg className='w-16 h-16 mx-auto mb-4 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                    <p className='text-lg font-medium'>Select a user to review documents</p>
+                    <p className='text-sm mt-1'>Choose a user from the list to view their documents</p>
+                  </div>
                 </div>
               )}
             </div>
