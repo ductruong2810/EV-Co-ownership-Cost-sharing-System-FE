@@ -978,14 +978,14 @@ export default function CheckLicense() {
                             className='px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CheckOutlined />
-                            Approve Both
+                            Approve
                           </button>
                           <button
                             onClick={() => rejectBothSides(selectedMember.id, 'cccd')}
                             className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CloseOutlined />
-                            Reject Both
+                            Reject
                           </button>
                         </div>
                       )}
@@ -1178,14 +1178,14 @@ export default function CheckLicense() {
                             className='px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CheckOutlined />
-                            Approve Both
+                            Approve
                           </button>
                           <button
                             onClick={() => rejectBothSides(selectedMember.id, 'gplx')}
                             className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CloseOutlined />
-                            Reject Both
+                            Reject
                           </button>
                         </div>
                       )}
