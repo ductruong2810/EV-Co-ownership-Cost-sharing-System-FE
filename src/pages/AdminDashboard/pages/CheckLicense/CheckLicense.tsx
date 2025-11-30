@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import { Input, Select, Tag, Checkbox, Button, Space, Modal, message } from 'antd'
 import { SearchOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
+import { toast } from 'react-toastify'
 import staffApi from '../../../../apis/staff.api'
 import { getDecryptedImageUrl } from '../../../../utils/imageUrl'
 import Skeleton from '../../../../components/Skeleton'
@@ -265,6 +266,160 @@ export default function CheckLicense() {
     setMembers((m) => m.map((x) => (x.id === id ? { ...x, [type]: { ...x[type], [`${side}Status`]: status } } : x)))
   }
 
+  const approveBothSides = async (memberId: string, docType: DocType) => {
+    const member = members.find((m) => m.id === memberId)
+    if (!member) return
+
+    const doc = member[docType]
+    const frontId = doc.frontId
+    const backId = doc.backId
+    const bothPending = doc.frontStatus === 'PENDING' && doc.backStatus === 'PENDING'
+
+    if (!bothPending) {
+      message.warning('Both sides must be pending to approve together')
+      return
+    }
+
+    if (!frontId || !backId) {
+      message.error('Document IDs not found')
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Approve both sides of ${docType.toUpperCase()}?\n• Front and back sides will be approved together\n• Ensure both images are clear and valid`
+    )
+
+    if (!confirmed) return
+
+    try {
+      await Promise.all([
+        staffApi.reviewDocument(frontId, 'APPROVE'),
+        staffApi.reviewDocument(backId, 'APPROVE')
+      ])
+      
+      toast.success('Both sides approved successfully', { autoClose: 2000 })
+      
+      // Update local state
+      setMembers((m) =>
+        m.map((x) =>
+          x.id === memberId
+            ? {
+                ...x,
+                [docType]: {
+                  ...x[docType],
+                  frontStatus: 'APPROVED',
+                  backStatus: 'APPROVED'
+                }
+              }
+            : x
+        )
+      )
+
+      // Reload data
+      setLoading(true)
+      staffApi
+        .getUsersPendingLicense()
+        .then((res) => {
+          if (res.data && Array.isArray(res.data)) {
+            setMembers(res.data.map(mapUserToMember))
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false))
+    } catch (error) {
+      message.error('Failed to approve both sides. Please try again.')
+      console.error(error)
+    }
+  }
+
+  const rejectBothSides = async (memberId: string, docType: DocType) => {
+    const member = members.find((m) => m.id === memberId)
+    if (!member) return
+
+    const doc = member[docType]
+    const frontId = doc.frontId
+    const backId = doc.backId
+    const bothPending = doc.frontStatus === 'PENDING' && doc.backStatus === 'PENDING'
+
+    if (!bothPending) {
+      message.warning('Both sides must be pending to reject together')
+      return
+    }
+
+    if (!frontId || !backId) {
+      message.error('Document IDs not found')
+      return
+    }
+
+    Modal.confirm({
+      title: `Reject Both Sides of ${docType.toUpperCase()}`,
+      content: (
+        <div className='mt-4'>
+          <p className='mb-2'>Please provide a reason for rejecting both sides:</p>
+          <Input.TextArea
+            id='both-sides-rejection-reason'
+            rows={4}
+            placeholder='Enter rejection reason...'
+            required
+          />
+        </div>
+      ),
+      okText: 'Reject Both',
+      okButtonProps: { danger: true },
+      onOk: async (close) => {
+        const reasonInput = document.getElementById('both-sides-rejection-reason') as HTMLTextAreaElement
+        const reason = reasonInput?.value?.trim()
+        if (!reason) {
+          message.error('Rejection reason is required')
+          return Promise.reject()
+        }
+
+        try {
+          await Promise.all([
+            staffApi.reviewDocument(frontId, 'REJECT', reason),
+            staffApi.reviewDocument(backId, 'REJECT', reason)
+          ])
+
+          toast.success('Both sides rejected', { autoClose: 2000 })
+
+          // Update local state
+          setMembers((m) =>
+            m.map((x) =>
+              x.id === memberId
+                ? {
+                    ...x,
+                    [docType]: {
+                      ...x[docType],
+                      frontStatus: 'REJECTED',
+                      backStatus: 'REJECTED'
+                    }
+                  }
+                : x
+            )
+          )
+
+          // Reload data
+          setLoading(true)
+          staffApi
+            .getUsersPendingLicense()
+            .then((res) => {
+              if (res.data && Array.isArray(res.data)) {
+                setMembers(res.data.map(mapUserToMember))
+              }
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false))
+
+          close()
+        } catch (error) {
+          message.error('Failed to reject both sides. Please try again.')
+          console.error(error)
+          return Promise.reject()
+        }
+      }
+    })
+  }
+
   // Filter and search logic
   const filteredMembers = useMemo(() => {
     let filtered = members
@@ -329,17 +484,44 @@ export default function CheckLicense() {
   }) => {
     const doc = member[docType]
     const { title, shortTitle, accent } = DOC_CONFIG[docType]
+    const bothPending = doc.frontStatus === 'PENDING' && doc.backStatus === 'PENDING'
 
     return (
       <div className='bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-gray-200/50 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden'>
-        <div className='px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200/50'>
-          <span
-            className='text-xs font-extrabold uppercase px-4 py-1.5 rounded-full text-white shadow-lg'
-            style={{ backgroundColor: accent }}
-          >
-            {shortTitle}
-          </span>
-          <span className='text-sm font-bold text-gray-800 ml-3 break-words'>{title}</span>
+        <div className='px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200/50 flex items-center justify-between'>
+          <div className='flex items-center'>
+            <span
+              className='text-xs font-extrabold uppercase px-4 py-1.5 rounded-full text-white shadow-lg'
+              style={{ backgroundColor: accent }}
+            >
+              {shortTitle}
+            </span>
+            <span className='text-sm font-bold text-gray-800 ml-3 break-words'>{title}</span>
+          </div>
+          {bothPending && (
+            <div className='flex items-center gap-2'>
+              <button
+                onClick={() => approveBothSides(member.id, docType)}
+                className='px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-105'
+                title='Approve both sides'
+              >
+                <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M5 13l4 4L19 7' />
+                </svg>
+                Approve Both
+              </button>
+              <button
+                onClick={() => rejectBothSides(member.id, docType)}
+                className='px-3 py-1.5 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-105'
+                title='Reject both sides'
+              >
+                <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M6 18L18 6M6 6l12 12' />
+                </svg>
+                Reject Both
+              </button>
+            </div>
+          )}
         </div>
         <div className='p-5 space-y-5 min-w-0'>
           <ImageCardAny
