@@ -48,6 +48,10 @@ const DisputeList = () => {
   const [selectedDisputeIds, setSelectedDisputeIds] = useState<Set<number>>(new Set())
   const [showBulkActions, setShowBulkActions] = useState(false)
 
+  // Preview selected dispute
+  const [previewDisputeId, setPreviewDisputeId] = useState<number | null>(null)
+  const previewDispute = filtered.find((d) => d.disputeId === previewDisputeId)
+
   // Fetch groups for filter dropdown
   const { data: groupsData } = useQuery({
     queryKey: ['groups-for-filter'],
@@ -424,93 +428,159 @@ const DisputeList = () => {
         />
       </section>
 
-      <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
-        {statusColumns
-          .filter((column) => statusFilter === 'ALL' || column.key === statusFilter)
-          .map((column) => {
-            const items = filtered.filter((d) => d.status === column.key)
-            const allSelected = items.length > 0 && items.every((d) => selectedDisputeIds.has(d.disputeId))
-            const someSelected = items.some((d) => selectedDisputeIds.has(d.disputeId))
+      <div className='grid gap-4 grid-cols-1 lg:grid-cols-3'>
+        {/* Left Panel - Dispute Columns */}
+        <div className='lg:col-span-2 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'>
+          {statusColumns
+            .filter((column) => statusFilter === 'ALL' || column.key === statusFilter)
+            .map((column) => {
+              const items = filtered.filter((d) => d.status === column.key)
+              const allSelected = items.length > 0 && items.every((d) => selectedDisputeIds.has(d.disputeId))
+              const someSelected = items.some((d) => selectedDisputeIds.has(d.disputeId))
 
-            return (
-              <div key={column.key} className={`rounded-2xl border ${column.accent} p-3`}>
-                <div className='flex items-center justify-between mb-3'>
-                  <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={allSelected}
-                      indeterminate={someSelected && !allSelected}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        // e.target.checked sẽ là true nếu đang uncheck → check, false nếu đang check → uncheck
-                        // Nhưng chúng ta muốn: nếu allSelected = false thì check tất cả, nếu allSelected = true thì uncheck tất cả
-                        // Vậy nên dùng !allSelected để toggle
-                        const shouldSelect = !allSelected
-                        handleSelectAll(shouldSelect, column.key)
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        // Không preventDefault để checkbox có thể toggle bình thường
-                      }}
-                    />
-                    <p className='text-sm font-semibold text-gray-800'>{column.label}</p>
+              return (
+                <div key={column.key} className={`rounded-2xl border ${column.accent} p-3`}>
+                  <div className='flex items-center justify-between mb-3'>
+                    <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={allSelected}
+                        indeterminate={someSelected && !allSelected}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          const shouldSelect = !allSelected
+                          handleSelectAll(shouldSelect, column.key)
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                      />
+                      <p className='text-sm font-semibold text-gray-800'>{column.label}</p>
+                    </div>
+                    <Tag color={statusColors[column.key] || 'default'}>{items.length}</Tag>
                   </div>
-                  <Tag color={statusColors[column.key] || 'default'}>{items.length}</Tag>
-                </div>
-                <div className='space-y-3'>
-                  {items.length === 0 ? (
-                    <p className='py-6 text-center text-xs text-gray-400'>No disputes here</p>
-                  ) : (
-                    items.map((dispute) => {
-                      const isSelected = selectedDisputeIds.has(dispute.disputeId)
-                      return (
-                        <div
-                          key={dispute.disputeId}
-                          className={`w-full rounded-2xl border ${
-                            isSelected ? 'border-blue-500 bg-blue-50' : 'border-white bg-white/90'
-                          } p-3 shadow hover:shadow-md transition-all`}
-                          onClick={(e) => {
-                            // Prevent card click from triggering checkbox
-                            if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
-                              return
-                            }
-                            navigate(`/manager/${path.disputeDetail.replace(':disputeId', dispute.disputeId.toString())}`)
-                          }}
-                        >
-                          <div className='flex items-start gap-2'>
-                            <div onClick={(e) => e.stopPropagation()}>
-                              <Checkbox
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  e.stopPropagation()
-                                  handleSelectDispute(dispute.disputeId, e.target.checked)
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                            <div
-                              className='flex-1 text-left cursor-pointer'
-                              onClick={() => navigate(`/manager/${path.disputeDetail.replace(':disputeId', dispute.disputeId.toString())}`)}
-                            >
-                              <p className='text-sm font-semibold text-slate-900 line-clamp-1'>{dispute.title}</p>
-                              <p className='text-xs text-slate-500'>{dispute.groupName}</p>
-                              <p className='mt-2 text-[11px] text-slate-400'>
-                                {new Date(dispute.createdAt).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </p>
+                  <div className='space-y-3 max-h-[600px] overflow-y-auto'>
+                    {items.length === 0 ? (
+                      <p className='py-6 text-center text-xs text-gray-400'>No disputes here</p>
+                    ) : (
+                      items.map((dispute) => {
+                        const isSelected = selectedDisputeIds.has(dispute.disputeId)
+                        const isPreview = previewDisputeId === dispute.disputeId
+                        return (
+                          <div
+                            key={dispute.disputeId}
+                            className={`w-full rounded-2xl border ${
+                              isPreview
+                                ? 'border-blue-600 bg-blue-100 shadow-lg'
+                                : isSelected
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-white bg-white/90'
+                            } p-3 shadow hover:shadow-md transition-all cursor-pointer`}
+                            onClick={(e) => {
+                              if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
+                                return
+                              }
+                              setPreviewDisputeId(dispute.disputeId)
+                            }}
+                          >
+                            <div className='flex items-start gap-2'>
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Checkbox
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    e.stopPropagation()
+                                    handleSelectDispute(dispute.disputeId, e.target.checked)
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              <div className='flex-1 text-left'>
+                                <p className='text-sm font-semibold text-slate-900 line-clamp-1'>{dispute.title}</p>
+                                <p className='text-xs text-slate-500'>{dispute.groupName}</p>
+                                <p className='mt-2 text-[11px] text-slate-400'>
+                                  {new Date(dispute.createdAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )
-                    })
-                  )}
+                        )
+                      })
+                    )}
+                  </div>
                 </div>
+              )
+            })}
+        </div>
+
+        {/* Right Panel - Preview */}
+        <div className='lg:col-span-1'>
+          {previewDispute ? (
+            <div className='sticky top-6 bg-white rounded-2xl border border-gray-200 shadow-lg p-6 space-y-4'>
+              <div className='flex items-start justify-between'>
+                <div>
+                  <h3 className='text-lg font-bold text-gray-900'>{previewDispute.title}</h3>
+                  <p className='text-sm text-gray-600 mt-1'>{previewDispute.groupName}</p>
+                </div>
+                <Tag color={statusColors[previewDispute.status] || 'default'}>{previewDispute.status}</Tag>
               </div>
-            )
-          })}
+
+              <div className='space-y-3 pt-4 border-t border-gray-200'>
+                <div>
+                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Type</p>
+                  <p className='text-sm text-gray-900 mt-1'>{previewDispute.type}</p>
+                </div>
+                <div>
+                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Reporter</p>
+                  <p className='text-sm text-gray-900 mt-1'>{previewDispute.reporterName || '—'}</p>
+                </div>
+                <div>
+                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Created</p>
+                  <p className='text-sm text-gray-900 mt-1'>
+                    {new Date(previewDispute.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                {previewDispute.assignedStaffName && (
+                  <div>
+                    <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Assigned to</p>
+                    <p className='text-sm text-gray-900 mt-1'>{previewDispute.assignedStaffName}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className='pt-4 border-t border-gray-200 space-y-2'>
+                <Button
+                  type='primary'
+                  block
+                  onClick={() => navigate(`/manager/${path.disputeDetail.replace(':disputeId', previewDispute.disputeId.toString())}`)}
+                  className='bg-blue-600 hover:bg-blue-700'
+                >
+                  View Full Details
+                </Button>
+                <Button
+                  block
+                  onClick={() => setPreviewDisputeId(null)}
+                  className='border-gray-300'
+                >
+                  Close Preview
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className='sticky top-6 bg-gray-50 rounded-2xl border border-dashed border-gray-300 p-8 text-center'>
+              <p className='text-sm text-gray-400'>Select a dispute to preview details</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
