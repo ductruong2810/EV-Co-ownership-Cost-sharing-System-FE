@@ -1,5 +1,6 @@
 import { BarChartOutlined, CalendarOutlined, WalletOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
+import { useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import groupApi from '../../../../apis/group.api'
 import { setGroupIdToLS } from '../../../../utils/auth'
@@ -8,10 +9,22 @@ import Banner from './components/Banner'
 import BenefitCard from './components/BenefitCard'
 import StepCard from './components/StepCard/StepCard'
 import UsageReportCard from './components/UsageReportCard'
+import { AppContext } from '../../../../contexts/app.context'
 
 export default function DashboardGP() {
   const { groupId } = useParams<{ groupId: string }>()
-  setGroupIdToLS(groupId as string)
+  const { setGroupId, subscribeGroupNotifications, unsubscribeGroupNotifications } = useContext(AppContext)
+
+  useEffect(() => {
+    if (!groupId) return
+    setGroupId(groupId)
+    setGroupIdToLS(groupId)
+    subscribeGroupNotifications(groupId)
+
+    return () => {
+      unsubscribeGroupNotifications(groupId)
+    }
+  }, [groupId, setGroupId, subscribeGroupNotifications, unsubscribeGroupNotifications])
 
   const usageReportQuery = useQuery({
     queryKey: ['usage-report', groupId],

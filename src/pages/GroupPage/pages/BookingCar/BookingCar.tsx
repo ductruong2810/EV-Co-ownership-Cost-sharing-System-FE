@@ -1,6 +1,7 @@
 // VehicleBookingCalendar.tsx - IMPROVED BADGE & LEGEND DESIGN
 import { ClockCircleOutlined, ToolOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
+import { useContext, useEffect } from 'react'
 import { Card, Tag } from 'antd'
 import { useParams } from 'react-router-dom'
 import groupApi from '../../../../apis/group.api'
@@ -14,6 +15,7 @@ import StatusCard from './components/StatusCard'
 import VehicleInforCard from './components/VehicleInforCard'
 import UsageAnalyticsCard from './components/UsageAnalyticsCard'
 import AISuggestionPanel from './components/AISuggestionPanel'
+import { AppContext } from '../../../../contexts/app.context'
 
 // ============= INTERFACES (giữ nguyên) =============
 type SlotStatus = 'AVAILABLE' | 'LOCKED' | 'CONFIRMED' | 'CANCELLED' | ''
@@ -54,7 +56,18 @@ interface QuotaInfo {
 // ============= MAIN COMPONENT =============
 const BookingCar = () => {
   const { groupId } = useParams<{ groupId: string }>()
-  setGroupIdToLS(groupId as string)
+  const { setGroupId, subscribeGroupNotifications, unsubscribeGroupNotifications } = useContext(AppContext)
+
+  useEffect(() => {
+    if (!groupId) return
+    setGroupId(groupId)
+    setGroupIdToLS(groupId)
+    subscribeGroupNotifications(groupId)
+
+    return () => {
+      unsubscribeGroupNotifications(groupId)
+    }
+  }, [groupId, setGroupId, subscribeGroupNotifications, unsubscribeGroupNotifications])
   const bookingQuery = useQuery({
     queryKey: ['vehicle-bookings'],
     queryFn: () => groupApi.getBookingCalendar(groupId as string),
@@ -123,15 +136,18 @@ const BookingCar = () => {
         {/* Stats Bar */}
         <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
 
-      {/* AI analytics + suggestions */}
-      <div className='grid lg:grid-cols-2 gap-6 mb-8'>
-        <UsageAnalyticsCard data={smartSuggestionQuery?.data?.data?.analytics} isLoading={smartSuggestionQuery.isLoading} />
-        <AISuggestionPanel
-          suggestions={smartSuggestionQuery?.data?.data?.suggestions}
-          insights={smartSuggestionQuery?.data?.data?.aiInsights}
-          isLoading={smartSuggestionQuery.isLoading}
-        />
-      </div>
+        {/* AI analytics + suggestions */}
+        <div className='grid lg:grid-cols-2 gap-6 mb-8'>
+          <UsageAnalyticsCard
+            data={smartSuggestionQuery?.data?.data?.analytics}
+            isLoading={smartSuggestionQuery.isLoading}
+          />
+          <AISuggestionPanel
+            suggestions={smartSuggestionQuery?.data?.data?.suggestions}
+            insights={smartSuggestionQuery?.data?.data?.aiInsights}
+            isLoading={smartSuggestionQuery.isLoading}
+          />
+        </div>
 
         {/* hiển thị lịch  đặt xe */}
         <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white'>

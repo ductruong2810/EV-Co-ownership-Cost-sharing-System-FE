@@ -21,6 +21,7 @@ import AdminDashboardPage from '../pages/AdminDashboard/pages/Dashboard'
 import FeedbackCoOwner from '../pages/AdminDashboard/pages/EditContract/FeedbackCo-Owner'
 import ModalEditContract from '../pages/AdminDashboard/pages/EditContract/ModalEditContract/ModalEditContract'
 import MaintenanceList from '../pages/AdminDashboard/pages/Maintenance'
+import AuditLogs from '../pages/AdminDashboard/pages/AuditLogs'
 import ChangePassword from '../pages/ChangePassword'
 import CreateGroups from '../pages/Creategroups'
 import Dashboard from '../pages/Dashboard'
@@ -186,6 +187,7 @@ function Routers() {
                     { path: 'createStaff', element: <CreateStaff /> },
                     { path: 'createTechnician', element: <CreateTechnician /> },
                     { path: path.financialReports, element: <FinancialReports /> },
+                    { path: 'auditLogs', element: <AuditLogs /> },
                     // Shared routes cho ADMIN
                     { path: path.checkLicense, element: <CheckLicense /> },
                     { path: path.checkBooking, element: <CheckBooking /> },

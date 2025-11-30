@@ -23,6 +23,7 @@ import type { GetAllNotifications } from '../../types/api/user.type'
 import userApi from '../../apis/user.api'
 import Skeleton from '../Skeleton'
 import Avatar from '../../pages/MyAccount/Components/Avatar/Avatar'
+import type { WebSocketStatus } from '../../hooks/useWebSocket'
 
 function NavHeader() {
   const userId = getUserIdFromLS()
@@ -38,7 +39,15 @@ function NavHeader() {
   const [selectedNotification, setSelectedNotification] = useState<GetAllNotifications | null>(null)
 
   // global state from context
-  const { setIsAuthenticated } = useContext(AppContext)
+  const { setIsAuthenticated, websocketStatus } = useContext(AppContext)
+
+  const statusStyles: Record<WebSocketStatus, { label: string; color: string }> = {
+    connected: { label: 'Realtime online', color: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]' },
+    connecting: { label: 'Đang kết nối realtime...', color: 'bg-amber-400 animate-pulse' },
+    disconnected: { label: 'Realtime offline', color: 'bg-gray-400' },
+    error: { label: 'Realtime error', color: 'bg-red-500 animate-pulse' }
+  }
+  const currentStatusStyle = statusStyles[websocketStatus] || statusStyles.disconnected
 
   const queryClient = useQueryClient()
 
@@ -132,14 +141,23 @@ function NavHeader() {
   return isPending ? (
     <Skeleton />
   ) : (
-    <div className='flex items-center gap-3'>
+    <div className='flex items-center gap-2 sm:gap-4'>
+      <div
+        className='hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200/80 bg-gradient-to-r from-white to-gray-50/80 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm'
+        title={currentStatusStyle.label}
+      >
+        <span className={`w-2.5 h-2.5 rounded-full ${currentStatusStyle.color} animate-pulse`} />
+        <span className='text-xs font-semibold text-gray-700'>{currentStatusStyle.label}</span>
+      </div>
       {/* Notification */}
       <div onMouseEnter={() => setIsNotificationOpen(true)} onMouseLeave={() => setIsNotificationOpen(false)}>
         <div ref={notificationRefs.setReference} className='relative'>
-          <BellOutlined className='text-2xl text-black hover:text-teal-400 transition-all duration-300 cursor-pointer hover:scale-110' />
+          <div className='p-2 rounded-lg hover:bg-teal-50/50 transition-all duration-300 cursor-pointer group'>
+            <BellOutlined className='text-xl sm:text-2xl text-gray-700 group-hover:text-teal-500 transition-all duration-300 group-hover:scale-110' />
+          </div>
           {notificationCount > 0 && (
-            <span className='absolute -top-1 -right-1 bg-red-500 text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-pulse'>
-              {notificationCount}
+            <span className='absolute -top-0.5 -right-0.5 bg-gradient-to-r from-red-500 to-rose-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg animate-pulse border-2 border-white'>
+              {notificationCount > 9 ? '9+' : notificationCount}
             </span>
           )}
         </div>
@@ -148,7 +166,7 @@ function NavHeader() {
           <div
             ref={notificationRefs.setFloating}
             style={notificationFloatingStyles}
-            className='bg-white rounded-lg shadow-xl border border-gray-200 py-2 min-w-[280px] z-50 
+            className='bg-white rounded-xl shadow-2xl border border-gray-200/80 py-2 min-w-[300px] max-w-[400px] z-50 backdrop-blur-sm
                    before:content-[""] before:absolute before:-top-6 before:left-0 before:right-0 before:h-6'
           >
             {notifications.length > 0 && (
@@ -237,15 +255,17 @@ function NavHeader() {
       {/* Account */}
       <div onMouseEnter={handleSetState(setIsAccountOpen)} onMouseLeave={handleSetState(setIsAccountOpen)}>
         <div ref={accountRefs.setReference}>
-          <Space className='cursor-pointer'>
-            <AvatarIcon
-              className='text-2xl text-gray-300 hover:text-teal-400 transition-all duration-300 hover:scale-110 bg-black/60'
-              icon={<UserOutlined />}
-            />
-            <span className='inline-block text-sm font-semibold text-black/60 truncate max-w-[130px]'>
+          <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-teal-50/50 transition-all duration-300 cursor-pointer group'>
+            <div className='relative'>
+              <AvatarIcon
+                className='text-xl sm:text-2xl text-gray-600 group-hover:text-teal-500 transition-all duration-300 group-hover:scale-110 bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-teal-100 group-hover:to-cyan-100'
+                icon={<UserOutlined />}
+              />
+            </div>
+            <span className='hidden sm:inline-block text-sm font-semibold text-gray-700 group-hover:text-teal-600 truncate max-w-[120px] transition-colors duration-300'>
               {userProfile?.fullName || getEmailAccountFromLS()}
             </span>
-          </Space>
+          </div>
         </div>
 
         {isAccountOpen && (
@@ -320,13 +340,15 @@ function NavHeader() {
       </div>
 
       {/* Language */}
-      <Space
-        className='cursor-pointer'
+      <div
+        className='hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-teal-50/50 transition-all duration-300 cursor-pointer group'
         onClick={() => setLang((prev) => (prev === 'English' ? 'Tiếng Việt' : 'English'))}
       >
-        <GlobalOutlined className='text-2xl text-black/90 hover:text-teal-400 transition-all duration-300 hover:scale-110' />
-        <span className='text-black/90 font-medium w-24 inline-block'>{lang}</span>
-      </Space>
+        <GlobalOutlined className='text-xl sm:text-2xl text-gray-600 group-hover:text-teal-500 transition-all duration-300 group-hover:scale-110' />
+        <span className='text-gray-700 group-hover:text-teal-600 font-medium w-20 sm:w-24 inline-block text-sm transition-colors duration-300'>
+          {lang}
+        </span>
+      </div>
     </div>
   )
 }

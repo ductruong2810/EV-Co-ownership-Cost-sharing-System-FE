@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useMutation } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
 import Field from './components/Field'
 import ProgressBar from './components/ProgressBar'
 import Button from './components/Button'
@@ -16,6 +17,102 @@ export type DocSide = 'front' | 'back'
 export interface DocFiles {
   front: File | null
   back: File | null
+}
+
+type PreviewOcrPayload = {
+  frontFile: File
+  backFile: File
+  documentType: 'DRIVER_LICENSE' | 'CITIZEN_ID'
+}
+
+type UploadPayload = {
+  frontFile: File
+  backFile: File
+  editedInfo?: DocumentInfo
+}
+
+type OcrApiResponse = {
+  documentInfo?: DocumentInfo
+  processingTime?: string
+}
+
+type ApiErrorResponse = {
+  message?: string
+  errors?: { message?: string }[]
+}
+
+type UploadDocLabel = 'driver license' | 'citizen ID'
+
+const buildUploadError = (error: unknown, docLabel: UploadDocLabel) => {
+  const axiosError = error as AxiosError<ApiErrorResponse>
+  const errorData = axiosError.response?.data
+  const status = axiosError.response?.status
+  const docCodeLabel = docLabel === 'driver license' ? 'driver license (GPLX)' : 'citizen ID (CCCD)'
+
+  let errorMessage = `Failed to upload ${docLabel}. Please try again.`
+  let errorTitle = 'Upload Failed'
+
+  if (errorData) {
+    if (errorData.message) {
+      errorMessage = errorData.message
+    } else if (errorData.errors && errorData.errors.length > 0) {
+      errorMessage = errorData.errors[0].message || errorMessage
+    } else if (typeof errorData === 'string') {
+      errorMessage = errorData
+    }
+
+    switch (status) {
+      case 409:
+        errorTitle = 'Document Already Exists'
+        errorMessage =
+          errorData.message ||
+          `This ${docLabel} number has already been registered by another user. Please check your document number.`
+        break
+      case 413:
+        errorTitle = 'File Too Large'
+        errorMessage =
+          'The image file is too large. Maximum size is 10MB. Please compress or resize your image and try again.'
+        break
+      case 400:
+        if (errorData.message?.includes('Document type mismatch')) {
+          errorTitle = 'Wrong Document Type'
+          errorMessage = `The uploaded image does not match the selected document type. Please upload a valid ${docCodeLabel}.`
+        } else if (errorData.message?.includes('Unable to extract text')) {
+          errorTitle = 'OCR Processing Failed'
+          errorMessage =
+            'Unable to read text from the image. Please ensure:\n• The image is clear and in focus\n• The document is fully visible\n• There is good lighting\n• The image is not blurry or rotated'
+        } else if (errorData.message?.includes('must be different')) {
+          errorTitle = 'Invalid Images'
+          errorMessage = `Front and back images must be different. Please upload two different images of your ${docLabel}.`
+        } else if (errorData.message?.includes('must not be empty')) {
+          errorTitle = 'Missing File'
+          errorMessage = `Please upload both front and back images of your ${docLabel}.`
+        } else if (errorData.message?.includes('must be an image')) {
+          errorTitle = 'Invalid File Type'
+          errorMessage = 'Please upload image files only (JPG, PNG, etc.). Other file types are not supported.'
+        }
+        break
+      case 500:
+      case 503:
+        errorTitle = 'Server Error'
+        errorMessage = 'The server is temporarily unavailable. Please try again in a few moments.'
+        break
+      case 401:
+      case 403:
+        errorTitle = 'Authentication Required'
+        errorMessage = 'Your session has expired. Please log in again.'
+        break
+      default:
+        break
+    }
+  } else if (axiosError.code === 'ECONNABORTED' || axiosError.message?.includes('timeout')) {
+    errorTitle = 'Request Timeout'
+    errorMessage = 'The upload is taking too long. Please check your internet connection and try again.'
+  } else if (axiosError.message) {
+    errorMessage = axiosError.message
+  }
+
+  return { errorTitle, errorMessage }
 }
 
 export default function UploadLicense() {
@@ -52,10 +149,10 @@ export default function UploadLicense() {
 
   // Preview OCR mutation
   const previewOcrMutation = useMutation({
-    mutationFn: ({ frontFile, backFile, documentType }: { frontFile: File; backFile: File; documentType: 'DRIVER_LICENSE' | 'CITIZEN_ID' }) =>
+    mutationFn: ({ frontFile, backFile, documentType }: PreviewOcrPayload) =>
       userApi.previewOcr(documentType, frontFile, backFile),
     onSuccess: (data) => {
-      const response = data.data as any
+      const response = data.data as OcrApiResponse
       if (response?.documentInfo) {
         const docType = activeTab
         setOcrResults((prev) => ({ ...prev, [docType]: response.documentInfo }))
@@ -66,7 +163,7 @@ export default function UploadLicense() {
       }
       setIsPreviewingOcr(false)
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Failed to preview OCR:', error)
       setIsPreviewingOcr(false)
       toast.error('Failed to extract information from image. Please try again.', { autoClose: 3000 })
@@ -74,11 +171,11 @@ export default function UploadLicense() {
   })
 
   const uploadLicenseMutation = useMutation({
-    mutationFn: ({ frontFile, backFile, editedInfo }: { frontFile: File; backFile: File; editedInfo?: DocumentInfo }) =>
+    mutationFn: ({ frontFile, backFile, editedInfo }: UploadPayload) =>
       userApi.uploadLicense(frontFile, backFile, editedInfo),
     onSuccess: (data) => {
       console.log('Upload driver license successfully:', data)
-      const response = data.data as any
+      const response = data.data as OcrApiResponse
       if (response?.documentInfo) {
         setOcrResults((prev) => ({ ...prev, gplx: response.documentInfo }))
         if (response.processingTime) {
@@ -92,81 +189,22 @@ export default function UploadLicense() {
           <div className='font-semibold mb-1'>✓ Upload Successful</div>
           <div className='text-sm'>Your driver license has been uploaded and is being reviewed.</div>
         </div>,
-        { 
+        {
           autoClose: 3000,
           position: 'top-right'
         }
       )
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Failed to upload driver license:', error)
-      
-      // Extract user-friendly error message
-      let errorMessage = 'Failed to upload driver license. Please try again.'
-      let errorTitle = 'Upload Failed'
-      
-      if (error?.response?.data) {
-        const errorData = error.response.data
-        const status = error.response.status
-        
-        // Handle ValidationErrorResponseDTO format
-        if (errorData.message) {
-          errorMessage = errorData.message
-        } else if (errorData.errors && errorData.errors.length > 0) {
-          errorMessage = errorData.errors[0].message || errorMessage
-        } else if (typeof errorData === 'string') {
-          errorMessage = errorData
-        }
-        
-        // Handle specific error cases with user-friendly messages
-        if (status === 409) {
-          // Duplicate document
-          errorTitle = 'Document Already Exists'
-          errorMessage = errorData.message || 
-            'This driver license number has already been registered by another user. Please check your document number.'
-        } else if (status === 413) {
-          // File too large
-          errorTitle = 'File Too Large'
-          errorMessage = 'The image file is too large. Maximum size is 10MB. Please compress or resize your image and try again.'
-        } else if (status === 400) {
-          // Validation error
-          if (errorData.message?.includes('Document type mismatch')) {
-            errorTitle = 'Wrong Document Type'
-            errorMessage = 'The uploaded image does not match the selected document type. Please upload a valid driver license (GPLX).'
-          } else if (errorData.message?.includes('Unable to extract text')) {
-            errorTitle = 'OCR Processing Failed'
-            errorMessage = 'Unable to read text from the image. Please ensure:\n• The image is clear and in focus\n• The document is fully visible\n• There is good lighting\n• The image is not blurry or rotated'
-          } else if (errorData.message?.includes('must be different')) {
-            errorTitle = 'Invalid Images'
-            errorMessage = 'Front and back images must be different. Please upload two different images of your driver license.'
-          } else if (errorData.message?.includes('must not be empty')) {
-            errorTitle = 'Missing File'
-            errorMessage = 'Please upload both front and back images of your driver license.'
-          } else if (errorData.message?.includes('must be an image')) {
-            errorTitle = 'Invalid File Type'
-            errorMessage = 'Please upload image files only (JPG, PNG, etc.). Other file types are not supported.'
-          }
-        } else if (status === 500 || status === 503) {
-          errorTitle = 'Server Error'
-          errorMessage = 'The server is temporarily unavailable. Please try again in a few moments.'
-        } else if (status === 401 || status === 403) {
-          errorTitle = 'Authentication Required'
-          errorMessage = 'Your session has expired. Please log in again.'
-        }
-      } else if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
-        errorTitle = 'Request Timeout'
-        errorMessage = 'The upload is taking too long. Please check your internet connection and try again.'
-      } else if (error?.message) {
-        errorMessage = error.message
-      }
-      
-      // Show error toast with title and message
+      const { errorTitle, errorMessage } = buildUploadError(error, 'driver license')
+
       toast.error(
         <div>
           <div className='font-semibold mb-1'>{errorTitle}</div>
           <div className='text-sm whitespace-pre-line'>{errorMessage}</div>
         </div>,
-        { 
+        {
           autoClose: 5000,
           position: 'top-right',
           className: 'toast-error-custom'
@@ -176,11 +214,11 @@ export default function UploadLicense() {
   })
 
   const uploadCitizenIdMutation = useMutation({
-    mutationFn: ({ frontFile, backFile, editedInfo }: { frontFile: File; backFile: File; editedInfo?: DocumentInfo }) =>
+    mutationFn: ({ frontFile, backFile, editedInfo }: UploadPayload) =>
       userApi.uploadCitizenId(frontFile, backFile, editedInfo),
     onSuccess: (data) => {
       console.log('Upload citizen ID successfully:', data)
-      const response = data.data as any
+      const response = data.data as OcrApiResponse
       if (response?.documentInfo) {
         setOcrResults((prev) => ({ ...prev, cccd: response.documentInfo }))
         if (response.processingTime) {
@@ -194,81 +232,22 @@ export default function UploadLicense() {
           <div className='font-semibold mb-1'>✓ Upload Successful</div>
           <div className='text-sm'>Your citizen ID has been uploaded and is being reviewed.</div>
         </div>,
-        { 
+        {
           autoClose: 3000,
           position: 'top-right'
         }
       )
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Failed to upload citizen ID:', error)
-      
-      // Extract user-friendly error message
-      let errorMessage = 'Failed to upload citizen ID. Please try again.'
-      let errorTitle = 'Upload Failed'
-      
-      if (error?.response?.data) {
-        const errorData = error.response.data
-        const status = error.response.status
-        
-        // Handle ValidationErrorResponseDTO format
-        if (errorData.message) {
-          errorMessage = errorData.message
-        } else if (errorData.errors && errorData.errors.length > 0) {
-          errorMessage = errorData.errors[0].message || errorMessage
-        } else if (typeof errorData === 'string') {
-          errorMessage = errorData
-        }
-        
-        // Handle specific error cases with user-friendly messages
-        if (status === 409) {
-          // Duplicate document
-          errorTitle = 'Document Already Exists'
-          errorMessage = errorData.message || 
-            'This citizen ID number has already been registered by another user. Please check your document number.'
-        } else if (status === 413) {
-          // File too large
-          errorTitle = 'File Too Large'
-          errorMessage = 'The image file is too large. Maximum size is 10MB. Please compress or resize your image and try again.'
-        } else if (status === 400) {
-          // Validation error
-          if (errorData.message?.includes('Document type mismatch')) {
-            errorTitle = 'Wrong Document Type'
-            errorMessage = 'The uploaded image does not match the selected document type. Please upload a valid citizen ID (CCCD).'
-          } else if (errorData.message?.includes('Unable to extract text')) {
-            errorTitle = 'OCR Processing Failed'
-            errorMessage = 'Unable to read text from the image. Please ensure:\n• The image is clear and in focus\n• The document is fully visible\n• There is good lighting\n• The image is not blurry or rotated'
-          } else if (errorData.message?.includes('must be different')) {
-            errorTitle = 'Invalid Images'
-            errorMessage = 'Front and back images must be different. Please upload two different images of your citizen ID.'
-          } else if (errorData.message?.includes('must not be empty')) {
-            errorTitle = 'Missing File'
-            errorMessage = 'Please upload both front and back images of your citizen ID.'
-          } else if (errorData.message?.includes('must be an image')) {
-            errorTitle = 'Invalid File Type'
-            errorMessage = 'Please upload image files only (JPG, PNG, etc.). Other file types are not supported.'
-          }
-        } else if (status === 500 || status === 503) {
-          errorTitle = 'Server Error'
-          errorMessage = 'The server is temporarily unavailable. Please try again in a few moments.'
-        } else if (status === 401 || status === 403) {
-          errorTitle = 'Authentication Required'
-          errorMessage = 'Your session has expired. Please log in again.'
-        }
-      } else if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
-        errorTitle = 'Request Timeout'
-        errorMessage = 'The upload is taking too long. Please check your internet connection and try again.'
-      } else if (error?.message) {
-        errorMessage = error.message
-      }
-      
-      // Show error toast with title and message
+      const { errorTitle, errorMessage } = buildUploadError(error, 'citizen ID')
+
       toast.error(
         <div>
           <div className='font-semibold mb-1'>{errorTitle}</div>
           <div className='text-sm whitespace-pre-line'>{errorMessage}</div>
         </div>,
-        { 
+        {
           autoClose: 5000,
           position: 'top-right',
           className: 'toast-error-custom'
@@ -310,7 +289,7 @@ export default function UploadLicense() {
             <div className='font-semibold mb-1'>Missing Files</div>
             <div className='text-sm'>Please upload both front and back images of your driver license to continue.</div>
           </div>,
-          { 
+          {
             autoClose: 3000,
             position: 'top-right'
           }
@@ -331,7 +310,7 @@ export default function UploadLicense() {
             <div className='font-semibold mb-1'>Missing Files</div>
             <div className='text-sm'>Please upload both front and back images of your citizen ID to continue.</div>
           </div>,
-          { 
+          {
             autoClose: 3000,
             position: 'top-right'
           }
@@ -559,7 +538,7 @@ export default function UploadLicense() {
                     documentInfo={ocrResults[activeTab]!}
                     documentType={activeTab}
                     processingTime={processingTime[activeTab]}
-                  onConfirm={handleConfirmOcr}
+                    onConfirm={handleConfirmOcr}
                     onCancel={handleCancelEdit}
                   />
                 </motion.div>
@@ -582,7 +561,11 @@ export default function UploadLicense() {
                   stroke='currentColor'
                   className='w-6 h-6 text-green-200'
                 >
-                  <path strokeLinecap='round' strokeLinejoin='round' d='M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    d='M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                  />
                 </svg>
               </div>
               <div className='flex flex-col'>

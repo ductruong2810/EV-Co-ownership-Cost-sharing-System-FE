@@ -42,6 +42,13 @@ export interface DashboardStatistics {
   totalExpenseAmount?: number
   totalFunds?: number
   totalFundBalance?: number
+
+  // Previous-period metrics to display trend % vs last range
+  previousTotalRevenue?: number
+  previousTotalBookings?: number
+  previousTotalGroups?: number
+  previousTotalMaintenances?: number
+  previousTotalDisputes?: number
 }
 
 

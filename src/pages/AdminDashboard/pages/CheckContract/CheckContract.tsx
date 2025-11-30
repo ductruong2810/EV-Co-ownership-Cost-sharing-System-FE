@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, useMemo } from 'react'
-import { Input, Select } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
+import { Input, Select, DatePicker, Collapse, Button } from 'antd'
+import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons'
 import { toast } from 'react-toastify'
+import dayjs, { Dayjs } from 'dayjs'
 import adminApi from '../../../../apis/admin.api'
 import Skeleton from '../../../../components/Skeleton'
 import type { ContractResponse, ContractDetail } from '../../../../types/api/admin.type'
@@ -10,6 +11,8 @@ import { formatToVND } from '../../../../utils/formatPrice'
 import EmptyState from '../EmptyState'
 
 const { Option } = Select
+const { RangePicker } = DatePicker
+const { Panel } = Collapse
 
 // Lấy message từ axios error (bắt luôn kiểu message là array như NestJS)
 const getServerMessage = (error: unknown): string | null => {
@@ -42,6 +45,11 @@ function CheckContract() {
   const [rejectReasonError, setRejectReasonError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  
+  // Advanced filters
+  const [startDateRange, setStartDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null])
+  const [endDateRange, setEndDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null])
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
   // List contracts
   const { data: contracts = [], isLoading } = useQuery<ContractResponse[]>({
@@ -68,8 +76,26 @@ function CheckContract() {
       filtered = filtered.filter((contract) => contract.approvalStatus === statusFilter)
     }
 
+    // Filter by start date range
+    if (startDateRange[0] && startDateRange[1]) {
+      filtered = filtered.filter((contract) => {
+        const contractStartDate = dayjs(contract.startDate)
+        return contractStartDate.isAfter(startDateRange[0]!.subtract(1, 'day'), 'day') &&
+               contractStartDate.isBefore(startDateRange[1]!.add(1, 'day'), 'day')
+      })
+    }
+
+    // Filter by end date range
+    if (endDateRange[0] && endDateRange[1]) {
+      filtered = filtered.filter((contract) => {
+        const contractEndDate = dayjs(contract.endDate)
+        return contractEndDate.isAfter(endDateRange[0]!.subtract(1, 'day'), 'day') &&
+               contractEndDate.isBefore(endDateRange[1]!.add(1, 'day'), 'day')
+      })
+    }
+
     return filtered
-  }, [contracts, searchTerm, statusFilter])
+  }, [contracts, searchTerm, statusFilter, startDateRange, endDateRange])
 
   // Contract detail
   const {
@@ -153,6 +179,15 @@ function CheckContract() {
     void (approveMutation.isPending || rejectMutation.isPending)
   }, [approveMutation.isPending, rejectMutation.isPending])
 
+  const clearFilters = () => {
+    setSearchTerm('')
+    setStartDateRange([null, null])
+    setEndDateRange([null, null])
+    setStatusFilter('ALL')
+  }
+
+  const hasActiveFilters = searchTerm || startDateRange[0] || startDateRange[1] || endDateRange[0] || endDateRange[1] || statusFilter !== 'ALL'
+
   if (isLoading) return <Skeleton />
   if (contracts.length === 0) return <EmptyState />
 
@@ -181,39 +216,80 @@ function CheckContract() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6'>
-      <div className='max-w-6xl mx-auto'>
+    <div className='min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 p-4 sm:p-6'>
+      <div className='max-w-7xl mx-auto'>
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-900 mb-2'>Contract Approval</h1>
           <p className='text-gray-600'>Review and approve pending contracts</p>
         </div>
 
         {/* Search and Filter Section */}
-        <div className='mb-6 flex flex-col sm:flex-row gap-4'>
-          <Input
-            placeholder='Search by contract ID or group ID...'
-            prefix={<SearchOutlined className='text-gray-400' />}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            allowClear
-            className='flex-1'
-            size='large'
-          />
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            className='w-full sm:w-48'
-            size='large'
-          >
-            <Option value='ALL'>All Status</Option>
-            <Option value='SIGNED'>Signed</Option>
-            <Option value='APPROVED'>Approved</Option>
-            <Option value='REJECTED'>Rejected</Option>
-          </Select>
+        <div className='mb-6 space-y-3'>
+          <div className='flex flex-col sm:flex-row gap-4'>
+            <Input
+              placeholder='Search by contract ID or group ID...'
+              prefix={<SearchOutlined className='text-gray-400' />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
+              className='flex-1'
+              size='large'
+            />
+            <Select
+              value={statusFilter}
+              onChange={setStatusFilter}
+              className='w-full sm:w-48'
+              size='large'
+            >
+              <Option value='ALL'>All Status</Option>
+              <Option value='SIGNED'>Signed</Option>
+              <Option value='APPROVED'>Approved</Option>
+              <Option value='REJECTED'>Rejected</Option>
+            </Select>
+            <Button
+              icon={<FilterOutlined />}
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={showAdvancedFilters ? 'bg-blue-500 text-white' : ''}
+              size='large'
+            >
+              Advanced Filters
+            </Button>
+            {hasActiveFilters && (
+              <Button icon={<ClearOutlined />} onClick={clearFilters} size='large'>
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {/* Advanced Filters Panel */}
+          <Collapse activeKey={showAdvancedFilters ? ['filters'] : []} onChange={(keys) => setShowAdvancedFilters(keys.includes('filters'))}>
+            <Panel key='filters' header='Advanced Filters'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>Start Date Range</label>
+                  <RangePicker
+                    value={startDateRange}
+                    onChange={(dates) => setStartDateRange(dates as [Dayjs | null, Dayjs | null])}
+                    className='w-full'
+                    format='DD/MM/YYYY'
+                  />
+                </div>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>End Date Range</label>
+                  <RangePicker
+                    value={endDateRange}
+                    onChange={(dates) => setEndDateRange(dates as [Dayjs | null, Dayjs | null])}
+                    className='w-full'
+                    format='DD/MM/YYYY'
+                  />
+                </div>
+              </div>
+            </Panel>
+          </Collapse>
         </div>
 
         {/* Results count */}
-        {filteredContracts.length !== contracts.length && (
+        {hasActiveFilters && (
           <div className='mb-4 text-sm text-gray-600'>
             Showing {filteredContracts.length} of {contracts.length} contracts
             {searchTerm && ` matching "${searchTerm}"`}
@@ -223,7 +299,8 @@ function CheckContract() {
 
         {/* TABLE */}
         <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
-        <table className='w-full text-sm text-gray-700'>
+        <div className='overflow-x-auto'>
+        <table className='w-full text-sm text-gray-700 min-w-[800px]'>
           <thead className='bg-gray-100 text-gray-700 uppercase text-xs'>
             <tr>
               {['ID', 'Group', 'Start date', 'End date', 'Deposit amount', 'Status', 'Actions'].map((header) => (
@@ -283,6 +360,7 @@ function CheckContract() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Detail Modal */}

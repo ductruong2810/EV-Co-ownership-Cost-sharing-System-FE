@@ -3,19 +3,35 @@ import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { HiMail, HiLockClosed, HiUser, HiPhone, HiArrowRight, HiEye, HiEyeOff } from 'react-icons/hi'
+import { AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { showErrorToast } from '../../components/Error'
+import { convertToErrorInfo } from '../../utils/errorHandler'
 import authApi from '../../apis/auth.api'
 import path from '../../constants/path'
 import { registerSchema, type RegisterSchema } from '../../utils/rule'
 import classNames from 'classnames'
 import { REGISTER_IMG_URL } from '../../constants/images'
+import type { AxiosError } from 'axios'
+
+type RegisterErrorResponse = {
+  errors?: { message?: string; field?: string }[]
+  message?: string
+  error?: string
+}
 
 export default function Register() {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
+
   const {
     register,
     handleSubmit,
     formState: { errors }
   } = useForm<RegisterSchema>({
-    resolver: yupResolver<FieldValues>(registerSchema)
+    resolver: yupResolver(registerSchema)
   })
 
   const navigate = useNavigate()
@@ -25,20 +41,33 @@ export default function Register() {
   })
 
   const onSubmit = handleSubmit((response: RegisterSchema) => {
+    setServerError(null)
     registerMutation.mutate(response, {
       onSuccess: (response) => {
-        console.log('Register successfully:', response)
         navigate(path.OTP, {
           state: {
-            message: response.data.message, //
+            message: response.data.message,
             email: response.data.email,
             type: response.data.type
           }
         })
       },
-
       onError: (error) => {
-        console.log(error.message)
+        const axiosError = error as AxiosError<RegisterErrorResponse>
+        
+        // Check if it's a network error
+        if (!axiosError.response) {
+          const errorInfo = convertToErrorInfo(error)
+          showErrorToast(errorInfo, {
+            autoClose: 5000
+          })
+          return
+        }
+        
+        // Server validation errors
+        const res = axiosError.response?.data
+        const errorMessage = res?.errors?.[0]?.message || res?.message || res?.error || 'Registration failed. Please check your information.'
+        setServerError(errorMessage)
       }
     })
   })
@@ -69,79 +98,140 @@ export default function Register() {
               {/* Full Name */}
               <div>
                 <label className='block mb-2 text-sm font-medium text-gray-300'>Full Name</label>
-                <input
-                  {...register('fullName')}
-                  type='text'
-                  className='w-full rounded-lg border border-gray-600 bg-slate-800/50 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
-                  placeholder='Enter your full name'
-                />
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <HiUser className='h-5 w-5 text-gray-400' />
+                  </div>
+                  <input
+                    {...register('fullName')}
+                    type='text'
+                    className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
+                    placeholder='Enter your full name'
+                  />
+                </div>
                 {errors.fullName && <p className='text-red-400 text-sm mt-1'>{errors.fullName.message}</p>}
               </div>
 
               {/* Email */}
               <div>
                 <label className='block mb-2 text-sm font-medium text-gray-300'>Email</label>
-                <input
-                  {...register('email')}
-                  type='email'
-                  className='w-full rounded-lg border border-gray-600 bg-slate-800/50 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition'
-                  placeholder='Enter your email'
-                />
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <HiMail className='h-5 w-5 text-gray-400' />
+                  </div>
+                  <input
+                    {...register('email')}
+                    type='email'
+                    className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition'
+                    placeholder='Enter your email'
+                  />
+                </div>
                 {errors.email && <p className='text-red-400 text-sm mt-1'>{errors.email.message}</p>}
               </div>
 
               {/* Phone */}
               <div>
                 <label className='block mb-2 text-sm font-medium text-gray-300'>Phone</label>
-                <input
-                  {...register('phone')}
-                  type='tel'
-                  className='w-full rounded-lg border border-gray-600 bg-slate-800/50 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
-                  placeholder='Enter your phone'
-                />
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <HiPhone className='h-5 w-5 text-gray-400' />
+                  </div>
+                  <input
+                    {...register('phone')}
+                    type='tel'
+                    className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
+                    placeholder='Enter your phone (e.g., 0123456789)'
+                  />
+                </div>
                 {errors.phone && <p className='text-red-400 text-sm mt-1'>{errors.phone.message}</p>}
               </div>
 
               {/* Password */}
               <div>
                 <label className='block mb-2 text-sm font-medium text-gray-300'>Password</label>
-                <input
-                  {...register('password')}
-                  type='password'
-                  className='w-full rounded-lg border border-gray-600 bg-slate-800/50 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition'
-                  placeholder='Enter your password'
-                />
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <HiLockClosed className='h-5 w-5 text-gray-400' />
+                  </div>
+                  <input
+                    {...register('password')}
+                    type={showPassword ? 'text' : 'password'}
+                    className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition'
+                    placeholder='Enter your password'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300 transition-colors'
+                  >
+                    {showPassword ? <HiEyeOff className='h-5 w-5' /> : <HiEye className='h-5 w-5' />}
+                  </button>
+                </div>
                 {errors.password && <p className='text-red-400 text-sm mt-1'>{errors.password.message}</p>}
               </div>
 
               {/* Confirm Password */}
               <div>
                 <label className='block mb-2 text-sm font-medium text-gray-300'>Confirm Password</label>
-                <input
-                  {...register('confirmPassword')}
-                  type='password'
-                  className='w-full rounded-lg border border-gray-600 bg-slate-800/50 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
-                  placeholder='Enter the same password'
-                />
+                <div className='relative'>
+                  <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                    <HiLockClosed className='h-5 w-5 text-gray-400' />
+                  </div>
+                  <input
+                    {...register('confirmPassword')}
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
+                    placeholder='Enter the same password'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300 transition-colors'
+                  >
+                    {showConfirmPassword ? <HiEyeOff className='h-5 w-5' /> : <HiEye className='h-5 w-5' />}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className='text-red-400 text-sm mt-1'>{errors.confirmPassword.message}</p>
                 )}
               </div>
 
+              {/* Server error message */}
+              {serverError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className='bg-red-500/10 border border-red-500/30 rounded-lg p-3'
+                >
+                  <p className='text-red-400 text-sm text-center'>{serverError}</p>
+                </motion.div>
+              )}
+
               {/* Button */}
               <motion.button
-                whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(34,211,238,0.6)' }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={registerMutation.isPending ? {} : { scale: 1.02, boxShadow: '0 0 20px rgba(34,211,238,0.6)' }}
+                whileTap={registerMutation.isPending ? {} : { scale: 0.98 }}
                 type='submit'
-                className={classNames({
-                  'w-full rounded-lg bg-gradient-to-r from-emerald-400 via-cyan-500 to-indigo-500 px-6 py-3 font-semibold text-white shadow-lg transition-transform duration-300 cursor-not-allowed':
-                    registerMutation.isPending,
-                  'w-full rounded-lg bg-gradient-to-r from-emerald-400 via-cyan-500 to-indigo-500 px-6 py-3 font-semibold text-white shadow-lg transition-transform duration-300 ':
-                    !registerMutation.isPending
-                })}
+                className={classNames(
+                  'w-full rounded-lg bg-gradient-to-r from-emerald-400 via-cyan-500 to-indigo-500 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 flex items-center justify-center gap-2',
+                  {
+                    'opacity-70 cursor-not-allowed': registerMutation.isPending,
+                    'hover:shadow-xl': !registerMutation.isPending
+                  }
+                )}
                 disabled={registerMutation.isPending}
               >
-                Register
+                {registerMutation.isPending ? (
+                  <>
+                    <AiOutlineLoading3Quarters className='h-5 w-5 animate-spin' />
+                    <span>Registering...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Register</span>
+                    <HiArrowRight className='h-5 w-5' />
+                  </>
+                )}
               </motion.button>
 
               <p className='text-center text-sm text-gray-400'>

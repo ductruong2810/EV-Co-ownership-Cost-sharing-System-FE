@@ -1,5 +1,6 @@
 // demo event target
 export const LocalStorageEventTarget = new EventTarget()
+export const GROUP_ID_CHANGED_EVENT = 'groupIdChanged'
 
 export const setAccessTokenToLS = (accessToken: string) => {
   localStorage.setItem('accessToken', accessToken)
@@ -23,6 +24,8 @@ export const setUserIdToLS = (userId: string) => {
 
 export const setGroupIdToLS = (groupId: string) => {
   localStorage.setItem('groupId', groupId)
+  const event = new CustomEvent<string>(GROUP_ID_CHANGED_EVENT, { detail: groupId })
+  LocalStorageEventTarget.dispatchEvent(event)
 }
 
 export const clearLS = () => {
@@ -34,10 +37,14 @@ export const clearLS = () => {
   localStorage.removeItem('groupId')
   const clearLSEvent = new Event('clearLS')
   LocalStorageEventTarget.dispatchEvent(clearLSEvent)
+  const groupEvent = new CustomEvent<string>(GROUP_ID_CHANGED_EVENT, { detail: '' })
+  LocalStorageEventTarget.dispatchEvent(groupEvent)
 }
 
 export const clearGroupInfoLS = () => {
   localStorage.removeItem('groupId')
+  const groupEvent = new CustomEvent<string>(GROUP_ID_CHANGED_EVENT, { detail: '' })
+  LocalStorageEventTarget.dispatchEvent(groupEvent)
 }
 
 export const getAccessTokenFromLS = () => localStorage.getItem('accessToken') || ''

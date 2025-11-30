@@ -1,23 +1,29 @@
 import { useQuery } from '@tanstack/react-query'
-import { Avatar, Pagination, Input, Select } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
+import { Avatar, Pagination, Input, Select, Tag, DatePicker, Button, Space } from 'antd'
+import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons'
 import { motion } from 'framer-motion'
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import staffApi from '../../../../apis/staff.api'
 import Skeleton from '../../../../components/Skeleton'
 import type { GetGroupById, UserOfStaff } from '../../../../types/api/staff.type'
 import { useNavigate } from 'react-router-dom'
 import EmptyState from '../EmptyState'
+import dayjs, { Dayjs } from 'dayjs'
 
 const { Option } = Select
+const { RangePicker } = DatePicker
 const ITEMS_PER_PAGE = 10
 
 export default function CheckBooking() {
   const [page, setPage] = useState(1)
-  const [expanded, setExpanded] = useState<number | null>(null)
   const [groups, setGroups] = useState<Record<number, GetGroupById[]>>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
+  
+  // Advanced filters
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null])
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
   const navigate = useNavigate()
 
@@ -51,8 +57,23 @@ export default function CheckBooking() {
       filtered = filtered.filter((user: UserOfStaff) => user.status === statusFilter)
     }
 
+    // Filter by date range (createdAt)
+    if (dateRange[0] && dateRange[1]) {
+      filtered = filtered.filter((user: UserOfStaff) => {
+        if (!user.createdAt) return false
+        const createdAt = dayjs(user.createdAt)
+        return createdAt.isAfter(dateRange[0]!.subtract(1, 'day')) && createdAt.isBefore(dateRange[1]!.add(1, 'day'))
+      })
+    }
+
     return filtered
-  }, [data, searchTerm, statusFilter])
+  }, [data, searchTerm, statusFilter, dateRange])
+
+  const hasActiveAdvancedFilters = dateRange[0] || dateRange[1]
+
+  const clearAdvancedFilters = () => {
+    setDateRange([null, null])
+  }
 
   // Pagination
   const start = (page - 1) * ITEMS_PER_PAGE
@@ -60,26 +81,17 @@ export default function CheckBooking() {
   const total = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
 
   // Fetch groups
-  const handleExpand = async (userId: number | undefined) => {
-    if (!userId) return
-
-    // If already fetched → just toggle expand/collapse
-    if (groups[userId]) {
-      setExpanded(expanded === userId ? null : userId)
-      return
-    }
-
+  const loadGroups = async (userId?: number) => {
+    if (!userId || groups[userId]) return
     try {
       const res = await staffApi.getAllGroupsByUserId(userId)
       setGroups((prev) => ({
         ...prev,
         [userId]: Array.isArray(res?.data) ? res.data : []
       }))
-      setExpanded(userId)
     } catch (err) {
       console.error('Error:', err)
       setGroups((prev) => ({ ...prev, [userId]: [] }))
-      setExpanded(userId)
     }
   }
 
@@ -98,6 +110,30 @@ export default function CheckBooking() {
     navigate(`/manager/bookingQr/${userId}/${groupId}`)
   }
 
+  const summary = useMemo(() => {
+    const coOwners = data.filter((user: UserOfStaff) => user.roleName === 'CO_OWNER')
+    const active = coOwners.filter((u) => u.status === 'ACTIVE').length
+    const inactive = coOwners.filter((u) => u.status === 'INACTIVE').length
+    const banned = coOwners.filter((u) => u.status === 'BANNED').length
+    return { total: coOwners.length, active, inactive, banned }
+  }, [data])
+
+  useEffect(() => {
+    if (!filteredUsers.length) {
+      setSelectedUserId(null)
+      return
+    }
+    if (!selectedUserId || !filteredUsers.some((u: UserOfStaff) => u.userId === selectedUserId)) {
+      const first = filteredUsers[0] as UserOfStaff
+      setSelectedUserId(first.userId || null)
+      loadGroups(first.userId)
+    } else {
+      loadGroups(selectedUserId)
+    }
+  }, [filteredUsers, selectedUserId])
+
+  const selectedUser = filteredUsers.find((u: UserOfStaff) => u.userId === selectedUserId)
+
   // Render
   if (isLoading) return <Skeleton />
   if (!data.length) return <EmptyState />
@@ -112,212 +148,235 @@ export default function CheckBooking() {
           </p>
         </div>
 
-        {/* Search and Filter Section */}
-        <div className='mb-6 flex flex-col sm:flex-row gap-4'>
-          <Input
-            placeholder='Search by name, email, or phone...'
-            prefix={<SearchOutlined className='text-gray-400' />}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value)
-              setPage(1)
-            }}
-            allowClear
-            className='flex-1'
-            size='large'
+        <div className='mb-6 grid gap-3 md:grid-cols-4'>
+          <SummaryCard
+            label='Total co-owners'
+            value={summary.total}
+            accent='bg-blue-50 text-blue-700 border-blue-100'
           />
-          <Select
-            value={statusFilter}
-            onChange={(value) => {
-              setStatusFilter(value)
-              setPage(1)
-            }}
-            className='w-full sm:w-40'
-            size='large'
-          >
-            <Option value='ALL'>All Status</Option>
-            <Option value='ACTIVE'>Active</Option>
-            <Option value='INACTIVE'>Inactive</Option>
-            <Option value='BANNED'>Banned</Option>
-          </Select>
+          <SummaryCard
+            label='Active'
+            value={summary.active}
+            accent='bg-emerald-50 text-emerald-700 border-emerald-100'
+          />
+          <SummaryCard label='Inactive' value={summary.inactive} accent='bg-amber-50 text-amber-700 border-amber-100' />
+          <SummaryCard label='Banned' value={summary.banned} accent='bg-rose-50 text-rose-700 border-rose-100' />
+        </div>
+
+        {/* Search and Filter Section */}
+        <div className='mb-6 space-y-4'>
+          <div className='flex flex-col sm:flex-row gap-4'>
+            <Input
+              placeholder='Search by name, email, or phone...'
+              prefix={<SearchOutlined className='text-gray-400' />}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setPage(1)
+              }}
+              allowClear
+              className='flex-1'
+              size='large'
+            />
+            <Select
+              value={statusFilter}
+              onChange={(value) => {
+                setStatusFilter(value)
+                setPage(1)
+              }}
+              className='w-full sm:w-40'
+              size='large'
+            >
+              <Option value='ALL'>All Status</Option>
+              <Option value='ACTIVE'>Active</Option>
+              <Option value='INACTIVE'>Inactive</Option>
+              <Option value='BANNED'>Banned</Option>
+            </Select>
+            <Button
+              icon={<FilterOutlined />}
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={hasActiveAdvancedFilters ? 'border-blue-500 text-blue-600' : ''}
+              size='large'
+            >
+              {hasActiveAdvancedFilters && <span className='mr-1'>(Active)</span>}
+              Filters
+            </Button>
+          </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className='rounded-2xl bg-white border border-gray-200 p-4'>
+              <Space direction='vertical' size='middle' className='w-full'>
+                <div>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>Account Created Date Range</label>
+                  <RangePicker
+                    value={dateRange}
+                    onChange={(dates) => {
+                      setDateRange(dates as [Dayjs | null, Dayjs | null])
+                      setPage(1)
+                    }}
+                    format='DD/MM/YYYY'
+                    className='w-full'
+                    placeholder={['From date', 'To date']}
+                  />
+                </div>
+                {hasActiveAdvancedFilters && (
+                  <Button
+                    icon={<ClearOutlined />}
+                    onClick={clearAdvancedFilters}
+                    size='small'
+                    type='text'
+                    danger
+                  >
+                    Clear all filters
+                  </Button>
+                )}
+              </Space>
+            </div>
+          )}
         </div>
 
         {/* Results count */}
         {filteredUsers.length !== data.filter((u: UserOfStaff) => u.roleName === 'CO_OWNER').length && (
           <div className='mb-4 text-sm text-gray-600'>
-            Showing {filteredUsers.length} of {data.filter((u: UserOfStaff) => u.roleName === 'CO_OWNER').length} co-owners
+            Showing {filteredUsers.length} of {data.filter((u: UserOfStaff) => u.roleName === 'CO_OWNER').length}{' '}
+            co-owners
             {searchTerm && ` matching "${searchTerm}"`}
             {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
           </div>
         )}
 
-        {/* Users List */}
-        <div className='space-y-3'>
-          {users.length === 0 ? (
-            <div className='text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200'>
-              {searchTerm || statusFilter !== 'ALL' ? 'No co-owners match your filters' : 'No co-owners found'}
-            </div>
-          ) : (
-            users.map((user: UserOfStaff) => (
-            <motion.div
-              key={user.userId}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className='bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition'
-            >
-              {/* User Row */}
-              <div
-                onClick={() => handleExpand(user.userId)}
-                className='flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50'
-              >
-                <div className='flex items-center gap-3 flex-1'>
-                  <Avatar size={40} className='bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0'>
-                    {getInitials(user.fullName)}
-                  </Avatar>
-                  <div className='min-w-0 flex-1'>
-                    <p className='font-semibold text-sm truncate'>{user.fullName}</p>
-                    <div className='flex items-center gap-2 mt-1'>
-                      <p className='text-xs text-gray-600 truncate'>{user.email}</p>
-                      {user.phoneNumber && (
-                        <>
-                          <span className='text-xs text-gray-400'>•</span>
-                          <p className='text-xs text-gray-600'>{user.phoneNumber}</p>
-                        </>
-                      )}
+        {/* Users + detail */}
+        {users.length === 0 ? (
+          <div className='text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200'>
+            {searchTerm || statusFilter !== 'ALL' ? 'No co-owners match your filters' : 'No co-owners found'}
+          </div>
+        ) : (
+          <div className='grid gap-4 lg:grid-cols-[1.1fr,1.9fr]'>
+            <div className='space-y-2'>
+              {users.map((user: UserOfStaff) => {
+                const isActive = user.userId === selectedUserId
+                return (
+                  <button
+                    key={user.userId}
+                    onClick={() => {
+                      setSelectedUserId(user.userId || null)
+                      loadGroups(user.userId)
+                    }}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                      isActive
+                        ? 'border-indigo-400 bg-indigo-50/60 shadow-sm'
+                        : 'border-gray-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className='flex items-center gap-3'>
+                      <Avatar size={40} className='bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0'>
+                        {getInitials(user.fullName)}
+                      </Avatar>
+                      <div className='flex-1'>
+                        <p className='font-semibold text-sm text-gray-900'>{user.fullName}</p>
+                        <p className='text-xs text-gray-500 truncate'>{user.email}</p>
+                        <div className='mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500'>
+                          <Tag color='blue'>{user.roleName}</Tag>
+                          <Tag
+                            color={user.status === 'ACTIVE' ? 'green' : user.status === 'INACTIVE' ? 'red' : 'orange'}
+                          >
+                            {user.status}
+                          </Tag>
+                        </div>
+                      </div>
                     </div>
-                    <div className='flex items-center gap-2 mt-1'>
-                      {user.roleName && (
-                        <span
-                          className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            user.roleName === 'CO_OWNER'
-                              ? 'bg-blue-100 text-blue-800'
-                              : user.roleName === 'ADMIN'
-                                ? 'bg-purple-100 text-purple-800'
-                                : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {user.roleName}
-                        </span>
-                      )}
-                      {user.status && (
-                        <span
-                          className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            user.status === 'ACTIVE'
-                              ? 'bg-green-100 text-green-800'
-                              : user.status === 'INACTIVE'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {user.status}
-                        </span>
-                      )}
-                           {user.createdAt && (
-                             <>
-                               <span className='text-xs text-gray-400'>•</span>
-                               <p className='text-xs text-gray-500'>
-                                 Joined: {new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                               </p>
-                             </>
-                           )}
+                  </button>
+                )
+              })}
+
+              {total > 1 && (
+                <div className='pt-4'>
+                  <Pagination
+                    current={page}
+                    total={filteredUsers.length}
+                    pageSize={ITEMS_PER_PAGE}
+                    onChange={(p) => setPage(p)}
+                    showSizeChanger={false}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className='rounded-2xl border border-gray-100 bg-white p-5 shadow-sm'>
+              {selectedUser ? (
+                <>
+                  <div className='flex flex-wrap items-center justify-between gap-3 border-b pb-4'>
+                    <div>
+                      <p className='text-xs uppercase tracking-wide text-gray-400'>Selected co-owner</p>
+                      <h2 className='text-2xl font-bold text-gray-900'>{selectedUser.fullName}</h2>
+                      <p className='text-sm text-gray-500'>{selectedUser.email}</p>
+                    </div>
+                    <div className='text-right text-sm text-gray-500'>
+                      Joined{' '}
+                      {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-US') : '—'}
                     </div>
                   </div>
-                </div>
-
-                {/* Chevron */}
-                <motion.svg
-                  animate={{ rotate: expanded === user.userId ? 90 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className='w-5 h-5 text-gray-400 flex-shrink-0'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                </motion.svg>
-              </div>
-
-              {/* Groups Dropdown */}
-              {expanded === user.userId && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className='border-t border-gray-100'
-                >
-                  <div className='p-4 bg-blue-50 space-y-2'>
-                    {groups[user.userId || 0]?.length > 0 ? (
-                      groups[user.userId || 0].map((group, idx) => (
-                        <motion.div
-                          key={group.groupId}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.05 }}
-                          className='bg-white border border-blue-200 rounded-lg p-3 hover:bg-blue-50 hover:shadow-md transition-all cursor-pointer'
-                          onClick={() =>
-                            moveToBookingQrPage({
-                              userId: user.userId as number,
-                              groupId: group.groupId
-                            })
-                          }
-                        >
-                          <div className='flex items-center justify-between'>
-                            <div className='flex-1'>
-                              <div className='flex items-center gap-2 mb-1'>
-                                <p className='text-sm font-semibold text-blue-900'>{group.groupName}</p>
-                                <span className='bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs font-medium'>
-                                  #{group.groupId}
-                                </span>
-                              </div>
-                              <div className='flex items-center gap-3 text-xs text-gray-600 flex-wrap'>
-                                {group.bookings && group.bookings.length > 0 ? (
-                                  <>
-                                    <span className='flex items-center gap-1'>
-                                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
-                                        <path d='M9 2a1 1 0 000 2h2a1 1 0 100-2H9z' />
-                                        <path
-                                          fillRule='evenodd'
-                                          d='M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z'
-                                          clipRule='evenodd'
-                                        />
-                                      </svg>
-                                      <span className='font-medium text-blue-700'>
-                                        {group.bookings.length} {group.bookings.length === 1 ? 'booking' : 'bookings'}
-                                      </span>
-                                    </span>
-                                    {group.bookings[0] && (
-                                      <span className='text-gray-500'>
-                                        Latest: {new Date(group.bookings[0].startDateTime).toLocaleDateString('en-US', {
-                                          month: 'short',
-                                          day: 'numeric'
-                                        })}
-                                      </span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <span className='text-gray-400 italic'>No bookings yet</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className='text-blue-600 ml-2'>
-                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                              </svg>
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))
+                  <div className='mt-4 space-y-3'>
+                    {(groups[selectedUser.userId || 0] || []).length === 0 ? (
+                      <div className='rounded-xl border border-dashed border-gray-200 py-10 text-center text-gray-400'>
+                        {groups[selectedUser.userId || 0]
+                          ? 'No groups or bookings found for this user.'
+                          : 'Fetching groups...'}
+                      </div>
                     ) : (
-                      <p className='text-sm text-gray-500 text-center py-2'>No groups</p>
+                      groups[selectedUser.userId || 0].map((group) => (
+                        <div key={group.groupId} className='rounded-2xl border border-gray-100 bg-slate-50 p-4'>
+                          <div className='flex flex-wrap items-center justify-between gap-3'>
+                            <div>
+                              <p className='text-base font-semibold text-gray-900'>{group.groupName}</p>
+                              <p className='text-xs text-gray-500'>Group #{group.groupId}</p>
+                            </div>
+                            <button
+                              onClick={() =>
+                                moveToBookingQrPage({
+                                  userId: selectedUser.userId as number,
+                                  groupId: group.groupId
+                                })
+                              }
+                              className='rounded-lg border border-indigo-200 px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50'
+                            >
+                              Review bookings
+                            </button>
+                          </div>
+                          <div className='mt-3 space-y-2'>
+                            {(group.bookings || []).length === 0 ? (
+                              <p className='text-xs text-gray-400'>No bookings yet.</p>
+                            ) : (
+                              group.bookings?.map((booking) => (
+                                <div key={booking.bookingId} className='rounded-xl bg-white p-3 text-sm shadow-sm'>
+                                  <div className='flex flex-wrap items-center justify-between gap-2'>
+                                    <p className='font-semibold text-gray-900'>Booking #{booking.bookingId}</p>
+                                    <Tag color={booking.status === 'CONFIRMED' ? 'green' : 'orange'}>
+                                      {booking.status}
+                                    </Tag>
+                                  </div>
+                                  <p className='text-xs text-gray-500'>
+                                    {new Date(booking.startDateTime).toLocaleString()} →{' '}
+                                    {new Date(booking.endDateTime).toLocaleString()}
+                                  </p>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
-                </motion.div>
+                </>
+              ) : (
+                <div className='flex h-full items-center justify-center text-gray-400'>
+                  Select a co-owner to view bookings.
+                </div>
               )}
-            </motion.div>
-            ))
-          )}
-        </div>
+            </div>
+          </div>
+        )}
 
         {/* Pagination */}
         {total > 1 && (
@@ -338,3 +397,10 @@ export default function CheckBooking() {
     </div>
   )
 }
+
+const SummaryCard = ({ label, value, accent }: { label: string; value: number; accent: string }) => (
+  <div className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${accent}`}>
+    <p className='text-[11px] uppercase tracking-wide text-gray-400'>{label}</p>
+    <p className='mt-1 text-2xl'>{value}</p>
+  </div>
+)

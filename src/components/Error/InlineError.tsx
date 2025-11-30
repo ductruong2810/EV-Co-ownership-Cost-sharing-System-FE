@@ -33,11 +33,32 @@ const InlineError: React.FC<InlineErrorProps> = ({
     }
   }
 
+  const getIconColor = () => {
+    switch (type) {
+      case ErrorType.VALIDATION:
+        return 'text-yellow-600'
+      case ErrorType.AUTHENTICATION:
+      case ErrorType.AUTHORIZATION:
+        return 'text-red-600'
+      case ErrorType.NETWORK:
+      case ErrorType.SERVER:
+        return 'text-red-600'
+      default:
+        return 'text-red-600'
+    }
+  }
+
   return (
     <Alert
       message={message}
       type={getAlertType()}
-      icon={type === ErrorType.VALIDATION ? <ExclamationCircleOutlined /> : <CloseCircleOutlined />}
+      icon={
+        type === ErrorType.VALIDATION ? (
+          <ExclamationCircleOutlined className={getIconColor()} />
+        ) : (
+          <CloseCircleOutlined className={getIconColor()} />
+        )
+      }
       closable={closable}
       onClose={onClose}
       showIcon

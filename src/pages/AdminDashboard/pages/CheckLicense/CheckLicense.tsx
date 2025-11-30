@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useState, useMemo, type ComponentType } from 'react'
-import { Input, Select } from 'antd'
-import { SearchOutlined } from '@ant-design/icons'
+import { useEffect, useMemo, useState, type ComponentType } from 'react'
+import { Input, Select, Tag, Checkbox, Button, Space, Modal, message } from 'antd'
+import { SearchOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import staffApi from '../../../../apis/staff.api'
 import { getDecryptedImageUrl } from '../../../../utils/imageUrl'
 import Skeleton from '../../../../components/Skeleton'
 import ImageCardComponent from './components/ImageCard/ImageCard'
 import EmptyState from '../EmptyState'
 import type { DocumentInfo, UserDetails } from '../../../../types/api/staff.type'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 const { Option } = Select
 
@@ -74,13 +75,166 @@ function mapUserToMember(user: any): Member {
 
 export default function CheckLicense() {
   const [members, setMembers] = useState<Member[]>([])
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
   const [detailData, setDetailData] = useState<UserDetails | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set())
+  const [showBulkActions, setShowBulkActions] = useState(false)
+
+  const queryClient = useQueryClient()
+
+  // Bulk approve mutation
+  const bulkApproveMutation = useMutation({
+    mutationFn: async (documentIds: number[]) => {
+      const promises = documentIds.map((id) => staffApi.reviewDocument(id, 'APPROVE'))
+      return Promise.all(promises)
+    },
+    onSuccess: () => {
+      message.success(`Successfully approved ${selectedDocuments.size} document(s)`)
+      setSelectedDocuments(new Set())
+      setShowBulkActions(false)
+      // Reload data
+      setLoading(true)
+      staffApi
+        .getUsersPendingLicense()
+        .then((res) => {
+          if (res.data && Array.isArray(res.data)) {
+            setMembers(res.data.map(mapUserToMember))
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false))
+    },
+    onError: () => {
+      message.error('Failed to approve some documents. Please try again.')
+    }
+  })
+
+  // Bulk reject mutation
+  const bulkRejectMutation = useMutation({
+    mutationFn: async ({ documentIds, reason }: { documentIds: number[]; reason: string }) => {
+      const promises = documentIds.map((id) => staffApi.reviewDocument(id, 'REJECT', reason))
+      return Promise.all(promises)
+    },
+    onSuccess: () => {
+      message.success(`Successfully rejected ${selectedDocuments.size} document(s)`)
+      setSelectedDocuments(new Set())
+      setShowBulkActions(false)
+      // Reload data
+      setLoading(true)
+      staffApi
+        .getUsersPendingLicense()
+        .then((res) => {
+          if (res.data && Array.isArray(res.data)) {
+            setMembers(res.data.map(mapUserToMember))
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false))
+    },
+    onError: () => {
+      message.error('Failed to reject some documents. Please try again.')
+    }
+  })
+
+  // Helper to get all pending document IDs from selected members
+  const getPendingDocumentIds = (): number[] => {
+    const ids: number[] = []
+    filteredMembers.forEach((member) => {
+      if (selectedDocuments.has(member.id)) {
+        if (member.cccd.frontStatus === 'PENDING' && member.cccd.frontId) {
+          ids.push(member.cccd.frontId)
+        }
+        if (member.cccd.backStatus === 'PENDING' && member.cccd.backId) {
+          ids.push(member.cccd.backId)
+        }
+        if (member.gplx.frontStatus === 'PENDING' && member.gplx.frontId) {
+          ids.push(member.gplx.frontId)
+        }
+        if (member.gplx.backStatus === 'PENDING' && member.gplx.backId) {
+          ids.push(member.gplx.backId)
+        }
+      }
+    })
+    return ids
+  }
+
+  const handleSelectMember = (memberId: string, checked: boolean) => {
+    const newSelected = new Set(selectedDocuments)
+    if (checked) {
+      newSelected.add(memberId)
+    } else {
+      newSelected.delete(memberId)
+    }
+    setSelectedDocuments(newSelected)
+    const pendingIds = getPendingDocumentIds()
+    setShowBulkActions(newSelected.size > 0 && pendingIds.length > 0)
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(filteredMembers.map((m) => m.id))
+      setSelectedDocuments(allIds)
+      const pendingIds = getPendingDocumentIds()
+      setShowBulkActions(pendingIds.length > 0)
+    } else {
+      setSelectedDocuments(new Set())
+      setShowBulkActions(false)
+    }
+  }
+
+  const handleBulkApprove = () => {
+    const pendingIds = getPendingDocumentIds()
+    if (pendingIds.length === 0) {
+      message.warning('No pending documents selected')
+      return
+    }
+    Modal.confirm({
+      title: 'Approve Selected Documents',
+      content: `Are you sure you want to approve ${pendingIds.length} pending document(s)?`,
+      onOk: () => {
+        bulkApproveMutation.mutate(pendingIds)
+      }
+    })
+  }
+
+  const handleBulkReject = () => {
+    const pendingIds = getPendingDocumentIds()
+    if (pendingIds.length === 0) {
+      message.warning('No pending documents selected')
+      return
+    }
+    Modal.confirm({
+      title: 'Reject Selected Documents',
+      content: (
+        <div className='mt-4'>
+          <p className='mb-2'>Please provide a reason for rejecting {pendingIds.length} document(s):</p>
+          <Input.TextArea
+            id='bulk-rejection-reason'
+            rows={3}
+            placeholder='Enter rejection reason...'
+            required
+          />
+        </div>
+      ),
+      okText: 'Reject',
+      okButtonProps: { danger: true },
+      onOk: (close) => {
+        const reasonInput = document.getElementById('bulk-rejection-reason') as HTMLTextAreaElement
+        const reason = reasonInput?.value?.trim()
+        if (!reason) {
+          message.error('Rejection reason is required')
+          return Promise.reject()
+        }
+        bulkRejectMutation.mutate({ documentIds: pendingIds, reason })
+        close()
+      }
+    })
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -94,18 +248,6 @@ export default function CheckLicense() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
-
-  const toggleMember = (id: string) => {
-    setExpandedMembers((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(id)) {
-        newSet.delete(id)
-      } else {
-        newSet.add(id)
-      }
-      return newSet
-    })
-  }
 
   const handleViewDetail = async (userId: string) => {
     setLoadingDetail(true)
@@ -142,7 +284,12 @@ export default function CheckLicense() {
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter((member) => {
         if (statusFilter === 'PENDING') {
-          return member.cccd.frontStatus === 'PENDING' || member.cccd.backStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING' || member.gplx.backStatus === 'PENDING'
+          return (
+            member.cccd.frontStatus === 'PENDING' ||
+            member.cccd.backStatus === 'PENDING' ||
+            member.gplx.frontStatus === 'PENDING' ||
+            member.gplx.backStatus === 'PENDING'
+          )
         }
         // For APPROVED or REJECTED, check if any document has that status
         return (
@@ -157,9 +304,26 @@ export default function CheckLicense() {
     return filtered
   }, [members, searchTerm, statusFilter])
 
-const ImageCardAny = ImageCardComponent as ComponentType<any>
+  const ImageCardAny = ImageCardComponent as ComponentType<any>
 
-const DocumentSection = ({ member, docType }: { member: Member; docType: DocType }) => {
+  const SummaryCard = ({ label, value, accent }: { label: string; value: number; accent: string }) => (
+    <div className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${accent}`}>
+      <p className='text-[11px] uppercase tracking-wide text-gray-400'>{label}</p>
+      <p className='mt-1 text-2xl'>{value}</p>
+    </div>
+  )
+
+  const DocumentSection = ({
+    member,
+    docType,
+    onPreview,
+    onUpdateStatus
+  }: {
+    member: Member
+    docType: DocType
+    onPreview: (image: string) => void
+    onUpdateStatus: (memberId: string, docType: DocType, side: Side, status: Status) => void
+  }) => {
     const doc = member[docType]
     const { title, shortTitle, accent } = DOC_CONFIG[docType]
 
@@ -180,9 +344,9 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
             alt='Front side'
             status={doc.frontStatus}
             documentId={doc.frontId}
-            setSelected={setSelected}
-            onApprove={() => updateStatus(member.id, docType, 'front', 'APPROVED')}
-            onReject={() => updateStatus(member.id, docType, 'front', 'REJECTED')}
+            setSelected={onPreview}
+            onApprove={() => onUpdateStatus(member.id, docType, 'front', 'APPROVED')}
+            onReject={() => onUpdateStatus(member.id, docType, 'front', 'REJECTED')}
             documentInfo={doc.frontInfo}
           />
           <ImageCardAny
@@ -190,9 +354,9 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
             alt='Back side'
             status={doc.backStatus}
             documentId={doc.backId}
-            setSelected={setSelected}
-            onApprove={() => updateStatus(member.id, docType, 'back', 'APPROVED')}
-            onReject={() => updateStatus(member.id, docType, 'back', 'REJECTED')}
+            setSelected={onPreview}
+            onApprove={() => onUpdateStatus(member.id, docType, 'back', 'APPROVED')}
+            onReject={() => onUpdateStatus(member.id, docType, 'back', 'REJECTED')}
             documentInfo={doc.backInfo}
           />
         </div>
@@ -219,7 +383,12 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
           <div className='bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3'>
             <div className='flex items-center gap-2 mb-2'>
               <svg className='w-4 h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                />
               </svg>
               <span className='text-xs font-bold text-blue-900 uppercase'>OCR Extracted Information</span>
             </div>
@@ -245,7 +414,9 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
               {doc.expiryDate && (
                 <div>
                   <span className='text-blue-700 font-semibold'>Expiry Date:</span>
-                  <p className={`mt-0.5 ${doc.expiryDate && new Date(doc.expiryDate) < new Date() ? 'text-red-600 font-bold' : 'text-gray-900'}`}>
+                  <p
+                    className={`mt-0.5 ${doc.expiryDate && new Date(doc.expiryDate) < new Date() ? 'text-red-600 font-bold' : 'text-gray-900'}`}
+                  >
                     {doc.expiryDate}
                     {doc.expiryDate && new Date(doc.expiryDate) < new Date() && ' (EXPIRED)'}
                   </p>
@@ -286,13 +457,55 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
           {doc.reviewNote && (
             <div className='pt-3 border-t border-gray-200'>
               <span className='text-gray-600 font-medium text-sm'>Review Note:</span>
-              <p className='text-gray-900 mt-1 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200'>{doc.reviewNote}</p>
+              <p className='text-gray-900 mt-1 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200'>
+                {doc.reviewNote}
+              </p>
             </div>
           )}
         </div>
       </div>
     )
   }
+
+  const summary = useMemo(() => {
+    const pending = members.filter((m) =>
+      ['PENDING'].some(
+        (status) =>
+          m.cccd.frontStatus === status ||
+          m.cccd.backStatus === status ||
+          m.gplx.frontStatus === status ||
+          m.gplx.backStatus === status
+      )
+    ).length
+    const approved = members.filter((m) =>
+      ['APPROVED'].every(
+        (status) =>
+          m.cccd.frontStatus === status &&
+          m.cccd.backStatus === status &&
+          m.gplx.frontStatus === status &&
+          m.gplx.backStatus === status
+      )
+    ).length
+    const rejected = members.length - pending - approved
+    return { pending, approved, rejected, total: members.length }
+  }, [members])
+
+  useEffect(() => {
+    if (!filteredMembers.length) {
+      setSelectedMemberId(null)
+      return
+    }
+    if (!selectedMemberId) {
+      setSelectedMemberId(filteredMembers[0].id)
+    } else {
+      const stillVisible = filteredMembers.some((m) => m.id === selectedMemberId)
+      if (!stillVisible) {
+        setSelectedMemberId(filteredMembers[0].id)
+      }
+    }
+  }, [filteredMembers, selectedMemberId])
+
+  const selectedMember = filteredMembers.find((m) => m.id === selectedMemberId) || null
 
   if (loading) return <Skeleton />
   if (members.length === 0) return <EmptyState />
@@ -305,7 +518,8 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
             <div>
               <h1 className='text-3xl font-bold text-gray-900 mb-2'>Document Verification</h1>
               <p className='text-gray-600'>
-                Review and verify user documents • Total: <span className='font-semibold'>{members.length}</span> pending documents
+                Review and verify user documents • Total: <span className='font-semibold'>{members.length}</span>{' '}
+                pending documents
               </p>
             </div>
             <button
@@ -316,18 +530,28 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
               className='px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2'
             >
               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                />
               </svg>
               Review Guidelines
             </button>
           </div>
-          
+
           {/* Review Guidelines Info Card */}
           <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-6'>
             <div className='flex items-start gap-3'>
               <div className='flex-shrink-0 mt-1'>
                 <svg className='w-6 h-6 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+                  />
                 </svg>
               </div>
               <div className='flex-1'>
@@ -363,6 +587,25 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
           </div>
         </div>
 
+        <div className='mb-6 grid gap-3 md:grid-cols-4'>
+          <SummaryCard
+            label='Pending review'
+            value={summary.pending}
+            accent='bg-amber-50 text-amber-700 border-amber-100'
+          />
+          <SummaryCard
+            label='Fully approved'
+            value={summary.approved}
+            accent='bg-emerald-50 text-emerald-700 border-emerald-100'
+          />
+          <SummaryCard
+            label='Requires attention'
+            value={summary.rejected}
+            accent='bg-rose-50 text-rose-700 border-rose-100'
+          />
+          <SummaryCard label='Total users' value={summary.total} accent='bg-slate-50 text-slate-700 border-slate-100' />
+        </div>
+
         {/* Search and Filter Section */}
         <div className='mb-6 flex flex-col sm:flex-row gap-4'>
           <Input
@@ -374,31 +617,12 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
             className='flex-1'
             size='large'
           />
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            className='w-full sm:w-48'
-            size='large'
-          >
+          <Select value={statusFilter} onChange={setStatusFilter} className='w-full sm:w-48' size='large'>
             <Option value='ALL'>All Status</Option>
             <Option value='PENDING'>Pending</Option>
             <Option value='APPROVED'>Approved</Option>
             <Option value='REJECTED'>Rejected</Option>
           </Select>
-          <div className='flex gap-2'>
-            <button
-              onClick={() => setExpandedMembers(new Set(filteredMembers.map((m) => m.id)))}
-              className='px-3 py-1.5 bg-blue-50 text-blue-700 rounded text-xs font-medium hover:bg-blue-100 transition-colors whitespace-nowrap'
-            >
-              Expand all
-            </button>
-            <button
-              onClick={() => setExpandedMembers(new Set())}
-              className='px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors whitespace-nowrap'
-            >
-              Collapse all
-            </button>
-          </div>
         </div>
 
         {/* Results count */}
@@ -410,60 +634,169 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
           </div>
         )}
 
-        <div className='space-y-3'>
+        {/* Bulk Actions Bar */}
+        {showBulkActions && selectedDocuments.size > 0 && (
+          <div className='rounded-2xl bg-blue-50 border border-blue-200 p-4 mb-4'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <span className='text-sm font-semibold text-blue-900'>
+                  {selectedDocuments.size} user(s) selected ({getPendingDocumentIds().length} pending documents)
+                </span>
+              </div>
+              <Space>
+                <Button
+                  icon={<CheckOutlined />}
+                  type='primary'
+                  onClick={handleBulkApprove}
+                  loading={bulkApproveMutation.isPending}
+                  className='bg-emerald-600 hover:bg-emerald-700'
+                >
+                  Approve Selected
+                </Button>
+                <Button
+                  icon={<CloseOutlined />}
+                  danger
+                  onClick={handleBulkReject}
+                  loading={bulkRejectMutation.isPending}
+                >
+                  Reject Selected
+                </Button>
+                <Button
+                  onClick={() => {
+                    setSelectedDocuments(new Set())
+                    setShowBulkActions(false)
+                  }}
+                >
+                  Clear Selection
+                </Button>
+              </Space>
+            </div>
+          </div>
+        )}
+
         {filteredMembers.length === 0 ? (
           <div className='text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200'>
             {searchTerm || statusFilter !== 'ALL' ? 'No members match your filters' : 'No members found'}
           </div>
         ) : (
-          filteredMembers.map((member) => (
-          <div key={member.id} className='bg-white rounded-lg border shadow-sm'>
-            <div className='p-4 flex items-center justify-between'>
-              <div className='flex items-center gap-3 flex-1'>
-                <div className='w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold'>
-                  {member.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h3 className='font-bold'>{member.name}</h3>
-                  <p className='text-xs text-gray-600'>
-                    {member.email} • {member.phone}
-                  </p>
-                </div>
+          <div className='grid gap-4 lg:grid-cols-[1.2fr,1.8fr]'>
+            <div className='space-y-2'>
+              <div className='flex items-center gap-2 mb-2 px-2'>
+                <Checkbox
+                  checked={
+                    filteredMembers.length > 0 &&
+                    filteredMembers.every((m) => selectedDocuments.has(m.id))
+                  }
+                  indeterminate={
+                    selectedDocuments.size > 0 && selectedDocuments.size < filteredMembers.length
+                  }
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                />
+                <span className='text-sm font-medium text-gray-700'>Select All</span>
               </div>
-              <div className='flex gap-2'>
-                <button
-                  onClick={() => handleViewDetail(member.id)}
-                  className='px-4 py-2 bg-blue-600 text-white text-sm rounded'
-                >
-                  Details
-                </button>
-                <button onClick={() => toggleMember(member.id)} className='p-2'>
-                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                  </svg>
-                </button>
-              </div>
+              {filteredMembers.map((member) => {
+                const isActive = member.id === selectedMemberId
+                const isSelected = selectedDocuments.has(member.id)
+                const hasPendingDocs =
+                  member.cccd.frontStatus === 'PENDING' ||
+                  member.cccd.backStatus === 'PENDING' ||
+                  member.gplx.frontStatus === 'PENDING' ||
+                  member.gplx.backStatus === 'PENDING'
+                return (
+                  <div
+                    key={member.id}
+                    className={`w-full rounded-2xl border px-4 py-3 transition ${
+                      isActive
+                        ? 'border-blue-400 bg-blue-50/60 shadow-sm'
+                        : isSelected
+                          ? 'border-blue-300 bg-blue-50/40'
+                          : 'border-gray-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className='flex items-start gap-3'>
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          handleSelectMember(member.id, e.target.checked)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={!hasPendingDocs}
+                        className='mt-1'
+                      />
+                      <button
+                        onClick={() => setSelectedMemberId(member.id)}
+                        className='flex-1 text-left'
+                      >
+                    <div className='flex items-center justify-between gap-2'>
+                      <div>
+                        <p className='text-base font-semibold text-gray-900'>{member.name}</p>
+                        <p className='text-xs text-gray-500'>
+                          {member.email} • {member.phone}
+                        </p>
+                      </div>
+                      <Tag color='blue' className='rounded-full'>
+                        {member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
+                          ? 'Pending'
+                          : member.cccd.frontStatus === 'APPROVED' && member.gplx.frontStatus === 'APPROVED'
+                            ? 'Approved'
+                            : 'Mixed'}
+                      </Tag>
+                    </div>
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
-            <AnimatePresence>
-              {expandedMembers.has(member.id) && (
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: 'auto' }}
-                  exit={{ height: 0 }}
-                  className='overflow-hidden'
-                >
-                  <div className='p-4 border-t bg-gray-50 grid md:grid-cols-2 gap-4'>
-                    <DocumentSection member={member} docType='cccd' />
-                    <DocumentSection member={member} docType='gplx' />
+            <div className='rounded-2xl border border-gray-100 bg-white p-4 shadow-sm'>
+              {selectedMember ? (
+                <div className='space-y-5'>
+                  <div className='flex flex-wrap items-start justify-between gap-3'>
+                    <div>
+                      <p className='text-xs uppercase tracking-wide text-gray-400'>Selected user</p>
+                      <h2 className='text-2xl font-bold text-gray-900'>{selectedMember.name}</h2>
+                      <p className='text-sm text-gray-500'>{selectedMember.email}</p>
+                      <button
+                        onClick={() => handleViewDetail(selectedMember.id)}
+                        className='mt-2 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50'
+                      >
+                        View OCR details
+                      </button>
+                    </div>
+                    <div className='flex flex-col gap-2'>
+                      <Tag color='green'>
+                        {selectedMember.cccd.frontStatus}/{selectedMember.cccd.backStatus} CCCD
+                      </Tag>
+                      <Tag color='cyan'>
+                        {selectedMember.gplx.frontStatus}/{selectedMember.gplx.backStatus} DL
+                      </Tag>
+                    </div>
                   </div>
-                </motion.div>
+                  <div className='grid gap-4 md:grid-cols-2'>
+                    <DocumentSection
+                      member={selectedMember}
+                      docType='cccd'
+                      onPreview={(img) => setSelectedImage(img)}
+                      onUpdateStatus={updateStatus}
+                    />
+                    <DocumentSection
+                      member={selectedMember}
+                      docType='gplx'
+                      onPreview={(img) => setSelectedImage(img)}
+                      onUpdateStatus={updateStatus}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className='flex h-full items-center justify-center text-gray-400'>
+                  Select a user to review documents.
+                </div>
               )}
-            </AnimatePresence>
+            </div>
           </div>
-          ))
         )}
-        </div>
       </div>
 
       <AnimatePresence>
@@ -521,15 +854,15 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
       </AnimatePresence>
 
       <AnimatePresence>
-        {selected && (
+        {selectedImage && (
           <motion.div
-            onClick={() => setSelected(null)}
+            onClick={() => setSelectedImage(null)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className='fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-6'
           >
-            <img src={getDecryptedImageUrl(selected)} alt='Preview' className='max-w-5xl w-full rounded-lg' />
+            <img src={getDecryptedImageUrl(selectedImage)} alt='Preview' className='max-w-5xl w-full rounded-lg' />
           </motion.div>
         )}
       </AnimatePresence>
@@ -541,26 +874,40 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
             <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
           </form>
           <h3 className='font-bold text-2xl mb-4'>Document Review Guidelines</h3>
-          
+
           <div className='space-y-6'>
             {/* Why Review Section */}
             <div>
               <h4 className='font-bold text-lg text-gray-900 mb-2 flex items-center gap-2'>
-                <span className='bg-blue-100 text-blue-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>1</span>
+                <span className='bg-blue-100 text-blue-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
+                  1
+                </span>
                 Why Staff Review is Required?
               </h4>
               <div className='ml-10 space-y-2 text-gray-700'>
-                <p>• <strong>Security & Compliance:</strong> Verify user identity before allowing participation in co-ownership groups</p>
-                <p>• <strong>Legal Protection:</strong> Ensure all participants have valid identification documents</p>
-                <p>• <strong>Quality Control:</strong> OCR may extract incorrect information - manual verification catches errors</p>
-                <p>• <strong>Fraud Prevention:</strong> Detect fake, expired, or tampered documents</p>
+                <p>
+                  • <strong>Security & Compliance:</strong> Verify user identity before allowing participation in
+                  co-ownership groups
+                </p>
+                <p>
+                  • <strong>Legal Protection:</strong> Ensure all participants have valid identification documents
+                </p>
+                <p>
+                  • <strong>Quality Control:</strong> OCR may extract incorrect information - manual verification
+                  catches errors
+                </p>
+                <p>
+                  • <strong>Fraud Prevention:</strong> Detect fake, expired, or tampered documents
+                </p>
               </div>
             </div>
 
             {/* What to Review Section */}
             <div>
               <h4 className='font-bold text-lg text-gray-900 mb-2 flex items-center gap-2'>
-                <span className='bg-green-100 text-green-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>2</span>
+                <span className='bg-green-100 text-green-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
+                  2
+                </span>
                 What to Review?
               </h4>
               <div className='ml-10 space-y-4'>
@@ -597,7 +944,9 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
             {/* Approval Criteria Section */}
             <div>
               <h4 className='font-bold text-lg text-gray-900 mb-2 flex items-center gap-2'>
-                <span className='bg-yellow-100 text-yellow-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>3</span>
+                <span className='bg-yellow-100 text-yellow-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
+                  3
+                </span>
                 Approval Criteria
               </h4>
               <div className='ml-10 space-y-2'>
@@ -626,14 +975,20 @@ const DocumentSection = ({ member, docType }: { member: Member; docType: DocType
             {/* Review Process Section */}
             <div>
               <h4 className='font-bold text-lg text-gray-900 mb-2 flex items-center gap-2'>
-                <span className='bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>4</span>
+                <span className='bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
+                  4
+                </span>
                 Review Process
               </h4>
               <div className='ml-10 space-y-2 text-gray-700'>
                 <p>1. Click on document image to view full size</p>
                 <p>2. Compare OCR extracted information with the document image</p>
                 <p>3. Verify all checklist items</p>
-                <p>4. Click <span className='bg-green-500 text-white px-2 py-0.5 rounded text-xs font-semibold'>Approve</span> or <span className='bg-red-500 text-white px-2 py-0.5 rounded text-xs font-semibold'>Reject</span></p>
+                <p>
+                  4. Click{' '}
+                  <span className='bg-green-500 text-white px-2 py-0.5 rounded text-xs font-semibold'>Approve</span> or{' '}
+                  <span className='bg-red-500 text-white px-2 py-0.5 rounded text-xs font-semibold'>Reject</span>
+                </p>
                 <p>5. If rejecting, provide a clear reason for the user</p>
               </div>
             </div>

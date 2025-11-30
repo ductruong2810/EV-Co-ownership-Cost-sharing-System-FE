@@ -1,7 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { Input, Select, Tag } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
 import Skeleton from '../../../../components/Skeleton'
 import technicianApi from '../../../../apis/technician.api'
 import type { VehicleCheck } from '../../../../types/api/technician.type'
+import { toast } from 'react-toastify'
 
 const STATUS_COLORS = {
   PENDING: 'bg-lime-50 text-lime-600 animate-pulse',
@@ -32,19 +36,164 @@ export function CheckVehicleReport() {
   if (isPending) return <Skeleton />
   if (isError) return <ErrorState error={error as Error} />
 
-  const reportData = data?.data ?? []
+  const reportData: VehicleCheck[] = data?.data ?? []
+
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+
+  const summary = useMemo(() => {
+    const total = reportData.length
+    const pending = reportData.filter((r) => r.status === 'PENDING').length
+    const approved = reportData.filter((r) => r.status === 'APPROVED').length
+    const rejected = reportData.filter((r) => r.status === 'REJECTED').length
+    return { total, pending, approved, rejected }
+  }, [reportData])
+
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+
+  const filteredReports = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase()
+    return reportData.filter((r) => {
+      const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter
+      const matchesSearch =
+        !term ||
+        r.vehicleModel.toLowerCase().includes(term) ||
+        r.licensePlate.toLowerCase().includes(term) ||
+        r.issues?.toLowerCase().includes(term) ||
+        r.notes?.toLowerCase().includes(term)
+      return matchesStatus && matchesSearch
+    })
+  }, [reportData, statusFilter, searchTerm])
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const handleBatchUpdate = async (status: 'APPROVED' | 'REJECTED') => {
+    if (!selectedIds.size) return
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map((id) =>
+          technicianApi.checkReport(String(id), status).then(() =>
+            auditApi
+              .logAction({
+                type: 'VEHICLE_REPORT_REVIEW',
+                entityId: id,
+                entityType: 'VEHICLE_CHECK',
+                message: `Batch ${status === 'APPROVED' ? 'approved' : 'rejected'} report #${id}`
+              })
+              .catch(() => undefined)
+          )
+        )
+      )
+      toast.success(`Updated ${selectedIds.size} reports`)
+      clearSelection()
+      queryClient.invalidateQueries({ queryKey: ['vehicleChecks'] })
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to update some reports')
+    }
+  }
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-emerald-50 via-white to-lime-50 p-6'>
       <div className='max-w-6xl mx-auto'>
-        <PageHeader totalReports={reportData.length} />
+        <PageHeader
+          totalReports={summary.total}
+          pending={summary.pending}
+          approved={summary.approved}
+          rejected={summary.rejected}
+        />
+
+        <section className='mb-5 grid gap-3 md:grid-cols-4'>
+          <SummaryCard label='Pending' value={summary.pending} color='bg-amber-50 text-amber-700 border-amber-100' />
+          <SummaryCard
+            label='Approved'
+            value={summary.approved}
+            color='bg-emerald-50 text-emerald-700 border-emerald-100'
+          />
+          <SummaryCard label='Rejected' value={summary.rejected} color='bg-rose-50 text-rose-700 border-rose-100' />
+          <SummaryCard
+            label='Total reports'
+            value={summary.total}
+            color='bg-slate-50 text-slate-700 border-slate-100'
+          />
+        </section>
+
+        {selectedIds.size > 0 && (
+          <div className='mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm text-emerald-900 shadow'>
+            <div className='flex flex-wrap items-center justify-between gap-3'>
+              <span>
+                <strong>{selectedIds.size}</strong> report{selectedIds.size > 1 ? 's' : ''} selected
+              </span>
+              <div className='flex gap-2 text-xs font-semibold'>
+                <button
+                  onClick={() => handleBatchUpdate('REJECTED')}
+                  className='rounded-lg border border-rose-200 px-3 py-1 text-rose-600 hover:bg-rose-50'
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() => handleBatchUpdate('APPROVED')}
+                  className='rounded-lg border border-emerald-300 bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700'
+                >
+                  Approve
+                </button>
+                <button onClick={clearSelection} className='rounded-lg border px-3 py-1 text-gray-500 hover:bg-gray-50'>
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <section className='mb-5 flex flex-col gap-3 rounded-2xl bg-white/80 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between'>
+          <div>
+            <p className='text-sm font-semibold text-emerald-900'>Filters</p>
+            <p className='text-xs text-gray-500'>
+              Showing <span className='font-semibold'>{filteredReports.length}</span> of{' '}
+              <span className='font-semibold'>{reportData.length}</span> reports
+            </p>
+          </div>
+          <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+            <Input
+              placeholder='Search by vehicle, plate, issue...'
+              prefix={<SearchOutlined className='text-gray-400' />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
+              className='w-full sm:w-72'
+              size='large'
+            />
+            <Select
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value)}
+              className='w-full sm:w-44'
+              size='large'
+            >
+              <Select.Option value='ALL'>All statuses</Select.Option>
+              <Select.Option value='PENDING'>Pending</Select.Option>
+              <Select.Option value='APPROVED'>Approved</Select.Option>
+              <Select.Option value='REJECTED'>Rejected</Select.Option>
+            </Select>
+          </div>
+        </section>
+
         <div className='space-y-3'>
-          {reportData.length ? (
-            reportData.map((report) => (
+          {filteredReports.length ? (
+            filteredReports.map((report) => (
               <ReportCard
                 key={report.id}
                 report={report}
                 onStatusChange={() => queryClient.invalidateQueries({ queryKey: ['vehicleChecks'] })}
+                selected={selectedIds.has(report.id)}
+                onToggleSelect={() => toggleSelect(report.id)}
               />
             ))
           ) : (
@@ -56,11 +205,31 @@ export function CheckVehicleReport() {
   )
 }
 
-const PageHeader = ({ totalReports }: { totalReports: number }) => (
+const SummaryCard = ({ label, value, color }: { label: string; value: number; color: string }) => (
+  <div className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${color}`}>
+    <p className='text-[11px] uppercase tracking-wide text-gray-400'>{label}</p>
+    <p className='mt-1 text-2xl'>{value}</p>
+  </div>
+)
+
+const PageHeader = ({
+  totalReports,
+  pending,
+  approved,
+  rejected
+}: {
+  totalReports: number
+  pending: number
+  approved: number
+  rejected: number
+}) => (
   <div className='mb-8'>
-    <h1 className='text-3xl font-bold text-gray-900 mb-2'>Vehicle Inspection Approval</h1>
+    <p className='text-xs font-semibold uppercase tracking-widest text-emerald-400'>Technician panel</p>
+    <h1 className='mt-1 text-3xl font-bold text-gray-900'>Vehicle inspection approval</h1>
     <p className='text-gray-600'>
-      Review and approve vehicle inspection reports • Total: <span className='font-semibold'>{totalReports}</span> reports
+      Review and approve vehicle inspection reports. Total: <span className='font-semibold'>{totalReports}</span> •
+      Pending: <span className='font-semibold'>{pending}</span> • Approved:{' '}
+      <span className='font-semibold'>{approved}</span> • Rejected: <span className='font-semibold'>{rejected}</span>
     </p>
   </div>
 )
@@ -87,7 +256,17 @@ const ErrorState = ({ error }: { error: Error | null }) => (
   </div>
 )
 
-function ReportCard({ report, onStatusChange }: { report: VehicleCheck; onStatusChange: () => void }) {
+function ReportCard({
+  report,
+  onStatusChange,
+  selected,
+  onToggleSelect
+}: {
+  report: VehicleCheck
+  onStatusChange: () => void
+  selected: boolean
+  onToggleSelect: () => void
+}) {
   const isPending = report.status === 'PENDING'
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString('en-GB', {
@@ -99,7 +278,17 @@ function ReportCard({ report, onStatusChange }: { report: VehicleCheck; onStatus
 
   const { mutate: checkReport, isPending: isSubmitting } = useMutation({
     mutationFn: (status: 'APPROVED' | 'REJECTED') => technicianApi.checkReport(String(report.id), status),
-    onSuccess: () => onStatusChange(),
+    onSuccess: (_data, variables) => {
+      auditApi
+        .logAction({
+          type: 'VEHICLE_REPORT_REVIEW',
+          entityId: report.id,
+          entityType: 'VEHICLE_CHECK',
+          message: `${variables === 'APPROVED' ? 'Approved' : 'Rejected'} report #${report.id}`
+        })
+        .catch(() => undefined)
+      onStatusChange()
+    },
     onError: (error) => console.error('Error updating status:', error)
   })
 
@@ -113,6 +302,15 @@ function ReportCard({ report, onStatusChange }: { report: VehicleCheck; onStatus
     >
       {/* Header */}
       <div className='flex items-center gap-4 mb-4 pb-4 border-b border-green-100'>
+        <label className='flex items-center gap-2 text-xs text-gray-400'>
+          <input
+            type='checkbox'
+            checked={selected}
+            onChange={onToggleSelect}
+            className='h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500'
+          />
+          Select
+        </label>
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold
             ${isPending ? 'bg-emerald-100 text-emerald-600' : 'bg-green-100 text-green-500'}

@@ -81,6 +81,14 @@ const staffApi = {
       params,
       responseType: 'blob'
     })
+  },
+
+  // Update group status (approve/reject)
+  updateGroupStatus(groupId: number, status: 'ACTIVE' | 'INACTIVE', rejectionReason?: string) {
+    return http.patch(`api/groups/${groupId}/status`, {
+      status,
+      rejectionReason
+    })
   }
 }
 

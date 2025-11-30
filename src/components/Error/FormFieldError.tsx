@@ -15,7 +15,7 @@ const FormFieldError: React.FC<FormFieldErrorProps> = ({ message, className = ''
 
   return (
     <div className={`flex items-center gap-1 mt-1 text-sm text-red-600 ${className}`}>
-      <ExclamationCircleOutlined className='text-xs flex-shrink-0' />
+      <ExclamationCircleOutlined className='text-xs flex-shrink-0 text-red-600' />
       <span className='flex-1'>{message}</span>
     </div>
   )

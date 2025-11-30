@@ -1,10 +1,19 @@
-import { useQuery } from '@tanstack/react-query'
-import { Table, Tag, Select } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Tag, Select, Input, DatePicker, Collapse, Button, Space, Checkbox, Modal, message } from 'antd'
+import { SearchOutlined, FilterOutlined, ClearOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import dayjs, { Dayjs } from 'dayjs'
 import disputeApi from '../../../../apis/dispute.api'
+import staffApi from '../../../../apis/staff.api'
 import type { DisputeSummary } from '../../../../types/api/dispute.type'
+import type { groupStaffItem } from '../../../../types/api/staff.type'
+import Skeleton from '../../../../components/Skeleton'
+import EmptyState from '../EmptyState'
+
+const { Option } = Select
+const { RangePicker } = DatePicker
+const { Panel } = Collapse
 
 const statusColors: Record<string, string> = {
   OPEN: 'orange',
@@ -13,98 +22,452 @@ const statusColors: Record<string, string> = {
   REJECTED: 'red'
 }
 
-const DisputeList = () => {
-  const [status, setStatus] = useState<string | undefined>('OPEN')
-  const navigate = useNavigate()
+const statusColumns = [
+  { key: 'OPEN', label: 'Open', accent: 'bg-orange-50 border-orange-100' },
+  { key: 'IN_REVIEW', label: 'In review', accent: 'bg-blue-50 border-blue-100' },
+  { key: 'RESOLVED', label: 'Resolved', accent: 'bg-emerald-50 border-emerald-100' },
+  { key: 'REJECTED', label: 'Rejected', accent: 'bg-rose-50 border-rose-100' }
+]
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['disputes', status],
-    queryFn: () => disputeApi.list({ status, page: 0, size: 50 })
+const DisputeList = () => {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  // Basic filters
+  const [statusFilter, setStatusFilter] = useState<string>('OPEN')
+  const [searchTerm, setSearchTerm] = useState('')
+
+  // Advanced filters
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null])
+  const [groupIdFilter, setGroupIdFilter] = useState<number | undefined>(undefined)
+  const [disputeTypeFilter, setDisputeTypeFilter] = useState<string>('ALL')
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+
+  // Bulk selection
+  const [selectedDisputeIds, setSelectedDisputeIds] = useState<Set<number>>(new Set())
+  const [showBulkActions, setShowBulkActions] = useState(false)
+
+  // Fetch groups for filter dropdown
+  const { data: groupsData } = useQuery({
+    queryKey: ['groups-for-filter'],
+    queryFn: () => staffApi.getAllGroupStaff(0, 1000),
+    staleTime: 1000 * 60 * 5 // Cache for 5 minutes
   })
 
-  const columns: ColumnsType<DisputeSummary> = useMemo(
-    () => [
-      { title: 'ID', dataIndex: 'disputeId', width: 80 },
-      {
-        title: 'Title',
-        dataIndex: 'title',
-        render: (value, record) => (
-          <div className='font-semibold text-slate-800 cursor-pointer hover:text-cyan-600' onClick={() => handleRow(record)}>
-            {value}
-          </div>
-        )
-      },
-      {
-        title: 'Type',
-        dataIndex: 'type',
-        width: 120
-      },
-      {
-        title: 'Status',
-        dataIndex: 'status',
-        width: 120,
-        render: (value: string) => <Tag color={statusColors[value] || 'default'}>{value}</Tag>
-      },
-      {
-        title: 'Reporter',
-        dataIndex: 'reporterName',
-        width: 160
-      },
-      {
-        title: 'Group',
-        dataIndex: 'groupName',
-        width: 160
-      },
-      {
-        title: 'Created',
-        dataIndex: 'createdAt',
-        width: 180,
-        render: (value: string) => new Date(value).toLocaleString()
-      }
-    ],
-    []
-  )
+  const groups: groupStaffItem[] = groupsData?.data?.content || []
 
-  const handleRow = (record: DisputeSummary) => {
-    navigate(`disputes/${record.disputeId}`)
+  // Build query params
+  const queryParams = useMemo(() => {
+    const params: {
+      status?: string
+      disputeType?: string
+      groupId?: number
+      from?: string
+      to?: string
+      page: number
+      size: number
+    } = {
+      page: 0,
+      size: 200
+    }
+
+    if (statusFilter !== 'ALL') {
+      params.status = statusFilter
+    }
+
+    if (disputeTypeFilter !== 'ALL') {
+      params.disputeType = disputeTypeFilter
+    }
+
+    if (groupIdFilter) {
+      params.groupId = groupIdFilter
+    }
+
+    if (dateRange[0] && dateRange[1]) {
+      params.from = dateRange[0].startOf('day').toISOString()
+      params.to = dateRange[1].endOf('day').toISOString()
+    }
+
+    return params
+  }, [statusFilter, disputeTypeFilter, groupIdFilter, dateRange])
+
+  // Fetch disputes with filters
+  const { data, isLoading } = useQuery({
+    queryKey: ['disputes', queryParams],
+    queryFn: () => disputeApi.list(queryParams)
+  })
+
+  const disputes: DisputeSummary[] = data?.data.content || []
+
+  // Client-side search filter
+  const filtered = useMemo(() => {
+    let result = disputes
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase()
+      result = result.filter(
+        (d) =>
+          d.title.toLowerCase().includes(term) ||
+          d.groupName?.toLowerCase().includes(term) ||
+          d.reporterName?.toLowerCase().includes(term) ||
+          d.disputeId.toString().includes(term)
+      )
+    }
+
+    return result
+  }, [disputes, searchTerm])
+
+  const summary = useMemo(() => {
+    return {
+      total: disputes.length,
+      open: disputes.filter((d) => d.status === 'OPEN').length,
+      review: disputes.filter((d) => d.status === 'IN_REVIEW').length,
+      resolved: disputes.filter((d) => d.status === 'RESOLVED').length,
+      rejected: disputes.filter((d) => d.status === 'REJECTED').length
+    }
+  }, [disputes])
+
+  // Bulk resolve mutation
+  const bulkResolveMutation = useMutation({
+    mutationFn: async ({ disputeIds, resolutionNote }: { disputeIds: number[]; resolutionNote?: string }) => {
+      const promises = disputeIds.map((id) =>
+        disputeApi.resolveDispute(id, {
+          status: 'RESOLVED',
+          resolutionNote: resolutionNote || 'Bulk resolved by staff'
+        })
+      )
+      return Promise.all(promises)
+    },
+    onSuccess: () => {
+      message.success(`Successfully resolved ${selectedDisputeIds.size} dispute(s)`)
+      setSelectedDisputeIds(new Set())
+      setShowBulkActions(false)
+      queryClient.invalidateQueries({ queryKey: ['disputes'] })
+    },
+    onError: () => {
+      message.error('Failed to resolve some disputes. Please try again.')
+    }
+  })
+
+  // Bulk reject mutation
+  const bulkRejectMutation = useMutation({
+    mutationFn: async ({ disputeIds, resolutionNote }: { disputeIds: number[]; resolutionNote?: string }) => {
+      const promises = disputeIds.map((id) =>
+        disputeApi.resolveDispute(id, {
+          status: 'REJECTED',
+          resolutionNote: resolutionNote || 'Bulk rejected by staff'
+        })
+      )
+      return Promise.all(promises)
+    },
+    onSuccess: () => {
+      message.success(`Successfully rejected ${selectedDisputeIds.size} dispute(s)`)
+      setSelectedDisputeIds(new Set())
+      setShowBulkActions(false)
+      queryClient.invalidateQueries({ queryKey: ['disputes'] })
+    },
+    onError: () => {
+      message.error('Failed to reject some disputes. Please try again.')
+    }
+  })
+
+  const handleSelectDispute = (disputeId: number, checked: boolean) => {
+    const newSelected = new Set(selectedDisputeIds)
+    if (checked) {
+      newSelected.add(disputeId)
+    } else {
+      newSelected.delete(disputeId)
+    }
+    setSelectedDisputeIds(newSelected)
+    setShowBulkActions(newSelected.size > 0)
   }
 
+  const handleSelectAll = (checked: boolean, status: string) => {
+    const disputesInColumn = filtered.filter((d) => d.status === status)
+    const newSelected = new Set(selectedDisputeIds)
+
+    if (checked) {
+      disputesInColumn.forEach((d) => newSelected.add(d.disputeId))
+    } else {
+      disputesInColumn.forEach((d) => newSelected.delete(d.disputeId))
+    }
+
+    setSelectedDisputeIds(newSelected)
+    setShowBulkActions(newSelected.size > 0)
+  }
+
+  const handleBulkResolve = () => {
+    Modal.confirm({
+      title: 'Resolve Selected Disputes',
+      content: `Are you sure you want to resolve ${selectedDisputeIds.size} dispute(s)?`,
+      okText: 'Resolve',
+      okType: 'primary',
+      cancelText: 'Cancel',
+      onOk: () => {
+        bulkResolveMutation.mutate({
+          disputeIds: Array.from(selectedDisputeIds)
+        })
+      }
+    })
+  }
+
+  const handleBulkReject = () => {
+    Modal.confirm({
+      title: 'Reject Selected Disputes',
+      content: `Are you sure you want to reject ${selectedDisputeIds.size} dispute(s)?`,
+      okText: 'Reject',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: () => {
+        bulkRejectMutation.mutate({
+          disputeIds: Array.from(selectedDisputeIds)
+        })
+      }
+    })
+  }
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setDateRange([null, null])
+    setGroupIdFilter(undefined)
+    setDisputeTypeFilter('ALL')
+    setStatusFilter('OPEN')
+  }
+
+  const hasActiveFilters = searchTerm || dateRange[0] || dateRange[1] || groupIdFilter || disputeTypeFilter !== 'ALL'
+
+  if (isLoading) return <Skeleton />
+
   return (
-    <div className='p-6 space-y-4'>
-      <div className='flex items-center justify-between flex-wrap gap-3'>
+    <div className='p-4 sm:p-6 space-y-5'>
+      <header className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h1 className='text-2xl font-bold text-slate-900'>Dispute Center</h1>
-          <p className='text-slate-500 text-sm'>Theo dõi và xử lý tranh chấp của các nhóm</p>
+          <p className='text-xs font-semibold uppercase tracking-widest text-rose-300'>Staff escalation</p>
+          <h1 className='text-3xl font-bold text-slate-900'>Dispute center</h1>
+          <p className='text-slate-500 text-sm'>Monitor and resolve incident reports across groups.</p>
         </div>
-        <Select
-          value={status}
-          onChange={(value) => setStatus(value)}
-          allowClear
-          placeholder='Filter by status'
-          style={{ width: 180 }}
-          options={[
-            { label: 'Open', value: 'OPEN' },
-            { label: 'In review', value: 'IN_REVIEW' },
-            { label: 'Resolved', value: 'RESOLVED' },
-            { label: 'Rejected', value: 'REJECTED' }
-          ]}
-        />
+        <div className='flex gap-2'>
+          <Select
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            style={{ width: 200 }}
+            options={[
+              { label: 'All statuses', value: 'ALL' },
+              { label: 'Open', value: 'OPEN' },
+              { label: 'In review', value: 'IN_REVIEW' },
+              { label: 'Resolved', value: 'RESOLVED' },
+              { label: 'Rejected', value: 'REJECTED' }
+            ]}
+          />
+        </div>
+      </header>
+
+      {/* Search and Filters */}
+      <div className='space-y-3'>
+        <div className='flex flex-col sm:flex-row gap-3'>
+          <Input
+            placeholder='Search by title, group, reporter, or ID...'
+            prefix={<SearchOutlined className='text-gray-400' />}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            allowClear
+            className='flex-1'
+            size='large'
+          />
+          <Button
+            icon={<FilterOutlined />}
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className={showAdvancedFilters ? 'bg-blue-500 text-white' : ''}
+            size='large'
+          >
+            Advanced Filters
+          </Button>
+          {hasActiveFilters && (
+            <Button icon={<ClearOutlined />} onClick={clearFilters} size='large'>
+              Clear
+            </Button>
+          )}
+        </div>
+
+        {/* Advanced Filters Panel */}
+        <Collapse activeKey={showAdvancedFilters ? ['filters'] : []} onChange={(keys) => setShowAdvancedFilters(keys.includes('filters'))}>
+          <Panel key='filters' header='Advanced Filters'>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>Created Date Range</label>
+                <RangePicker
+                  value={dateRange}
+                  onChange={(dates) => setDateRange(dates as [Dayjs | null, Dayjs | null])}
+                  className='w-full'
+                  format='DD/MM/YYYY'
+                />
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>Group</label>
+                <Select
+                  value={groupIdFilter}
+                  onChange={setGroupIdFilter}
+                  placeholder='All groups'
+                  allowClear
+                  className='w-full'
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {groups.map((group) => (
+                    <Option key={group.groupId} value={group.groupId}>
+                      {group.groupName} (ID: {group.groupId})
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>Dispute Type</label>
+                <Select
+                  value={disputeTypeFilter}
+                  onChange={setDisputeTypeFilter}
+                  className='w-full'
+                >
+                  <Option value='ALL'>All Types</Option>
+                  <Option value='PAYMENT'>Payment</Option>
+                  <Option value='USAGE'>Usage</Option>
+                  <Option value='MAINTENANCE'>Maintenance</Option>
+                  <Option value='BEHAVIOR'>Behavior</Option>
+                  <Option value='OTHER'>Other</Option>
+                </Select>
+              </div>
+            </div>
+          </Panel>
+        </Collapse>
+
+        {/* Results count */}
+        {(hasActiveFilters || filtered.length !== disputes.length) && (
+          <div className='text-sm text-gray-600'>
+            Showing {filtered.length} of {disputes.length} disputes
+            {searchTerm && ` matching "${searchTerm}"`}
+          </div>
+        )}
       </div>
 
-      <Table
-        rowKey='disputeId'
-        columns={columns}
-        dataSource={data?.data.content || []}
-        loading={isLoading}
-        pagination={false}
-        onRow={(record) => ({
-          onClick: () => handleRow(record)
-        })}
-        className='rounded-2xl border border-slate-100 shadow-lg'
-      />
+      {/* Bulk Actions Bar */}
+      {showBulkActions && selectedDisputeIds.size > 0 && (
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between'>
+          <div className='flex items-center gap-3'>
+            <span className='font-semibold text-blue-900'>{selectedDisputeIds.size} dispute(s) selected</span>
+          </div>
+          <Space>
+            <Button
+              icon={<CheckOutlined />}
+              type='primary'
+              onClick={handleBulkResolve}
+              loading={bulkResolveMutation.isPending}
+              className='bg-green-600 hover:bg-green-700'
+            >
+              Resolve Selected
+            </Button>
+            <Button
+              icon={<CloseOutlined />}
+              danger
+              onClick={handleBulkReject}
+              loading={bulkRejectMutation.isPending}
+            >
+              Reject Selected
+            </Button>
+            <Button onClick={() => setSelectedDisputeIds(new Set())}>Clear Selection</Button>
+          </Space>
+        </div>
+      )}
+
+      <section className='grid gap-3 md:grid-cols-4'>
+        <SummaryCard label='Open' value={summary.open} accent='bg-orange-50 text-orange-700 border-orange-100' />
+        <SummaryCard label='In review' value={summary.review} accent='bg-blue-50 text-blue-700 border-blue-100' />
+        <SummaryCard
+          label='Resolved'
+          value={summary.resolved}
+          accent='bg-emerald-50 text-emerald-700 border-emerald-100'
+        />
+        <SummaryCard
+          label='Total disputes'
+          value={summary.total}
+          accent='bg-slate-50 text-slate-700 border-slate-100'
+        />
+      </section>
+
+      <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
+        {statusColumns
+          .filter((column) => statusFilter === 'ALL' || column.key === statusFilter)
+          .map((column) => {
+            const items = filtered.filter((d) => d.status === column.key)
+            const allSelected = items.length > 0 && items.every((d) => selectedDisputeIds.has(d.disputeId))
+            const someSelected = items.some((d) => selectedDisputeIds.has(d.disputeId))
+
+            return (
+              <div key={column.key} className={`rounded-2xl border ${column.accent} p-3`}>
+                <div className='flex items-center justify-between mb-3'>
+                  <div className='flex items-center gap-2'>
+                    <Checkbox
+                      checked={allSelected}
+                      indeterminate={someSelected && !allSelected}
+                      onChange={(e) => handleSelectAll(e.target.checked, column.key)}
+                    />
+                    <p className='text-sm font-semibold text-gray-800'>{column.label}</p>
+                  </div>
+                  <Tag color={statusColors[column.key] || 'default'}>{items.length}</Tag>
+                </div>
+                <div className='space-y-3'>
+                  {items.length === 0 ? (
+                    <p className='py-6 text-center text-xs text-gray-400'>No disputes here</p>
+                  ) : (
+                    items.map((dispute) => {
+                      const isSelected = selectedDisputeIds.has(dispute.disputeId)
+                      return (
+                        <div
+                          key={dispute.disputeId}
+                          className={`w-full rounded-2xl border ${
+                            isSelected ? 'border-blue-500 bg-blue-50' : 'border-white bg-white/90'
+                          } p-3 shadow hover:shadow-md transition-all`}
+                        >
+                          <div className='flex items-start gap-2'>
+                            <Checkbox
+                              checked={isSelected}
+                              onChange={(e) => handleSelectDispute(dispute.disputeId, e.target.checked)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              onClick={() => navigate(`disputes/${dispute.disputeId}`)}
+                              className='flex-1 text-left'
+                            >
+                              <p className='text-sm font-semibold text-slate-900 line-clamp-1'>{dispute.title}</p>
+                              <p className='text-xs text-slate-500'>{dispute.groupName}</p>
+                              <p className='mt-2 text-[11px] text-slate-400'>
+                                {new Date(dispute.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+            )
+          })}
+      </div>
     </div>
   )
 }
 
-export default DisputeList
+const SummaryCard = ({ label, value, accent }: { label: string; value: number; accent: string }) => (
+  <div className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${accent}`}>
+    <p className='text-[11px] uppercase tracking-wide text-gray-400'>{label}</p>
+    <p className='mt-1 text-2xl'>{value}</p>
+  </div>
+)
 
+export default DisputeList

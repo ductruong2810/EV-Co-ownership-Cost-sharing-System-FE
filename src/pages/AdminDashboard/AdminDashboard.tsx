@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -13,7 +13,8 @@ import {
   ToolOutlined,
   CarOutlined,
   SettingOutlined,
-  AlertOutlined
+  AlertOutlined,
+  HistoryOutlined
 } from '@ant-design/icons'
 import { getRoleFromLS } from '../../utils/auth'
 import path from '../../constants/path'
@@ -24,6 +25,18 @@ export default function AdminDashboard() {
   const location = useLocation()
   const [periodType, setPeriodType] = useState<string>('DAY')
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
+  const roleLabel = useMemo(() => {
+    switch (role) {
+      case 'ADMIN':
+        return 'Admin Console'
+      case 'STAFF':
+        return 'Staff Workspace'
+      case 'TECHNICIAN':
+        return 'Technician Panel'
+      default:
+        return 'Management'
+    }
+  }, [role])
   
   // Check if we're on dashboard page (index route or /dashboard)
   const isDashboardPage = location.pathname === '/manager' || 
@@ -104,7 +117,12 @@ export default function AdminDashboard() {
           {/* Header */}
           <div className='flex items-center justify-between mb-6 px-2 pt-10'>
             {!sidebarCollapsed && (
-              <h2 className='text-lg font-bold text-gray-800'>Admin Menu</h2>
+              <div className='space-y-0.5'>
+                <p className='text-xs font-semibold tracking-wide text-gray-400 uppercase'>
+                  {role === 'ADMIN' ? 'System Admin' : role === 'STAFF' ? 'Back Office' : role === 'TECHNICIAN' ? 'Operations' : 'Dashboard'}
+                </p>
+                <h2 className='text-lg font-bold text-gray-800'>{roleLabel}</h2>
+              </div>
             )}
           </div>
           <ul className='space-y-1'>
@@ -151,6 +169,11 @@ export default function AdminDashboard() {
             {(role === 'ADMIN' || role === 'STAFF') && (
               <div>
                 {/* Review & Verification Section */}
+                {!sidebarCollapsed && (
+                  <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
+                    Review & Verification
+                  </p>
+                )}
                 <li>
                   <NavLink
                     to='groups'
@@ -252,6 +275,11 @@ export default function AdminDashboard() {
             {role === 'ADMIN' && (
               <>
                 {/* Contract Management Section */}
+                {!sidebarCollapsed && (
+                  <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
+                    Contracts & Team
+                  </p>
+                )}
                 <li>
                   <NavLink
                     to='checkContract'
@@ -323,39 +351,83 @@ export default function AdminDashboard() {
                     )}
                   </NavLink>
                 </li>
+                <div className='h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-3'></div>
+                {/* System & Audit Section */}
+                {!sidebarCollapsed && (
+                  <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
+                    System & Audit
+                  </p>
+                )}
+                <li>
+                  <NavLink
+                    to='auditLogs'
+                    className={({ isActive }) => {
+                      const activeClass = isActive
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-100'
+                      return `flex items-center ${sidebarCollapsed ? 'justify-center' : ''} rounded-lg ${activeClass} ${
+                        sidebarCollapsed ? 'p-3' : 'p-3'
+                      } text-sm font-medium transition-all duration-200`
+                    }}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <HistoryOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                        {!sidebarCollapsed && <span>Audit Logs</span>}
+                      </>
+                    )}
+                  </NavLink>
+                </li>
               </>
             )}
 
             {role === 'TECHNICIAN' && (
               <li>
+                {!sidebarCollapsed && (
+                  <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
+                    Technician Tools
+                  </p>
+                )}
                 <NavLink
                   to='checkVehicleReport'
                   className={({ isActive }) => {
-                    const activeClass = isActive 
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
+                    const activeClass = isActive
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-100'
-                    return `flex items-center ${sidebarCollapsed ? 'justify-center' : ''} rounded-lg ${activeClass} ${sidebarCollapsed ? 'p-3' : 'p-3'} text-sm font-medium transition-all duration-200 mb-1`
+                    return `flex items-center ${sidebarCollapsed ? 'justify-center' : ''} rounded-lg ${activeClass} ${
+                      sidebarCollapsed ? 'p-3' : 'p-3'
+                    } text-sm font-medium transition-all duration-200 mb-1`
                   }}
                 >
-                  {({ isActive }) => (
+                  {() => (
                     <>
-                      <CarOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                      {!sidebarCollapsed && <span>Reports</span>}
+                      <CarOutlined
+                        className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${
+                          sidebarCollapsed ? '' : 'mr-3'
+                        }`}
+                      />
+                      {!sidebarCollapsed && <span>Vehicle Reports</span>}
                     </>
                   )}
                 </NavLink>
                 <NavLink
                   to='maintenance'
                   className={({ isActive }) => {
-                    const activeClass = isActive 
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
+                    const activeClass = isActive
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-100'
-                    return `flex items-center ${sidebarCollapsed ? 'justify-center' : ''} rounded-lg ${activeClass} ${sidebarCollapsed ? 'p-3' : 'p-3'} text-sm font-medium transition-all duration-200`
+                    return `flex items-center ${sidebarCollapsed ? 'justify-center' : ''} rounded-lg ${activeClass} ${
+                      sidebarCollapsed ? 'p-3' : 'p-3'
+                    } text-sm font-medium transition-all duration-200`
                   }}
                 >
-                  {({ isActive }) => (
+                  {() => (
                     <>
-                      <SettingOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                      <SettingOutlined
+                        className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${
+                          sidebarCollapsed ? '' : 'mr-3'
+                        }`}
+                      />
                       {!sidebarCollapsed && <span>Maintenance</span>}
                     </>
                   )}

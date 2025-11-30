@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { useState } from 'react'
 
 import { CarOutlined, FileTextOutlined, ThunderboltOutlined, WarningOutlined } from '@ant-design/icons'
@@ -30,7 +30,7 @@ export default function CheckOutResult() {
     handleSubmit,
     formState: { errors }
   } = useForm<CheckoutForm>({
-    resolver: yupResolver<FieldValues>(checkoutSchema)
+    resolver: yupResolver(checkoutSchema) as Resolver<CheckoutForm>
   })
 
   const sendReport = useMutation({
@@ -134,12 +134,7 @@ export default function CheckOutResult() {
 
           {/* Signature Pad */}
           <div>
-            <SignaturePad
-              onSignatureChange={setSignature}
-              width={600}
-              height={200}
-              required={false}
-            />
+            <SignaturePad onSignatureChange={setSignature} width={600} height={200} required={false} />
           </div>
 
           {/* Button */}

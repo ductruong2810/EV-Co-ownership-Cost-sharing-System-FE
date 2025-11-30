@@ -13,16 +13,41 @@ const ErrorToastContent: React.FC<ErrorToastProps> = ({ error, onRetry }) => {
     const iconClass = 'text-2xl font-bold'
     switch (error.type) {
       case ErrorType.NETWORK:
-        return <WarningOutlined className={`text-orange-500 ${iconClass}`} />
+        return (
+          <WarningOutlined 
+            className={iconClass} 
+            style={{ color: '#f97316', fontSize: '24px' }} 
+          />
+        )
       case ErrorType.AUTHENTICATION:
       case ErrorType.AUTHORIZATION:
-        return <CloseCircleOutlined className={`text-red-500 ${iconClass}`} />
+        return (
+          <CloseCircleOutlined 
+            className={iconClass} 
+            style={{ color: '#ef4444', fontSize: '24px' }} 
+          />
+        )
       case ErrorType.VALIDATION:
-        return <ExclamationCircleOutlined className={`text-yellow-500 ${iconClass}`} />
+        return (
+          <ExclamationCircleOutlined 
+            className={iconClass} 
+            style={{ color: '#eab308', fontSize: '24px' }} 
+          />
+        )
       case ErrorType.SERVER:
-        return <CloseCircleOutlined className={`text-red-500 ${iconClass}`} />
+        return (
+          <CloseCircleOutlined 
+            className={iconClass} 
+            style={{ color: '#ef4444', fontSize: '24px' }} 
+          />
+        )
       default:
-        return <InfoCircleOutlined className={`text-blue-500 ${iconClass}`} />
+        return (
+          <InfoCircleOutlined 
+            className={iconClass} 
+            style={{ color: '#3b82f6', fontSize: '24px' }} 
+          />
+        )
     }
   }
 
@@ -48,7 +73,18 @@ const ErrorToastContent: React.FC<ErrorToastProps> = ({ error, onRetry }) => {
         {error.title && (
           <h4 className='font-bold text-gray-900 mb-1 text-sm'>{error.title}</h4>
         )}
-        <p className='text-sm font-medium text-gray-800 break-words'>{error.message}</p>
+        <p 
+          className='text-sm font-medium break-words'
+          style={{
+            color: error.severity === ErrorSeverity.CRITICAL ? '#dc2626' :
+                   error.severity === ErrorSeverity.HIGH ? '#ea580c' :
+                   error.type === ErrorType.NETWORK ? '#f97316' :
+                   error.type === ErrorType.VALIDATION ? '#ca8a04' :
+                   '#374151'
+          }}
+        >
+          {error.message}
+        </p>
         {error.details && (
           <p className='text-xs text-gray-500 mt-1'>{error.details}</p>
         )}

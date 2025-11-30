@@ -1,6 +1,7 @@
 import { useState, type FC } from 'react'
 import { toast } from 'react-toastify'
 import staffApi from '../../../../../../apis/staff.api'
+import auditApi from '../../../../../../apis/audit.api'
 import { getDecryptedImageUrl } from '../../../../../../utils/imageUrl'
 import type { DocumentInfo } from '../../../../../../types/api/staff.type'
 import type { Status } from '../../CheckLicense'
@@ -39,6 +40,14 @@ const ImageCard: FC<ImageCardProps> = ({
     if (!confirmed) return
     await staffApi.reviewDocument(documentId, 'APPROVE')
     toast.success('Document approved successfully', { autoClose: 2000 })
+    auditApi
+      .logAction({
+        type: 'DOCUMENT_REVIEW',
+        entityId: documentId,
+        entityType: 'DOCUMENT',
+        message: `Approved ${alt}`
+      })
+      .catch(() => undefined)
     onApprove()
   }
 
@@ -50,6 +59,15 @@ const ImageCard: FC<ImageCardProps> = ({
     }
     await staffApi.reviewDocument(documentId, 'REJECT', rejectReason.trim())
     toast.success('Document rejected', { autoClose: 2000 })
+    auditApi
+      .logAction({
+        type: 'DOCUMENT_REVIEW',
+        entityId: documentId,
+        entityType: 'DOCUMENT',
+        message: `Rejected ${alt}`,
+        metadata: { reason: rejectReason.trim() }
+      })
+      .catch(() => undefined)
     onReject()
     setRejectReason('')
     setShowRejectModal(false)

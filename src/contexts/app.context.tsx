@@ -1,13 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useMemo } from 'react'
 import {
   getAccessTokenFromLS,
   getEmailAccountFromLS,
   getGroupIdFromLS,
   getRoleFromLS,
-  getUserIdFromLS
+  getUserIdFromLS,
+  LocalStorageEventTarget,
+  GROUP_ID_CHANGED_EVENT
 } from '../utils/auth'
-import { useWebSocket } from '../hooks/useWebSocket'
+import { useWebSocket, type WebSocketStatus } from '../hooks/useWebSocket'
 
 // Định nghĩa context lưu dữ liệu kiểu gì hoặc nói cách khác là định nghĩa cho initialState
 interface AppContextInterface {
@@ -22,6 +24,9 @@ interface AppContextInterface {
   setGroupId: React.Dispatch<React.SetStateAction<string>>
   userId: string
   setUserId: React.Dispatch<React.SetStateAction<string>>
+  websocketStatus: WebSocketStatus
+  subscribeGroupNotifications: (groupId: string) => void
+  unsubscribeGroupNotifications: (groupId: string) => void
 }
 
 // initialState giúp coi ban đầu sẽ lưu gì
@@ -37,7 +42,10 @@ const initialAppContext: AppContextInterface = {
   groupId: getGroupIdFromLS(),
   setGroupId: () => null,
   userId: getUserIdFromLS(),
-  setUserId: () => null
+  setUserId: () => null,
+  websocketStatus: 'disconnected',
+  subscribeGroupNotifications: () => undefined,
+  unsubscribeGroupNotifications: () => undefined
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -52,8 +60,24 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   // thêm state groupId
   const [groupId, setGroupId] = useState<string>(initialAppContext.groupId)
 
-  // Kết nối WebSocket để nhận realtime updates (chỉ khi đã đăng nhập)
-  useWebSocket()
+  const websocketOptions = useMemo(() => ({ initialGroupId: groupId || undefined }), [groupId])
+  const {
+    status: websocketStatus,
+    subscribeToGroupNotifications,
+    unsubscribeFromGroupNotifications
+  } = useWebSocket(websocketOptions)
+
+  useEffect(() => {
+    const handleGroupIdChange = (event: Event) => {
+      const newGroupId = (event as CustomEvent<string>).detail || ''
+      setGroupId(newGroupId)
+    }
+
+    LocalStorageEventTarget.addEventListener(GROUP_ID_CHANGED_EVENT, handleGroupIdChange)
+    return () => {
+      LocalStorageEventTarget.removeEventListener(GROUP_ID_CHANGED_EVENT, handleGroupIdChange)
+    }
+  }, [])
 
   const reset = () => {
     setIsAuthenticated(false)
@@ -75,7 +99,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         groupId,
         setGroupId,
         userId,
-        setUserId
+        setUserId,
+        websocketStatus,
+        subscribeGroupNotifications: subscribeToGroupNotifications,
+        unsubscribeGroupNotifications: unsubscribeFromGroupNotifications
       }}
     >
       {children}

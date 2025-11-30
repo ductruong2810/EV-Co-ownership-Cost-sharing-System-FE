@@ -4,4 +4,9 @@ const config = {
   maxSizeUploadAvatar: 1048576
 }
 
+// Log API base URL in development mode for debugging
+if (import.meta.env.DEV) {
+  console.log('🔧 API Base URL:', config.baseUrl)
+}
+
 export default config

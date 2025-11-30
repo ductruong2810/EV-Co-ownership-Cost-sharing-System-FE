@@ -3,6 +3,7 @@ import { Button, Card, Modal } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
 import { toast } from 'react-toastify'
 import path from '../../../../constants/path'
 import groupApi from '../../../../apis/group.api'
@@ -36,8 +37,10 @@ const CheckInResult: React.FC = () => {
       localStorage.removeItem('pendingCheckInQr')
       toast.success('Check-in confirmed with digital signature!')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Check-in confirmation failed')
+    onError: (error) => {
+      const axiosError = error as AxiosError<{ message?: string }>
+      const message = axiosError.response?.data?.message || 'Check-in confirmation failed'
+      toast.error(message)
     }
   })
 
@@ -217,12 +220,7 @@ const CheckInResult: React.FC = () => {
           <p className='text-gray-600'>
             Please sign to confirm check-in. Digital signature helps protect your rights and increases legal validity.
           </p>
-          <SignaturePad
-            onSignatureChange={setSignature}
-            width={550}
-            height={200}
-            required={false}
-          />
+          <SignaturePad onSignatureChange={setSignature} width={550} height={200} required={false} />
         </div>
       </Modal>
     </>

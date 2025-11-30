@@ -70,8 +70,8 @@ export default function EditContract() {
       </div>
     )
   return (
-    <div className='min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-6'>
-      <div className='max-w-6xl mx-auto'>
+    <div className='min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-4 sm:p-6'>
+      <div className='max-w-7xl mx-auto'>
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-900 mb-2'>Contract Editing</h1>
           <p className='text-gray-600'>Review and manage contract feedback</p>
@@ -115,6 +115,7 @@ export default function EditContract() {
           </div>
         ) : (
           <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
+            <div className='overflow-x-auto'>
             <table className='min-w-full divide-y divide-gray-200'>
               <thead className='bg-gray-100'>
                 <tr>
@@ -206,6 +207,7 @@ export default function EditContract() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

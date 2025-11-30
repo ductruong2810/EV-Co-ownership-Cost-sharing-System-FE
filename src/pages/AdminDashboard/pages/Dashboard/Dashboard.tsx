@@ -16,12 +16,15 @@ import {
   FundProjectionScreenOutlined,
   ExclamationCircleOutlined,
   BankOutlined,
-  ShoppingOutlined
+  ShoppingOutlined,
+  RightOutlined
 } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
 import { Column, Pie, Line, Bar } from '@ant-design/plots'
 import type { PieConfig, ColumnConfig, LineConfig, BarConfig } from '@ant-design/plots'
 import dayjs, { Dayjs } from 'dayjs'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import adminApi from '../../../../apis/admin.api'
 import type { DashboardStatistics } from '../../../../types/api/dashboard.type'
 import logger from '../../../../utils/logger'
@@ -61,14 +64,34 @@ const formatCurrencyCompact = (amount: number | undefined | null) => {
   return formatCurrency(amount)
 }
 
+const formatCount = (value: number | undefined | null) => {
+  if (typeof value !== 'number' || !isFinite(value)) {
+    return '0'
+  }
+  return value.toLocaleString('en-US')
+}
+
 type PeriodType = 'DAY' | 'WEEK' | 'MONTH'
 
+type QuickStatCard = {
+  id: string
+  label: string
+  value: string
+  detailLabel?: string | null
+  detailValue: string
+  icon: ReactNode
+  iconBg: string
+  link?: string
+  trendValue?: number | null
+}
+
 export default function Dashboard() {
+  const navigate = useNavigate()
   // Default to today for lighter query and avoid errors
   const today = dayjs()
   const defaultFromDate = today.startOf('day')
   const defaultToDate = today.endOf('day')
-  
+
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([defaultFromDate, defaultToDate])
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null)
   const [periodType, setPeriodType] = useState<PeriodType>('DAY')
@@ -88,11 +111,11 @@ export default function Dashboard() {
     setActivePreset(preset) // Track which preset is actively selected
     setSelectedMonth(null)
     setDateRange([null, null])
-    
+
     const today = dayjs()
     let fromDate: Dayjs | null = null
     let toDate: Dayjs | null = null
-    
+
     switch (preset) {
       case 'today':
         fromDate = today.startOf('day')
@@ -151,7 +174,7 @@ export default function Dashboard() {
       default:
         break
     }
-    
+
     if (fromDate && toDate) {
       setDateRange([fromDate, toDate])
     }
@@ -162,7 +185,7 @@ export default function Dashboard() {
     setActivePreset(null) // Clear preset when using month picker
     setSelectedMonth(month)
     setDateRange([null, null])
-    
+
     if (month) {
       const startOfMonth = month.startOf('month')
       const endOfMonth = month.endOf('month')
@@ -194,7 +217,7 @@ export default function Dashboard() {
       const error = query.state.error as any
       const isNetworkError = !error?.response || error?.code === 'ECONNABORTED'
       const isServerError = error?.response?.status >= 500
-      
+
       // Nếu backend down, không auto-refetch (tránh spam requests)
       if (isNetworkError || isServerError) {
         return false
@@ -218,62 +241,176 @@ export default function Dashboard() {
   }
 
   // Map backend response to frontend expected format
-  const statistics: DashboardStatistics | undefined = rawStatistics ? {
-    totalUsers: rawStatistics.totalUsers || 0,
-    activeUsers: rawStatistics.usersByStatus?.ACTIVE || 0,
-    totalCoOwners: rawStatistics.usersByRole?.CO_OWNER || 0,
-    totalStaff: rawStatistics.usersByRole?.STAFF || 0,
-    totalTechnicians: rawStatistics.usersByRole?.TECHNICIAN || 0,
-    totalAdmins: rawStatistics.usersByRole?.ADMIN || 0,
-    totalGroups: rawStatistics.totalGroups || 0,
-    activeGroups: rawStatistics.groupsByStatus?.ACTIVE || 0,
-    pendingGroups: rawStatistics.groupsByStatus?.PENDING || 0,
-    closedGroups: rawStatistics.groupsByStatus?.CLOSED || 0,
-    totalVehicles: rawStatistics.totalVehicles || 0,
-    totalContracts: rawStatistics.totalContracts || 0,
-    pendingContracts: rawStatistics.contractsByStatus?.PENDING || 0,
-    signedContracts: rawStatistics.contractsByStatus?.SIGNED || 0,
-    approvedContracts: rawStatistics.contractsByStatus?.APPROVED || 0,
-    rejectedContracts: rawStatistics.contractsByStatus?.REJECTED || 0,
-    // Revenue: Try payments.totalAmount first (nested DTO), then fallback to totalPaymentAmount
-    totalRevenue: (() => {
-      const paymentAmount = rawStatistics.payments?.totalAmount || rawStatistics.totalPaymentAmount
-      if (paymentAmount != null) {
-        const numAmount = Number(paymentAmount)
-        if (!isNaN(numAmount) && isFinite(numAmount)) {
-          return numAmount
-        }
+  const statistics: DashboardStatistics | undefined = rawStatistics
+    ? {
+        totalUsers: rawStatistics.totalUsers || 0,
+        activeUsers: rawStatistics.usersByStatus?.ACTIVE || 0,
+        totalCoOwners: rawStatistics.usersByRole?.CO_OWNER || 0,
+        totalStaff: rawStatistics.usersByRole?.STAFF || 0,
+        totalTechnicians: rawStatistics.usersByRole?.TECHNICIAN || 0,
+        totalAdmins: rawStatistics.usersByRole?.ADMIN || 0,
+        totalGroups: rawStatistics.totalGroups || 0,
+        activeGroups: rawStatistics.groupsByStatus?.ACTIVE || 0,
+        pendingGroups: rawStatistics.groupsByStatus?.PENDING || 0,
+        closedGroups: rawStatistics.groupsByStatus?.CLOSED || 0,
+        totalVehicles: rawStatistics.totalVehicles || 0,
+        totalContracts: rawStatistics.totalContracts || 0,
+        pendingContracts: rawStatistics.contractsByStatus?.PENDING || 0,
+        signedContracts: rawStatistics.contractsByStatus?.SIGNED || 0,
+        approvedContracts: rawStatistics.contractsByStatus?.APPROVED || 0,
+        rejectedContracts: rawStatistics.contractsByStatus?.REJECTED || 0,
+        // Revenue: Try payments.totalAmount first (nested DTO), then fallback to totalPaymentAmount
+        totalRevenue: (() => {
+          const paymentAmount = rawStatistics.payments?.totalAmount || rawStatistics.totalPaymentAmount
+          if (paymentAmount != null) {
+            const numAmount = Number(paymentAmount)
+            if (!isNaN(numAmount) && isFinite(numAmount)) {
+              return numAmount
+            }
+          }
+          return 0
+        })(),
+        totalPayments: rawStatistics.totalPayments || 0,
+        // Use nested DTO if available, fallback to Map
+        successfulPayments: rawStatistics.payments?.completed || rawStatistics.paymentsByStatus?.COMPLETED || 0,
+        pendingPayments: rawStatistics.payments?.pending || rawStatistics.paymentsByStatus?.PENDING || 0,
+        failedPayments: rawStatistics.payments?.failed || rawStatistics.paymentsByStatus?.FAILED || 0,
+        totalBookings: rawStatistics.totalBookings || 0,
+        confirmedBookings: rawStatistics.bookingsByStatus?.CONFIRMED || 0,
+        completedBookings: rawStatistics.bookingsByStatus?.COMPLETED || 0,
+        newUsersLast30Days: 0, // Backend doesn't provide this yet
+        newGroupsLast30Days: 0, // Backend doesn't provide this yet
+        newContractsLast30Days: 0, // Backend doesn't provide this yet
+        usersByRole: rawStatistics.usersByRole || {},
+        groupsByStatus: rawStatistics.groupsByStatus || {},
+        contractsByStatus: rawStatistics.contractsByStatus || {},
+        revenueByMonth: rawStatistics.revenueByPeriod || {}, // Use revenueByPeriod from backend
+        // Additional fields from backend
+        totalDisputes: rawStatistics.totalDisputes || 0,
+        disputesByStatus: rawStatistics.disputesByStatus || {},
+        totalIncidents: rawStatistics.totalIncidents || 0,
+        incidentsByStatus: rawStatistics.incidentsByStatus || {},
+        totalMaintenances: rawStatistics.totalMaintenances || 0,
+        maintenancesByStatus: rawStatistics.maintenancesByStatus || {},
+        bookingsByStatus: rawStatistics.bookingsByStatus || {},
+        totalExpenses: rawStatistics.totalExpenses || 0,
+        totalExpenseAmount:
+          rawStatistics.totalExpenseAmount && !isNaN(Number(rawStatistics.totalExpenseAmount))
+            ? Number(rawStatistics.totalExpenseAmount)
+            : 0,
+        totalFunds: rawStatistics.totalFunds || 0,
+        totalFundBalance: rawStatistics.totalFundBalance ? Number(rawStatistics.totalFundBalance) : 0,
+        previousTotalRevenue:
+          rawStatistics.previousTotalRevenue !== undefined && rawStatistics.previousTotalRevenue !== null
+            ? Number(rawStatistics.previousTotalRevenue)
+            : undefined,
+        previousTotalBookings:
+          rawStatistics.previousTotalBookings !== undefined && rawStatistics.previousTotalBookings !== null
+            ? Number(rawStatistics.previousTotalBookings)
+            : undefined,
+        previousTotalGroups:
+          rawStatistics.previousTotalGroups !== undefined && rawStatistics.previousTotalGroups !== null
+            ? Number(rawStatistics.previousTotalGroups)
+            : undefined,
+        previousTotalMaintenances:
+          rawStatistics.previousTotalMaintenances !== undefined && rawStatistics.previousTotalMaintenances !== null
+            ? Number(rawStatistics.previousTotalMaintenances)
+            : undefined,
+        previousTotalDisputes:
+          rawStatistics.previousTotalDisputes !== undefined && rawStatistics.previousTotalDisputes !== null
+            ? Number(rawStatistics.previousTotalDisputes)
+            : undefined
       }
-      return 0
-    })(),
-    totalPayments: rawStatistics.totalPayments || 0,
-    // Use nested DTO if available, fallback to Map
-    successfulPayments: rawStatistics.payments?.completed || rawStatistics.paymentsByStatus?.COMPLETED || 0,
-    pendingPayments: rawStatistics.payments?.pending || rawStatistics.paymentsByStatus?.PENDING || 0,
-    failedPayments: rawStatistics.payments?.failed || rawStatistics.paymentsByStatus?.FAILED || 0,
-    totalBookings: rawStatistics.totalBookings || 0,
-    confirmedBookings: rawStatistics.bookingsByStatus?.CONFIRMED || 0,
-    completedBookings: rawStatistics.bookingsByStatus?.COMPLETED || 0,
-    newUsersLast30Days: 0, // Backend doesn't provide this yet
-    newGroupsLast30Days: 0, // Backend doesn't provide this yet
-    newContractsLast30Days: 0, // Backend doesn't provide this yet
-    usersByRole: rawStatistics.usersByRole || {},
-    groupsByStatus: rawStatistics.groupsByStatus || {},
-    contractsByStatus: rawStatistics.contractsByStatus || {},
-    revenueByMonth: rawStatistics.revenueByPeriod || {}, // Use revenueByPeriod from backend
-    // Additional fields from backend
-    totalDisputes: rawStatistics.totalDisputes || 0,
-    disputesByStatus: rawStatistics.disputesByStatus || {},
-    totalIncidents: rawStatistics.totalIncidents || 0,
-    incidentsByStatus: rawStatistics.incidentsByStatus || {},
-    totalMaintenances: rawStatistics.totalMaintenances || 0,
-    maintenancesByStatus: rawStatistics.maintenancesByStatus || {},
-    bookingsByStatus: rawStatistics.bookingsByStatus || {},
-    totalExpenses: rawStatistics.totalExpenses || 0,
-    totalExpenseAmount: (rawStatistics.totalExpenseAmount && !isNaN(Number(rawStatistics.totalExpenseAmount))) ? Number(rawStatistics.totalExpenseAmount) : 0,
-    totalFunds: rawStatistics.totalFunds || 0,
-    totalFundBalance: rawStatistics.totalFundBalance ? Number(rawStatistics.totalFundBalance) : 0
-  } : undefined
+    : undefined
+
+  const quickStats = useMemo<QuickStatCard[]>(() => {
+    if (!statistics) return []
+    const openMaintenances =
+      statistics.maintenancesByStatus?.IN_PROGRESS || statistics.maintenancesByStatus?.PENDING || 0
+    const openDisputes = statistics.disputesByStatus?.OPEN || statistics.disputesByStatus?.PENDING || 0
+
+    const trend = (current?: number, previous?: number | null) => {
+      if (
+        previous == null ||
+        previous === 0 ||
+        current == null ||
+        typeof current !== 'number' ||
+        !Number.isFinite(current)
+      ) {
+        return null
+      }
+      const change = ((current - previous) / previous) * 100
+      return Number.isFinite(change) ? change : null
+    }
+
+    return [
+      {
+        id: 'revenue',
+        label: 'Total Revenue',
+        value: formatCurrencyCompact(statistics.totalRevenue),
+        detailLabel: null,
+        detailValue: `${formatCount(statistics.successfulPayments)} payments`,
+        icon: <DollarOutlined className='text-xl' />,
+        iconBg: 'bg-emerald-50 text-emerald-600',
+        link: 'dashboard',
+        trendValue: trend(statistics.totalRevenue, statistics.previousTotalRevenue)
+      },
+      {
+        id: 'funds',
+        label: 'Fund Balance',
+        value: formatCurrencyCompact(statistics.totalFundBalance),
+        detailLabel: null,
+        detailValue: `${formatCount(statistics.totalFunds)} funds`,
+        icon: <BankOutlined className='text-xl' />,
+        iconBg: 'bg-sky-50 text-sky-600',
+        link: 'funds'
+      },
+      {
+        id: 'groups',
+        label: 'Groups in system',
+        value: formatCount(statistics.totalGroups),
+        detailLabel: `${formatCount(statistics.pendingGroups)} pending approvals`,
+        detailValue: `${formatCount(statistics.activeGroups)} active`,
+        icon: <TeamOutlined className='text-xl' />,
+        iconBg: 'bg-indigo-50 text-indigo-600',
+        link: 'groups',
+        trendValue: trend(statistics.totalGroups, statistics.previousTotalGroups)
+      },
+      {
+        id: 'bookings',
+        label: 'Bookings',
+        value: formatCount(statistics.totalBookings),
+        detailLabel: null,
+        detailValue: `${formatCount(statistics.completedBookings)} completed`,
+        icon: <CalendarOutlined className='text-xl' />,
+        iconBg: 'bg-orange-50 text-orange-500',
+        link: 'checkBooking',
+        trendValue: trend(statistics.totalBookings, statistics.previousTotalBookings)
+      },
+      {
+        id: 'maintenance',
+        label: 'Maintenance tasks',
+        value: formatCount(statistics.totalMaintenances),
+        detailLabel: `${formatCount(openMaintenances)} in progress`,
+        detailValue: `${formatCount(statistics.totalMaintenances - openMaintenances)} closed`,
+        icon: <ToolOutlined className='text-xl' />,
+        iconBg: 'bg-amber-50 text-amber-600',
+        link: 'maintenance',
+        trendValue: trend(statistics.totalMaintenances, statistics.previousTotalMaintenances)
+      },
+      {
+        id: 'disputes',
+        label: 'Support cases',
+        value: formatCount(statistics.totalDisputes),
+        detailLabel: `${formatCount(openDisputes)} open`,
+        detailValue: `${formatCount(statistics.disputesByStatus?.IN_REVIEW || 0)} in review`,
+        icon: <ExclamationCircleOutlined className='text-xl' />,
+        iconBg: 'bg-rose-50 text-rose-600',
+        link: 'disputes',
+        trendValue: trend(statistics.totalDisputes, statistics.previousTotalDisputes)
+      }
+    ]
+  }, [statistics])
 
   // Helper function to format role name
   const formatRoleName = (role: string) => {
@@ -291,16 +428,16 @@ export default function Dashboard() {
 
   // Color mapping for different roles - using original role keys
   const roleColorMap: Record<string, string> = {
-    'CO_OWNER': '#52c41a',    // Green
-    'STAFF': '#1890ff',       // Blue
-    'TECHNICIAN': '#722ed1',  // Purple
-    'ADMIN': '#ff4d4f'        // Red
+    CO_OWNER: '#52c41a', // Green
+    STAFF: '#1890ff', // Blue
+    TECHNICIAN: '#722ed1', // Purple
+    ADMIN: '#ff4d4f' // Red
   }
 
   // Prepare chart data - Only if statistics exists
   // Define order for roles to ensure consistent display
   const roleOrder = ['Co Owner', 'Staff', 'Technician', 'Admin']
-  
+
   const usersByRoleEntries = statistics ? Object.entries(statistics.usersByRole || {}) : []
   const usersByRoleData = usersByRoleEntries
     .map(([role, count]) => {
@@ -321,7 +458,7 @@ export default function Dashboard() {
       }
       return b.value - a.value // Fallback to value descending
     })
-  
+
   const finalUsersByRoleData = usersByRoleData
 
   // Debug: Log to verify data structure
@@ -329,19 +466,23 @@ export default function Dashboard() {
   console.log('Statistics usersByRole:', statistics?.usersByRole)
 
   // Payment Status Data for Pie Chart
-  const paymentStatusData = statistics ? [
-    { type: 'Success', value: Number(statistics.successfulPayments) || 0 },
-    { type: 'Pending', value: Number(statistics.pendingPayments) || 0 },
-    { type: 'Failed', value: Number(statistics.failedPayments) || 0 }
-  ].filter((d) => d.value > 0) : []
+  const paymentStatusData = statistics
+    ? [
+        { type: 'Success', value: Number(statistics.successfulPayments) || 0 },
+        { type: 'Pending', value: Number(statistics.pendingPayments) || 0 },
+        { type: 'Failed', value: Number(statistics.failedPayments) || 0 }
+      ].filter((d) => d.value > 0)
+    : []
 
   // Revenue Data for Line Chart (trend)
-  const revenueData = statistics ? Object.entries(statistics.revenueByMonth || {})
-    .sort()
-    .map(([period, revenue]) => ({
-      period,
-      revenue: Number(revenue) || 0
-    })) : []
+  const revenueData = statistics
+    ? Object.entries(statistics.revenueByMonth || {})
+        .sort()
+        .map(([period, revenue]) => ({
+          period,
+          revenue: Number(revenue) || 0
+        }))
+    : []
 
   const hasRevenueData = revenueData.length > 0
   const hasPositiveRevenue = revenueData.some((d) => d.revenue > 0)
@@ -417,7 +558,7 @@ export default function Dashboard() {
         if (!type || value === undefined || value === null) return ''
         return `${type}\n${value}`
       },
-      style: { 
+      style: {
         fontWeight: 600,
         textAlign: 'center',
         fill: '#ffffff', // White text for better visibility
@@ -508,7 +649,7 @@ export default function Dashboard() {
         if (!type || value === undefined || value === null || isNaN(value)) return ''
         return `${type}\n${value}`
       },
-      style: { 
+      style: {
         fontWeight: 600,
         textAlign: 'center',
         fill: '#ffffff', // White text for better visibility
@@ -544,7 +685,7 @@ export default function Dashboard() {
         if (!type || value === undefined || value === null || isNaN(value)) return ''
         return `${type}\n${value}`
       },
-      style: { 
+      style: {
         fontWeight: 500,
         textAlign: 'center'
       }
@@ -578,7 +719,7 @@ export default function Dashboard() {
         if (!type || value === undefined || value === null || isNaN(value)) return ''
         return `${type}\n${value}`
       },
-      style: { 
+      style: {
         fontWeight: 500,
         textAlign: 'center'
       }
@@ -602,28 +743,28 @@ export default function Dashboard() {
     })
   }
 
-  const financialComparisonData = statistics ? [
-    {
-      type: 'Revenue',
-      amount: (() => {
-        // Try multiple sources for revenue
-        const rev = statistics.totalRevenue || 
-                   rawStatistics?.payments?.totalAmount || 
-                   rawStatistics?.totalPaymentAmount || 
-                   0
-        const numRev = Number(rev)
-        return (rev !== null && rev !== undefined && !isNaN(numRev) && isFinite(numRev)) ? numRev : 0
-      })()
-    },
-    {
-      type: 'Expenses',
-      amount: (() => {
-        const exp = statistics.totalExpenseAmount || rawStatistics?.totalExpenseAmount || 0
-        const numExp = Number(exp)
-        return (exp !== null && exp !== undefined && !isNaN(numExp) && isFinite(numExp)) ? numExp : 0
-      })()
-    }
-  ] : [] // Always show both Revenue and Expenses, even if 0
+  const financialComparisonData = statistics
+    ? [
+        {
+          type: 'Revenue',
+          amount: (() => {
+            // Try multiple sources for revenue
+            const rev =
+              statistics.totalRevenue || rawStatistics?.payments?.totalAmount || rawStatistics?.totalPaymentAmount || 0
+            const numRev = Number(rev)
+            return rev !== null && rev !== undefined && !isNaN(numRev) && isFinite(numRev) ? numRev : 0
+          })()
+        },
+        {
+          type: 'Expenses',
+          amount: (() => {
+            const exp = statistics.totalExpenseAmount || rawStatistics?.totalExpenseAmount || 0
+            const numExp = Number(exp)
+            return exp !== null && exp !== undefined && !isNaN(numExp) && isFinite(numExp) ? numExp : 0
+          })()
+        }
+      ]
+    : [] // Always show both Revenue and Expenses, even if 0
 
   const financialComparisonConfig: ColumnConfig = {
     data: financialComparisonData,
@@ -635,7 +776,13 @@ export default function Dashboard() {
       formatter: (datum: any) => {
         const amount = datum.amount
         // Don't show label if amount is 0, null, undefined, or invalid
-        if (amount === null || amount === undefined || isNaN(Number(amount)) || !isFinite(Number(amount)) || Number(amount) === 0) {
+        if (
+          amount === null ||
+          amount === undefined ||
+          isNaN(Number(amount)) ||
+          !isFinite(Number(amount)) ||
+          Number(amount) === 0
+        ) {
           return '' // Return empty string to hide label
         }
         return formatCurrency(Number(amount))
@@ -699,6 +846,15 @@ export default function Dashboard() {
     return dateFilterType === 'preset' && activePreset === preset
   }
 
+  // Calculate warnings
+  const openDisputes = statistics
+    ? (statistics.disputesByStatus?.OPEN || 0) + (statistics.disputesByStatus?.PENDING || 0)
+    : 0
+  const overdueMaintenances = statistics
+    ? statistics.maintenancesByStatus?.IN_PROGRESS || 0 // Simplified: can enhance with actual overdue check
+    : 0
+  const hasWarnings = openDisputes > 0 || overdueMaintenances > 0
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
@@ -735,6 +891,62 @@ export default function Dashboard() {
           />
         )}
 
+        {/* Warning Banner */}
+        {hasWarnings && statistics && (
+          <Alert
+            message={
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <WarningOutlined className='text-xl text-amber-600' />
+                  <div>
+                    <div className='font-semibold text-gray-900'>Action Required</div>
+                    <div className='text-sm text-gray-600 mt-1'>
+                      {openDisputes > 0 && (
+                        <span>
+                          {openDisputes} open dispute{openDisputes > 1 ? 's' : ''} need{openDisputes === 1 ? 's' : ''}{' '}
+                          attention
+                        </span>
+                      )}
+                      {openDisputes > 0 && overdueMaintenances > 0 && <span className='mx-2'>•</span>}
+                      {overdueMaintenances > 0 && (
+                        <span>
+                          {overdueMaintenances} maintenance task{overdueMaintenances > 1 ? 's' : ''} in progress
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className='flex items-center gap-2'>
+                  {openDisputes > 0 && (
+                    <Button
+                      type='link'
+                      size='small'
+                      onClick={() => navigate('/manager/disputes')}
+                      className='flex items-center gap-1 text-amber-700 hover:text-amber-800 font-semibold'
+                    >
+                      View Disputes <RightOutlined className='text-xs' />
+                    </Button>
+                  )}
+                  {overdueMaintenances > 0 && (
+                    <Button
+                      type='link'
+                      size='small'
+                      onClick={() => navigate('/manager/maintenance')}
+                      className='flex items-center gap-1 text-amber-700 hover:text-amber-800 font-semibold'
+                    >
+                      View Maintenance <RightOutlined className='text-xs' />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            }
+            type='warning'
+            showIcon={false}
+            closable
+            className='mb-6 rounded-lg shadow-md border-l-4 border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50'
+          />
+        )}
+
         {/* Loading State */}
         {isLoading && (
           <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
@@ -742,17 +954,14 @@ export default function Dashboard() {
             <span className='ml-3 text-gray-600 font-medium'>Loading dashboard data...</span>
           </div>
         )}
-        
+
         {/* Date Filter Section */}
-        <Card 
-          className='mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm'
-          styles={{ body: { padding: '24px' } }}
-        >
+        <Card className='mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm' styles={{ body: { padding: '24px' } }}>
           <div className='mb-6'>
             <h3 className='text-lg font-semibold text-gray-800 mb-1'>Filter by time</h3>
             <p className='text-sm text-gray-500'>Select a time period to view statistics</p>
           </div>
-          
+
           {/* Preset Buttons */}
           <div className='mb-6 flex flex-wrap gap-2'>
             {[
@@ -768,9 +977,7 @@ export default function Dashboard() {
                 type={isPresetActive(preset.key) ? 'primary' : 'default'}
                 onClick={() => handlePresetClick(preset.key)}
                 className={`transition-all duration-200 ${
-                  isPresetActive(preset.key)
-                    ? 'shadow-md scale-105'
-                    : 'hover:shadow-sm hover:scale-102'
+                  isPresetActive(preset.key) ? 'shadow-md scale-105' : 'hover:shadow-sm hover:scale-102'
                 }`}
                 size='middle'
               >
@@ -791,7 +998,7 @@ export default function Dashboard() {
               <Option value='WEEK'>By Week</Option>
               <Option value='MONTH'>By Month</Option>
             </Select>
-            
+
             <MonthPicker
               value={selectedMonth}
               onChange={handleMonthChange}
@@ -800,7 +1007,7 @@ export default function Dashboard() {
               style={{ width: 160 }}
               className='rounded-lg'
             />
-            
+
             <RangePicker
               value={dateRange}
               onChange={handleRangeChange}
@@ -815,118 +1022,128 @@ export default function Dashboard() {
         {/* Main Content */}
         {/* Overview Cards */}
         {statistics ? (
-          <Row gutter={[24, 24]} className='mb-8'>
-            <Col xs={24} sm={12} lg={6}>
-              <Card 
-                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-green-50 to-emerald-50'
-                styles={{ body: { padding: '28px' } }}
+          <div className='grid grid-cols-1 gap-4 mb-8 md:grid-cols-2 xl:grid-cols-3'>
+            {quickStats.map((card) => (
+              <button
+                key={card.id}
+                onClick={() => card.link && navigate(`/manager/${card.link}`)}
+                className='rounded-2xl border border-gray-100 bg-white/90 p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg'
               >
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='p-3 rounded-xl bg-green-100'>
-                    <UserOutlined className='text-2xl text-green-600' />
+                <div className='flex items-start justify-between'>
+                  <div>
+                    <p className='text-xs font-semibold uppercase tracking-wide text-gray-400'>{card.label}</p>
+                    <p className='mt-2 text-2xl font-bold text-gray-900'>{card.value}</p>
+                    {typeof card.trendValue === 'number' && (
+                      <p
+                        className={`mt-1 text-xs font-semibold ${
+                          card.trendValue >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                        }`}
+                      >
+                        {`${card.trendValue >= 0 ? '+' : ''}${card.trendValue.toFixed(1)}% vs last period`}
+                      </p>
+                    )}
+                  </div>
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.iconBg}`}>
+                    {card.icon}
                   </div>
                 </div>
-                <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Users</span>}
-                  value={statistics.totalUsers}
-                  valueStyle={{ color: '#059669', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
-                />
-                <div className='mt-4 pt-4 border-t border-green-100'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-xs text-gray-500 font-medium'>Active Users</span>
-                    <span className='text-sm font-bold text-green-600'>{statistics.activeUsers}</span>
-                  </div>
+                <div className='mt-5 text-sm text-gray-500'>
+                  {card.detailLabel && <p>{card.detailLabel}</p>}
+                  <p className='font-semibold text-gray-900'>{card.detailValue}</p>
                 </div>
-              </Card>
-            </Col>
-            
-            <Col xs={24} sm={12} lg={6}>
-              <Card 
-                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-cyan-50'
-                styles={{ body: { padding: '28px' } }}
-              >
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='p-3 rounded-xl bg-blue-100'>
-                    <TeamOutlined className='text-2xl text-blue-600' />
-                  </div>
-                </div>
-                <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Groups</span>}
-                  value={statistics.totalGroups}
-                  valueStyle={{ color: '#0284c7', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
-                />
-                <div className='mt-4 pt-4 border-t border-blue-100'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-xs text-gray-500 font-medium'>Active Groups</span>
-                    <span className='text-sm font-bold text-blue-600'>{statistics.activeGroups}</span>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-            
-            <Col xs={24} sm={12} lg={6}>
-              <Card 
-                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-violet-50'
-                styles={{ body: { padding: '28px' } }}
-              >
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='p-3 rounded-xl bg-purple-100'>
-                    <CarOutlined className='text-2xl text-purple-600' />
-                  </div>
-                </div>
-                <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Vehicles</span>}
-                  value={statistics.totalVehicles}
-                  valueStyle={{ color: '#7c3aed', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
-                />
-                <div className='mt-4 pt-4 border-t border-purple-100'>
-                  <span className='text-xs text-gray-500 font-medium'>All vehicles in system</span>
-                </div>
-              </Card>
-            </Col>
-            
-            <Col xs={24} sm={12} lg={6}>
-              <Card 
-                className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-red-50 to-rose-50'
-                styles={{ body: { padding: '28px' } }}
-              >
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='p-3 rounded-xl bg-red-100'>
-                    <DollarOutlined className='text-2xl text-red-600' />
-                  </div>
-                </div>
-                <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Revenue</span>}
-                  value={formatCurrencyCompact(statistics.totalRevenue)}
-                  valueStyle={{ 
-                    color: '#dc2626', 
-                    fontSize: '28px', 
-                    fontWeight: '700',
-                    lineHeight: '1.2',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                />
-                <div className='mt-4 pt-4 border-t border-red-100'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-xs text-gray-500 font-medium'>Transactions</span>
-                    <span className='text-sm font-bold text-red-600'>{statistics.successfulPayments} successful</span>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-          </Row>
+                {card.link && <p className='mt-3 text-xs font-semibold text-indigo-500'>View details →</p>}
+              </button>
+            ))}
+          </div>
         ) : (
-          <Row gutter={[20, 20]} className='mb-8'>
-            <Col span={24}>
-              <Card className='shadow-md'>
-                <div className='text-center py-12 text-gray-400'>
-                  {isLoading ? 'Loading data...' : 'No data available. Please select a different time range.'}
-                </div>
+          <Card className='mb-8 shadow-md'>
+            <div className='py-12 text-center text-gray-400'>
+              {isLoading ? 'Loading data...' : 'No data available. Please select a different time range.'}
+            </div>
           </Card>
-        </Col>
-      </Row>
+        )}
+
+        {/* Performance Metrics */}
+        {statistics && (
+          <Card
+            className='mb-8 shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30'
+            title={
+              <div className='flex items-center gap-2'>
+                <LineChartOutlined className='text-blue-600' />
+                <span className='text-lg font-semibold text-gray-800'>Performance Metrics</span>
+              </div>
+            }
+          >
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={6}>
+                <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>Booking Rate</span>
+                    <CheckCircleOutlined className='text-green-500' />
+                  </div>
+                  <p className='text-2xl font-bold text-gray-900'>
+                    {statistics.totalBookings > 0 && statistics.totalGroups > 0
+                      ? ((statistics.totalBookings / statistics.totalGroups) * 100).toFixed(1)
+                      : '0'}
+                    %
+                  </p>
+                  <p className='text-xs text-gray-500 mt-1'>
+                    {formatCount(statistics.totalBookings)} bookings / {formatCount(statistics.totalGroups)} groups
+                  </p>
+                </div>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>Payment Success</span>
+                    <DollarOutlined className='text-emerald-500' />
+                  </div>
+                  <p className='text-2xl font-bold text-gray-900'>
+                    {statistics.totalPayments > 0 && statistics.successfulPayments > 0
+                      ? ((statistics.successfulPayments / statistics.totalPayments) * 100).toFixed(1)
+                      : '0'}
+                    %
+                  </p>
+                  <p className='text-xs text-gray-500 mt-1'>
+                    {formatCount(statistics.successfulPayments)} / {formatCount(statistics.totalPayments)} payments
+                  </p>
+                </div>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>Dispute Rate</span>
+                    <ExclamationCircleOutlined className='text-amber-500' />
+                  </div>
+                  <p className='text-2xl font-bold text-gray-900'>
+                    {statistics.totalBookings > 0 && statistics.totalDisputes > 0
+                      ? ((statistics.totalDisputes / statistics.totalBookings) * 100).toFixed(2)
+                      : '0'}
+                    %
+                  </p>
+                  <p className='text-xs text-gray-500 mt-1'>
+                    {formatCount(statistics.totalDisputes)} disputes / {formatCount(statistics.totalBookings)} bookings
+                  </p>
+                </div>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>Avg Revenue/Group</span>
+                    <FundProjectionScreenOutlined className='text-indigo-500' />
+                  </div>
+                  <p className='text-2xl font-bold text-gray-900'>
+                    {statistics.totalGroups > 0 && statistics.totalRevenue
+                      ? formatCurrencyCompact(statistics.totalRevenue / statistics.totalGroups)
+                      : '0 ₫'}
+                  </p>
+                  <p className='text-xs text-gray-500 mt-1'>
+                    {formatCurrencyCompact(statistics.totalRevenue)} total revenue
+                  </p>
+                </div>
+              </Col>
+            </Row>
+          </Card>
         )}
 
         {/* Charts Row */}
@@ -934,16 +1151,16 @@ export default function Dashboard() {
           <Row gutter={[24, 24]} className='mb-8'>
             {/* Pie Chart: Users by Role */}
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '20px 24px',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     borderRadius: '8px 8px 0 0'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold text-lg'>Users by Role</span>}
               >
@@ -964,16 +1181,16 @@ export default function Dashboard() {
 
             {/* Pie Chart: Groups by Status */}
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '20px 24px',
                     background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
                     borderRadius: '8px 8px 0 0'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold text-lg'>Groups by Status</span>}
               >
@@ -994,16 +1211,16 @@ export default function Dashboard() {
 
             {/* Pie Chart: Payment Status */}
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '20px 24px',
                     background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                     borderRadius: '8px 8px 0 0'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold text-lg'>Transaction Status</span>}
               >
@@ -1028,16 +1245,16 @@ export default function Dashboard() {
         {statistics && (
           <Row gutter={[24, 24]} className='mb-8'>
             <Col xs={24}>
-              <Card 
+              <Card
                 className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '20px 24px',
                     background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
                     borderRadius: '8px 8px 0 0'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold text-lg'>Revenue Trend by {getPeriodLabel()}</span>}
               >
@@ -1049,7 +1266,9 @@ export default function Dashboard() {
                   <div className='flex h-[380px] flex-col items-center justify-center gap-3 text-center bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg'>
                     <LineChartOutlined className='text-5xl text-emerald-500 opacity-60' />
                     <p className='text-base font-semibold text-gray-700'>No revenue in this time period</p>
-                    <p className='text-sm text-gray-500 max-w-md'>Try selecting a wider range or another date filter to view revenue data.</p>
+                    <p className='text-sm text-gray-500 max-w-md'>
+                      Try selecting a wider range or another date filter to view revenue data.
+                    </p>
                   </div>
                 ) : (
                   <div className='flex h-[380px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
@@ -1068,47 +1287,51 @@ export default function Dashboard() {
         {statistics && (
           <Row gutter={[24, 24]} className='mb-8'>
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '18px 24px',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold'>User Statistics</span>}
               >
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
-                    <Statistic 
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Co-Owners</span>} 
-                      value={statistics.totalCoOwners} 
+                    <Statistic
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Co-Owners</span>
+                      }
+                      value={statistics.totalCoOwners}
                       prefix={<UserOutlined className='text-green-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#059669' }}
                     />
                   </div>
                   <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
-                    <Statistic 
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Staff</span>} 
-                      value={statistics.totalStaff} 
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Staff</span>}
+                      value={statistics.totalStaff}
                       prefix={<UserOutlined className='text-blue-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
                     />
                   </div>
                   <div className='p-4 bg-purple-50 rounded-lg border border-purple-100'>
-                    <Statistic 
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Technicians</span>} 
-                      value={statistics.totalTechnicians} 
+                    <Statistic
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Technicians</span>
+                      }
+                      value={statistics.totalTechnicians}
                       prefix={<UserOutlined className='text-purple-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#7c3aed' }}
                     />
                   </div>
                   <div className='p-4 bg-red-50 rounded-lg border border-red-100'>
-                    <Statistic 
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Admins</span>} 
-                      value={statistics.totalAdmins} 
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Admins</span>}
+                      value={statistics.totalAdmins}
                       prefix={<UserOutlined className='text-red-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#dc2626' }}
                     />
@@ -1118,23 +1341,23 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '18px 24px',
                     background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold'>Transaction Statistics</span>}
               >
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
-                    <Statistic 
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total</span>} 
-                      value={statistics.totalPayments} 
+                    <Statistic
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total</span>}
+                      value={statistics.totalPayments}
                       prefix={<DollarOutlined className='text-blue-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
                     />
@@ -1168,22 +1391,24 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '18px 24px',
                     background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold'>Recent Activity (30 Days)</span>}
               >
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Users</span>}
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Users</span>
+                      }
                       value={statistics.newUsersLast30Days}
                       prefix={<UserOutlined className='text-green-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#059669' }}
@@ -1191,7 +1416,9 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Groups</span>}
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Groups</span>
+                      }
                       value={statistics.newGroupsLast30Days}
                       prefix={<TeamOutlined className='text-blue-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
@@ -1199,7 +1426,9 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-purple-50 rounded-lg border border-purple-100 col-span-2'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Contracts</span>}
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Contracts</span>
+                      }
                       value={statistics.newContractsLast30Days}
                       prefix={<FileTextOutlined className='text-purple-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#7c3aed' }}
@@ -1217,9 +1446,9 @@ export default function Dashboard() {
             <Col xs={24}>
               <h2 className='text-2xl font-bold text-gray-800 mb-4'>Operational Overview</h2>
             </Col>
-            
+
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-indigo-50'
                 styles={{ body: { padding: '28px' } }}
               >
@@ -1229,7 +1458,9 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Bookings</span>}
+                  title={
+                    <span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Bookings</span>
+                  }
                   value={statistics.totalBookings || 0}
                   valueStyle={{ color: '#0284c7', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
@@ -1243,7 +1474,7 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-orange-50 to-amber-50'
                 styles={{ body: { padding: '28px' } }}
               >
@@ -1267,7 +1498,7 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-red-50 to-rose-50'
                 styles={{ body: { padding: '28px' } }}
               >
@@ -1291,7 +1522,7 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-violet-50'
                 styles={{ body: { padding: '28px' } }}
               >
@@ -1301,14 +1532,18 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Maintenances</span>}
+                  title={
+                    <span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Maintenances</span>
+                  }
                   value={statistics.totalMaintenances || 0}
                   valueStyle={{ color: '#7c3aed', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
                 <div className='mt-4 pt-4 border-t border-purple-100'>
                   <div className='flex items-center justify-between'>
                     <span className='text-xs text-gray-500 font-medium'>In Progress</span>
-                    <span className='text-sm font-bold text-purple-600'>{statistics.maintenancesByStatus?.IN_PROGRESS || 0}</span>
+                    <span className='text-sm font-bold text-purple-600'>
+                      {statistics.maintenancesByStatus?.IN_PROGRESS || 0}
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -1320,16 +1555,16 @@ export default function Dashboard() {
         {statistics && (
           <Row gutter={[24, 24]} className='mb-8'>
             <Col xs={24} lg={12}>
-              <Card 
+              <Card
                 className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '20px 24px',
                     background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
                     borderRadius: '8px 8px 0 0'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold text-lg'>Bookings by Status</span>}
               >
@@ -1349,16 +1584,16 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} lg={12}>
-              <Card 
+              <Card
                 className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '20px 24px',
                     background: 'linear-gradient(135deg, #faad14 0%, #d48806 100%)',
                     borderRadius: '8px 8px 0 0'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold text-lg'>Contracts by Status</span>}
               >
@@ -1387,16 +1622,16 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} lg={16}>
-              <Card 
+              <Card
                 className='border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '20px 24px',
                     background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
                     borderRadius: '8px 8px 0 0'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold text-lg'>Revenue vs Expenses</span>}
               >
@@ -1416,22 +1651,24 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} lg={8}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '18px 24px',
                     background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold'>Fund Information</span>}
               >
                 <div className='space-y-4'>
                   <div className='p-4 bg-purple-50 rounded-lg border border-purple-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Funds</span>}
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Funds</span>
+                      }
                       value={statistics.totalFunds || 0}
                       prefix={<FundProjectionScreenOutlined className='text-purple-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#7c3aed' }}
@@ -1439,12 +1676,14 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Balance</span>}
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Balance</span>
+                      }
                       value={formatCurrencyCompact(statistics.totalFundBalance || 0)}
                       prefix={<BankOutlined className='text-green-600' />}
-                      valueStyle={{ 
-                        fontSize: '20px', 
-                        fontWeight: '700', 
+                      valueStyle={{
+                        fontSize: '20px',
+                        fontWeight: '700',
                         color: '#059669',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -1454,12 +1693,16 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Expenses</span>}
+                      title={
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>
+                          Total Expenses
+                        </span>
+                      }
                       value={formatCurrencyCompact(statistics.totalExpenseAmount || 0)}
                       prefix={<ShoppingOutlined className='text-blue-600' />}
-                      valueStyle={{ 
-                        fontSize: '20px', 
-                        fontWeight: '700', 
+                      valueStyle={{
+                        fontSize: '20px',
+                        fontWeight: '700',
                         color: '#0284c7',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -1481,15 +1724,15 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} lg={12}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '18px 24px',
                     background: 'linear-gradient(135deg, #fa8c16 0%, #d46b08 100%)'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold'>Disputes Tracking</span>}
               >
@@ -1517,15 +1760,15 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} lg={12}>
-              <Card 
+              <Card
                 className='h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white'
-                styles={{ 
-                  header: { 
+                styles={{
+                  header: {
                     borderBottom: '1px solid #f0f0f0',
                     padding: '18px 24px',
                     background: 'linear-gradient(135deg, #f5222d 0%, #cf1322 100%)'
                   },
-                  body: { padding: '24px' } 
+                  body: { padding: '24px' }
                 }}
                 title={<span className='text-white font-semibold'>Incidents Tracking</span>}
               >

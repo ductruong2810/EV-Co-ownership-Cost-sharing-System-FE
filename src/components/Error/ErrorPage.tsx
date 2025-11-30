@@ -32,7 +32,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
           status: '404',
           title: title || 'Page Not Found',
           subTitle: message || "Sorry, the page you visited does not exist.",
-          icon: <ExclamationCircleOutlined className='text-gray-400' />
+          icon: <ExclamationCircleOutlined className='text-blue-500' style={{ fontSize: '64px' }} />
         }
       case 500:
         return {
@@ -60,7 +60,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
           status: '404',
           title: title || 'Page Not Found',
           subTitle: message || "Sorry, the page you visited does not exist.",
-          icon: <ExclamationCircleOutlined className='text-gray-400' />
+          icon: <ExclamationCircleOutlined className='text-blue-500' style={{ fontSize: '64px' }} />
         }
     }
   }

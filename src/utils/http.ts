@@ -14,6 +14,11 @@ class Http {
     resolve: (value?: any) => void
     reject: (reason?: any) => void
   }> = []
+  // Track consecutive network errors to detect backend down
+  private consecutiveNetworkErrors = 0
+  private lastNetworkErrorTime: number | null = null
+  private readonly MAX_NETWORK_ERRORS = 5 // Clear token after 5 consecutive network errors
+  private readonly NETWORK_ERROR_WINDOW = 30000 // 30 seconds window
 
   constructor() {
     this.instance = axios.create({
@@ -45,6 +50,9 @@ class Http {
     // Response Interceptor - xử lý lỗi 401 het accesstoken
     this.instance.interceptors.response.use(
       (response) => {
+        // Reset network error counter on successful response
+        this.consecutiveNetworkErrors = 0
+        this.lastNetworkErrorTime = null
         return response
       },
       (error: AxiosError) => {
@@ -59,6 +67,65 @@ class Http {
           url: error.config?.url,
           method: error.config?.method
         })
+
+        // Detect network errors (no response = backend down or network issue)
+        const isNetworkError = !error.response && (
+          error.code === 'ECONNABORTED' ||
+          error.code === 'ERR_NETWORK' ||
+          error.message?.includes('Network Error') ||
+          error.message?.includes('timeout')
+        )
+
+        // Track consecutive network errors
+        if (isNetworkError) {
+          const now = Date.now()
+          
+          // Reset counter if last error was too long ago
+          if (this.lastNetworkErrorTime && now - this.lastNetworkErrorTime > this.NETWORK_ERROR_WINDOW) {
+            this.consecutiveNetworkErrors = 1
+          } else {
+            this.consecutiveNetworkErrors++
+          }
+          
+          this.lastNetworkErrorTime = now
+
+          // If too many consecutive network errors, clear token and redirect to login
+          // This prevents user from being stuck with invalid token when backend is down
+          if (this.consecutiveNetworkErrors >= this.MAX_NETWORK_ERRORS) {
+            logger.warn(`Backend appears to be down. ${this.consecutiveNetworkErrors} consecutive network errors. Clearing token and redirecting to login.`)
+            clearLS()
+            
+            // Only redirect if not already on login page
+            if (window.location.pathname !== '/login') {
+              // Show error toast before redirect
+              showErrorToast({
+                type: 'NETWORK' as any,
+                severity: ErrorSeverity.CRITICAL,
+                message: 'Cannot connect to server. Please check your connection and try again.',
+                title: 'Connection Lost',
+                timestamp: new Date(),
+                retryable: false
+              }, {
+                autoClose: 3000
+              })
+              
+              // Small delay to show toast, then redirect
+              setTimeout(() => {
+                window.location.href = '/login'
+              }, 1000)
+            }
+            
+            // Reset counter
+            this.consecutiveNetworkErrors = 0
+            this.lastNetworkErrorTime = null
+            
+            return Promise.reject(error)
+          }
+        } else {
+          // Reset counter on successful response or non-network error
+          this.consecutiveNetworkErrors = 0
+          this.lastNetworkErrorTime = null
+        }
 
         // Handle unauthorized - try to refresh token
         if (error.response?.status === HttpStatusCode.Unauthorized) {
