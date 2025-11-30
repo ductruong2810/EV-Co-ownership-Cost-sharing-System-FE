@@ -430,7 +430,7 @@ const DisputeList = () => {
             return (
               <div key={column.key} className={`rounded-2xl border ${column.accent} p-3`}>
                 <div className='flex items-center justify-between mb-3'>
-                  <div className='flex items-center gap-2'>
+                  <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={allSelected}
                       indeterminate={someSelected && !allSelected}
@@ -438,7 +438,10 @@ const DisputeList = () => {
                         e.stopPropagation()
                         handleSelectAll(e.target.checked, column.key)
                       }}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                      }}
                     />
                     <p className='text-sm font-semibold text-gray-800'>{column.label}</p>
                   </div>
