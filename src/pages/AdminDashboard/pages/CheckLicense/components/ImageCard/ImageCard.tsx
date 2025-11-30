@@ -97,15 +97,19 @@ const ImageCard: FC<ImageCardProps> = ({
         {infoRow('Issue Date', documentInfo.issueDate)}
         {infoRow('Expiry Date', documentInfo.expiryDate)}
         {infoRow('Address', documentInfo.address)}
-        {documentInfo.reviewNote && infoRow('Last review note', documentInfo.reviewNote)}
+        {documentInfo.reviewNote && (
+          <div className='sm:col-span-2'>
+            {infoRow('Last review note', documentInfo.reviewNote)}
+          </div>
+        )}
       </div>
     )
   }
 
   return (
-    <div className='space-y-2'>
+    <div className='space-y-3'>
       <div className='flex items-center justify-between'>
-        <h5 className='text-gray-700 font-bold text-sm'>{alt}</h5>
+        <h5 className='text-gray-800 font-bold text-sm uppercase tracking-wide'>{alt}</h5>
         <StatusBadge status={status} />
       </div>
       <div className='bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200'>
@@ -117,23 +121,23 @@ const ImageCard: FC<ImageCardProps> = ({
             <img
               src={getDecryptedImageUrl(image)}
               alt={alt}
-              className='w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105'
+              className='w-full h-48 lg:h-64 object-cover transition-transform duration-300 group-hover:scale-105'
             />
             <span className='absolute bottom-2 right-2 bg-black/70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm font-medium'>
               Click to enlarge
             </span>
           </div>
-          <div className='flex flex-col gap-3 lg:w-1/2'>
-            <div className='flex-1 min-h-0'>
-              <div>{renderInfo()}</div>
+          <div className='flex flex-col lg:w-1/2'>
+            <div className='flex-1 mb-4'>
+              <div className='mb-3'>{renderInfo()}</div>
               {documentInfo?.uploadedAt && (
-                <p className='text-xs text-gray-500 mt-2'>
+                <p className='text-xs text-gray-500'>
                   Uploaded: {new Date(documentInfo.uploadedAt).toLocaleString()}
                 </p>
               )}
             </div>
             {status === 'PENDING' && (
-              <div className='flex flex-col sm:flex-row gap-2 pt-3 mt-auto border-t border-gray-200'>
+              <div className='flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-200 mt-auto'>
                 <button
                   onClick={handleApprove}
                   className='flex-1 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2.5 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md h-[44px]'

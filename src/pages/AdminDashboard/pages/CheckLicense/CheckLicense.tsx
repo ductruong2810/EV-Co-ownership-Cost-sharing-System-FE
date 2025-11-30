@@ -328,17 +328,17 @@ export default function CheckLicense() {
     const { title, shortTitle, accent } = DOC_CONFIG[docType]
 
     return (
-      <div className='bg-gray-50 rounded-lg border border-gray-200'>
-        <div className='px-4 py-2 bg-white border-b'>
+      <div className='bg-gray-50 rounded-xl border border-gray-200 shadow-sm'>
+        <div className='px-4 py-3 bg-white border-b border-gray-200 rounded-t-xl'>
           <span
-            className='text-xs font-bold uppercase px-2 py-0.5 rounded text-white'
+            className='text-xs font-bold uppercase px-3 py-1 rounded-full text-white'
             style={{ backgroundColor: accent }}
           >
             {shortTitle}
           </span>
-          <span className='text-sm font-medium text-gray-700 ml-2'>{title}</span>
+          <span className='text-sm font-semibold text-gray-700 ml-2'>{title}</span>
         </div>
-        <div className='p-3 space-y-3'>
+        <div className='p-4 space-y-4'>
           <ImageCardAny
             image={doc.frontImage}
             alt='Front side'
