@@ -109,9 +109,9 @@ const ImageCard: FC<ImageCardProps> = ({
         <StatusBadge status={status} />
       </div>
       <div className='bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200'>
-        <div className='flex flex-col lg:flex-row gap-4'>
+        <div className='flex flex-col lg:flex-row gap-4 lg:items-stretch'>
           <div
-            className='relative cursor-pointer rounded-xl overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-all duration-200 lg:w-1/2 group'
+            className='relative cursor-pointer rounded-xl overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-all duration-200 lg:w-1/2 group flex-shrink-0'
             onClick={() => setSelected(image)}
           >
             <img
@@ -123,8 +123,8 @@ const ImageCard: FC<ImageCardProps> = ({
               Click to enlarge
             </span>
           </div>
-          <div className='flex flex-col gap-3 lg:w-1/2 justify-between'>
-            <div className='flex-1'>
+          <div className='flex flex-col gap-3 lg:w-1/2'>
+            <div className='flex-1 min-h-0'>
               <div>{renderInfo()}</div>
               {documentInfo?.uploadedAt && (
                 <p className='text-xs text-gray-500 mt-2'>
@@ -133,27 +133,27 @@ const ImageCard: FC<ImageCardProps> = ({
               )}
             </div>
             {status === 'PENDING' && (
-              <div className='flex flex-col sm:flex-row gap-2 pt-2 border-t border-gray-100'>
+              <div className='flex flex-col sm:flex-row gap-2 pt-3 mt-auto border-t border-gray-200'>
                 <button
                   onClick={handleApprove}
-                  className='flex-1 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2.5 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md min-h-[44px]'
+                  className='flex-1 bg-green-500 hover:bg-green-600 text-white rounded-lg py-2.5 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md h-[44px]'
                 >
-                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <svg className='w-4 h-4 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M5 13l4 4L19 7' />
                   </svg>
-                  Approve
+                  <span>Approve</span>
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowRejectModal(true)
                   }}
-                  className='flex-1 bg-red-500 hover:bg-red-600 text-white rounded-lg py-2.5 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md min-h-[44px]'
+                  className='flex-1 bg-red-500 hover:bg-red-600 text-white rounded-lg py-2.5 px-4 font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md h-[44px]'
                 >
-                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <svg className='w-4 h-4 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M6 18L18 6M6 6l12 12' />
                   </svg>
-                  Reject
+                  <span>Reject</span>
                 </button>
               </div>
             )}
