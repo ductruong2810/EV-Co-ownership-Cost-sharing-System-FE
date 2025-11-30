@@ -189,7 +189,7 @@ export default function CheckGroup() {
     }
 
     return filtered
-  }, [allGroupDataKey, statusFilter, searchTerm, dateRangeKey, minMembers, maxMembers])
+  }, [allGroupData, allGroupDataKey, statusFilter, searchTerm, dateRange, dateRangeKey, minMembers, maxMembers])
 
   const hasActiveAdvancedFilters = dateRange[0] || dateRange[1] || minMembers !== null || maxMembers !== null
 
