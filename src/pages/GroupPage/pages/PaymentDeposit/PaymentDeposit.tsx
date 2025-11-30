@@ -46,17 +46,22 @@ function PaymentDeposit() {
     fetchDeposits()
   }, [groupId])
 
+  // Create stable key for members array to prevent unnecessary re-computations
+  const membersKey = useMemo(() => {
+    return JSON.stringify(members.map(m => ({ id: m.userId, contractStatus: m.contractStatus, depositStatus: m.depositStatus })))
+  }, [members])
+
   //check hai trạng thái nếu ký rồi thì mới cho tạo deposit
   const isSigned = useMemo(() => {
     const check = members.find((member) => member.userId === Number(userId))
     return check?.contractStatus !== 'SIGNED'
-  }, [members, userId])
+  }, [membersKey, userId])
 
   // nếu đã đóng tiền rồi thì khóa nút tạo deposit
   const isSubmitDeposit = useMemo(() => {
     const check = members.find((member) => member.userId === Number(userId))
     return check?.depositStatus === 'PAID'
-  }, [members, userId])
+  }, [membersKey, userId])
 
   const getStatusText = (status: DepositForGroup['depositStatus']) => {
     const statusMap = {

@@ -74,8 +74,14 @@ export default function FeedBackAdmin() {
 
   const feedbacks = feedContractQuery?.data?.data
 
+  // Create stable reference for feedbacks array
+  const feedbacksArray = feedbacks?.feedbacks || []
+  const feedbacksKey = useMemo(() => {
+    return JSON.stringify(feedbacksArray.map(f => f.id || f.email))
+  }, [feedbacksArray])
+
   const groupedFeedbacks = useMemo(() => {
-    const allFeedbacks = feedbacks?.feedbacks || []
+    const allFeedbacks = feedbacksArray
     const grouped: Record<string, FeedbackItem[]> = {}
 
     allFeedbacks.forEach((feedback) => {
@@ -87,7 +93,7 @@ export default function FeedBackAdmin() {
     })
 
     return grouped
-  }, [feedbacks?.feedbacks])
+  }, [feedbacksKey])
   logger.debug('Grouped feedbacks:', groupedFeedbacks)
 
   const users = useMemo(() => {

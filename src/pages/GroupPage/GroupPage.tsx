@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useParams } from 'react-router-dom'
 
 export default function GroupPage() {
+  const { groupId } = useParams<{ groupId: string }>()
+  
   return (
     <motion.div
+      key={groupId} // Force remount when groupId changes to prevent hook issues
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
