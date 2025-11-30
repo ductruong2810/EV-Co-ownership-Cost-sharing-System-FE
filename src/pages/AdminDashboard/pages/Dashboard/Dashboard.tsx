@@ -240,9 +240,11 @@ export default function Dashboard() {
     })
   }
 
-  // Map backend response to frontend expected format
-  const statistics: DashboardStatistics | undefined = rawStatistics
-    ? {
+  // Map backend response to frontend expected format - Memoize to prevent unnecessary re-renders
+  const statistics: DashboardStatistics | undefined = useMemo(() => {
+    if (!rawStatistics) return undefined
+    
+    return {
         totalUsers: rawStatistics.totalUsers || 0,
         activeUsers: rawStatistics.usersByStatus?.ACTIVE || 0,
         totalCoOwners: rawStatistics.usersByRole?.CO_OWNER || 0,
@@ -321,7 +323,7 @@ export default function Dashboard() {
             ? Number(rawStatistics.previousTotalDisputes)
             : undefined
       }
-    : undefined
+  }, [rawStatistics])
 
   const quickStats = useMemo<QuickStatCard[]>(() => {
     if (!statistics) return []
