@@ -75,7 +75,11 @@ function mapUserToMember(user: any): Member {
   }
 }
 
-export default function CheckLicense() {
+interface CheckLicenseProps {
+  onClose?: () => void
+}
+
+export default function CheckLicense({ onClose }: CheckLicenseProps = {}) {
   const [members, setMembers] = useState<Member[]>([])
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -714,7 +718,7 @@ export default function CheckLicense() {
   if (members.length === 0) return <EmptyState />
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4 sm:p-6'>
+    <div className='bg-gray-50 p-4 sm:p-6'>
       <div className='max-w-7xl mx-auto'>
         <div className='mb-6'>
           <div className='flex items-center justify-between mb-4'>
@@ -724,15 +728,25 @@ export default function CheckLicense() {
                 Total: <span className='font-semibold text-blue-600'>{members.length}</span> pending documents
               </p>
             </div>
-            <button
-              onClick={() => {
-                const modal = document.getElementById('review-guidelines-modal')
-                if (modal) (modal as any).showModal()
-              }}
-              className='px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors'
-            >
-              Guidelines
-            </button>
+            <div className='flex items-center gap-2'>
+              <button
+                onClick={() => {
+                  const modal = document.getElementById('review-guidelines-modal')
+                  if (modal) (modal as any).showModal()
+                }}
+                className='px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors'
+              >
+                Guidelines
+              </button>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className='px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors'
+                >
+                  Close
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
