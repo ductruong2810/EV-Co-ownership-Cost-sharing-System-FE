@@ -9,6 +9,7 @@ import { getDecryptedImageUrl } from '../../../../utils/imageUrl'
 import Skeleton from '../../../../components/Skeleton'
 import ImageCardComponent from './components/ImageCard/ImageCard'
 import EmptyState from '../EmptyState'
+import StatusBadge from './components/StatusBadge'
 import type { DocumentInfo, UserDetails } from '../../../../types/api/staff.type'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -713,22 +714,14 @@ export default function CheckLicense() {
   if (members.length === 0) return <EmptyState />
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-4 sm:p-6 relative overflow-hidden'>
-      {/* Decorative background elements */}
-      <div className='absolute top-0 right-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2' />
-      <div className='absolute bottom-0 left-0 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2' />
-      
-      <div className='max-w-7xl mx-auto relative z-10'>
-        <div className='mb-8'>
-          <div className='flex items-start justify-between mb-6'>
+    <div className='min-h-screen bg-gray-50 p-4 sm:p-6'>
+      <div className='max-w-7xl mx-auto'>
+        <div className='mb-6'>
+          <div className='flex items-center justify-between mb-4'>
             <div>
-              <h1 className='text-4xl font-extrabold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-3'>
-                Document Verification
-              </h1>
-              <p className='text-gray-600 text-sm flex items-center gap-2'>
-                <span className='w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse' />
-                Review and verify user documents • Total: <span className='font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md'>{members.length}</span>{' '}
-                pending documents
+              <h1 className='text-2xl font-bold text-gray-900 mb-1'>Document Verification</h1>
+              <p className='text-sm text-gray-600'>
+                Total: <span className='font-semibold text-blue-600'>{members.length}</span> pending documents
               </p>
             </div>
             <button
@@ -736,100 +729,47 @@ export default function CheckLicense() {
                 const modal = document.getElementById('review-guidelines-modal')
                 if (modal) (modal as any).showModal()
               }}
-              className='px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
+              className='px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors'
             >
-              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                />
-              </svg>
-              Review Guidelines
+              Guidelines
             </button>
-          </div>
-
-          {/* Review Guidelines Info Card */}
-          <div className='bg-white/80 backdrop-blur-sm border border-blue-200/50 rounded-2xl p-6 mb-6 shadow-lg hover:shadow-xl transition-all duration-300'>
-            <div className='flex items-start gap-3'>
-              <div className='flex-shrink-0 mt-1'>
-                <svg className='w-6 h-6 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                  />
-                </svg>
-              </div>
-              <div className='flex-1'>
-                <h3 className='font-bold text-gray-900 mb-2'>What to Review?</h3>
-                <p className='text-sm text-gray-700 mb-3'>
-                  Staff verification ensures document authenticity and compliance. Review the following:
-                </p>
-                <div className='grid md:grid-cols-3 gap-3 text-sm'>
-                  <div className='flex items-start gap-2'>
-                    <span className='text-blue-600 font-bold'>1.</span>
-                    <div>
-                      <span className='font-semibold text-gray-900'>Image Quality:</span>
-                      <p className='text-gray-600'>Clear, readable, not blurred or cropped</p>
-                    </div>
-                  </div>
-                  <div className='flex items-start gap-2'>
-                    <span className='text-blue-600 font-bold'>2.</span>
-                    <div>
-                      <span className='font-semibold text-gray-900'>OCR Accuracy:</span>
-                      <p className='text-gray-600'>Extracted info matches the document</p>
-                    </div>
-                  </div>
-                  <div className='flex items-start gap-2'>
-                    <span className='text-blue-600 font-bold'>3.</span>
-                    <div>
-                      <span className='font-semibold text-gray-900'>Validity:</span>
-                      <p className='text-gray-600'>Not expired, format is correct</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
-        <div className='mb-6 grid gap-3 md:grid-cols-4'>
-          <SummaryCard
-            label='Pending review'
-            value={summary.pending}
-            accent='bg-amber-50 text-amber-700 border-amber-100'
-          />
-          <SummaryCard
-            label='Fully approved'
-            value={summary.approved}
-            accent='bg-emerald-50 text-emerald-700 border-emerald-100'
-          />
-          <SummaryCard
-            label='Requires attention'
-            value={summary.rejected}
-            accent='bg-rose-50 text-rose-700 border-rose-100'
-          />
-          <SummaryCard label='Total users' value={summary.total} accent='bg-slate-50 text-slate-700 border-slate-100' />
+        <div className='mb-4 grid grid-cols-4 gap-3'>
+          <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
+            <p className='text-xs text-gray-600 mb-1'>Pending</p>
+            <p className='text-2xl font-bold text-amber-600'>{summary.pending}</p>
+          </div>
+          <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
+            <p className='text-xs text-gray-600 mb-1'>Approved</p>
+            <p className='text-2xl font-bold text-green-600'>{summary.approved}</p>
+          </div>
+          <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
+            <p className='text-xs text-gray-600 mb-1'>Rejected</p>
+            <p className='text-2xl font-bold text-red-600'>{summary.rejected}</p>
+          </div>
+          <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
+            <p className='text-xs text-gray-600 mb-1'>Total</p>
+            <p className='text-2xl font-bold text-gray-700'>{summary.total}</p>
+          </div>
         </div>
 
         {/* Search and Filter Section */}
-        <div className='mb-6 flex flex-col sm:flex-row gap-4'>
+        <div className='mb-4 flex flex-col sm:flex-row gap-3'>
           <Input
             placeholder='Search by name, email, or phone...'
             prefix={<SearchOutlined className='text-gray-400' />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             allowClear
-            className='flex-1 shadow-lg border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 rounded-xl transition-all duration-200'
+            className='flex-1'
             size='large'
           />
           <Select 
             value={statusFilter} 
             onChange={setStatusFilter} 
-            className='w-full sm:w-48 shadow-lg border-2 border-gray-200 hover:border-blue-300 rounded-xl transition-all duration-200' 
+            className='w-full sm:w-48' 
             size='large'
           >
             <Option value='ALL'>All Status</Option>
@@ -916,28 +856,30 @@ export default function CheckLicense() {
             </p>
           </div>
         ) : (
-          <div className='grid gap-6 lg:grid-cols-[1.2fr,1.8fr]'>
-            {/* Left Panel - User List */}
-            <div className='space-y-3'>
-              <div className='flex items-center gap-2 mb-4 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border-2 border-gray-200/50 shadow-lg'>
-                <Checkbox
-                  checked={
-                    filteredMembers.length > 0 &&
-                    filteredMembers.every((m) => selectedDocuments.has(m.id))
-                  }
-                  indeterminate={
-                    selectedDocuments.size > 0 && selectedDocuments.size < filteredMembers.length
-                  }
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                />
-                <span className='text-sm font-bold text-gray-800'>Select All</span>
+          <div className='grid gap-6 lg:grid-cols-[300px,1fr]'>
+            {/* Left Panel - Simplified User List */}
+            <div className='space-y-2'>
+              <div className='bg-white rounded-lg border border-gray-200 p-3 mb-3'>
+                <div className='flex items-center gap-2 mb-2'>
+                  <Checkbox
+                    checked={
+                      filteredMembers.length > 0 &&
+                      filteredMembers.every((m) => selectedDocuments.has(m.id))
+                    }
+                    indeterminate={
+                      selectedDocuments.size > 0 && selectedDocuments.size < filteredMembers.length
+                    }
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                  />
+                  <span className='text-sm font-semibold text-gray-700'>Select All</span>
+                </div>
                 {selectedDocuments.size > 0 && (
-                  <span className='ml-auto text-xs font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1 rounded-full shadow-md'>
+                  <div className='text-xs text-blue-600 font-medium'>
                     {selectedDocuments.size} selected
-                  </span>
+                  </div>
                 )}
               </div>
-              <div className='space-y-2 max-h-[calc(100vh-350px)] overflow-y-auto pr-2'>
+              <div className='space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto'>
                 {filteredMembers.map((member) => {
                   const isActive = member.id === selectedMemberId
                   const isSelected = selectedDocuments.has(member.id)
@@ -949,52 +891,41 @@ export default function CheckLicense() {
                   return (
                     <div
                       key={member.id}
-                      className={`w-full rounded-2xl border-2 px-5 py-4 transition-all duration-300 cursor-pointer backdrop-blur-sm ${
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
                         isActive
-                          ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-xl scale-[1.02] ring-2 ring-blue-200'
-                          : isSelected
-                            ? 'border-indigo-400 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg'
-                            : 'border-gray-200/50 bg-white/80 hover:border-blue-300 hover:shadow-xl hover:scale-[1.01] hover:bg-white'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                       }`}
                       onClick={() => setSelectedMemberId(member.id)}
                     >
-                      <div className='flex items-center justify-between gap-2'>
-                        <div className='flex items-center gap-3 flex-1 min-w-0'>
-                          <Checkbox
-                            checked={isSelected}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={(e) => {
-                              e.stopPropagation()
-                              handleSelectMember(member.id, e.target.checked)
-                            }}
-                            disabled={!hasPendingDocs}
-                          />
-                          <div className='flex-1 min-w-0'>
-                            <p className='text-base font-semibold text-gray-900 truncate'>{member.name}</p>
-                            <p className='text-xs text-gray-500 truncate'>
-                              {member.email}
-                            </p>
-                            <p className='text-xs text-gray-400 truncate'>
-                              {member.phone}
-                            </p>
+                      <div className='flex items-start gap-2'>
+                        <Checkbox
+                          checked={isSelected}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            e.stopPropagation()
+                            handleSelectMember(member.id, e.target.checked)
+                          }}
+                          disabled={!hasPendingDocs}
+                        />
+                        <div className='flex-1 min-w-0'>
+                          <p className='font-semibold text-sm text-gray-900 truncate'>{member.name}</p>
+                          <p className='text-xs text-gray-500 truncate'>{member.email}</p>
+                          <div className='flex items-center gap-1 mt-1'>
+                            <Tag 
+                              color={
+                                member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
+                                  ? 'orange'
+                                  : 'green'
+                              } 
+                              className='text-xs'
+                            >
+                              {member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
+                                ? 'Pending'
+                                : 'Done'}
+                            </Tag>
                           </div>
                         </div>
-                        <Tag 
-                          color={
-                            member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
-                              ? 'orange'
-                              : member.cccd.frontStatus === 'APPROVED' && member.gplx.frontStatus === 'APPROVED'
-                                ? 'green'
-                                : 'blue'
-                          } 
-                          className='rounded-full font-medium flex-shrink-0'
-                        >
-                          {member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
-                            ? 'Pending'
-                            : member.cccd.frontStatus === 'APPROVED' && member.gplx.frontStatus === 'APPROVED'
-                              ? 'Approved'
-                              : 'Mixed'}
-                        </Tag>
                       </div>
                     </div>
                   )
@@ -1002,67 +933,445 @@ export default function CheckLicense() {
               </div>
             </div>
 
-            {/* Right Panel - Document Details */}
-            <div className='rounded-3xl border-2 border-gray-200/50 bg-white/90 backdrop-blur-md p-8 shadow-2xl'>
-              {selectedMember ? (
-                <div className='space-y-6'>
-                  {/* User Header */}
-                  <div className='flex flex-wrap items-start justify-between gap-4 pb-6 border-b-2 border-gray-200'>
-                    <div className='flex-1 min-w-0'>
-                      <p className='text-xs uppercase tracking-wider text-gray-500 font-bold mb-2 flex items-center gap-2'>
-                        <span className='w-2 h-2 rounded-full bg-blue-500 animate-pulse' />
-                        Selected user
-                      </p>
-                      <h2 className='text-3xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2'>{selectedMember.name}</h2>
-                      <p className='text-sm text-gray-600 mb-3'>{selectedMember.email}</p>
-                      <button
-                        onClick={() => handleViewDetail(selectedMember.id)}
-                        className='rounded-xl border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-2.5 text-sm font-bold text-blue-700 hover:from-blue-100 hover:to-indigo-100 transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-105'
-                      >
-                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
-                        </svg>
-                        View OCR details
-                      </button>
-                    </div>
-                    <div className='flex flex-col gap-3'>
-                      <Tag color='green' className='rounded-full px-4 py-1.5 font-bold text-sm shadow-md'>
-                        {selectedMember.cccd.frontStatus}/{selectedMember.cccd.backStatus} CCCD
-                      </Tag>
-                      <Tag color='cyan' className='rounded-full px-4 py-1.5 font-bold text-sm shadow-md'>
-                        {selectedMember.gplx.frontStatus}/{selectedMember.gplx.backStatus} DL
-                      </Tag>
-                    </div>
+            {/* Right Panel - Image-Focused Review */}
+            {selectedMember ? (
+              <div className='space-y-6'>
+                {/* User Info Bar */}
+                <div className='bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between'>
+                  <div>
+                    <h2 className='text-xl font-bold text-gray-900'>{selectedMember.name}</h2>
+                    <p className='text-sm text-gray-600'>{selectedMember.email}</p>
                   </div>
-                  {/* Document Sections */}
-                  <div className='grid gap-6 md:grid-cols-2'>
-                    <DocumentSection
-                      member={selectedMember}
-                      docType='cccd'
-                      onPreview={(img) => setSelectedImage(img)}
-                      onUpdateStatus={updateStatus}
-                    />
-                    <DocumentSection
-                      member={selectedMember}
-                      docType='gplx'
-                      onPreview={(img) => setSelectedImage(img)}
-                      onUpdateStatus={updateStatus}
-                    />
+                  <div className='flex items-center gap-3'>
+                    <button
+                      onClick={() => handleViewDetail(selectedMember.id)}
+                      className='px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors'
+                    >
+                      View OCR
+                    </button>
+                    <Tag color='green' className='text-xs'>
+                      {selectedMember.cccd.frontStatus}/{selectedMember.cccd.backStatus} CCCD
+                    </Tag>
+                    <Tag color='cyan' className='text-xs'>
+                      {selectedMember.gplx.frontStatus}/{selectedMember.gplx.backStatus} DL
+                    </Tag>
                   </div>
                 </div>
-              ) : (
-                <div className='flex h-[400px] items-center justify-center text-gray-400'>
-                  <div className='text-center'>
-                    <svg className='w-16 h-16 mx-auto mb-4 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                    <p className='text-lg font-medium'>Select a user to review documents</p>
-                    <p className='text-sm mt-1'>Choose a user from the list to view their documents</p>
+
+                {/* Document Review - Image Focused */}
+                <div className='space-y-8'>
+                  {/* CCCD Section */}
+                  <div className='bg-white rounded-lg border border-gray-200 p-6'>
+                    <div className='flex items-center justify-between mb-4'>
+                      <h3 className='text-lg font-bold text-gray-900 flex items-center gap-2'>
+                        <span className='w-2 h-2 rounded-full bg-blue-500' />
+                        Citizen ID Card (CCCD)
+                      </h3>
+                      {selectedMember.cccd.frontStatus === 'PENDING' && selectedMember.cccd.backStatus === 'PENDING' && (
+                        <div className='flex gap-2'>
+                          <button
+                            onClick={() => approveBothSides(selectedMember.id, 'cccd')}
+                            className='px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
+                          >
+                            <CheckOutlined />
+                            Approve Both
+                          </button>
+                          <button
+                            onClick={() => rejectBothSides(selectedMember.id, 'cccd')}
+                            className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
+                          >
+                            <CloseOutlined />
+                            Reject Both
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className='grid md:grid-cols-2 gap-6'>
+                      {/* Front Side */}
+                      <div className='space-y-3'>
+                        <div className='flex items-center justify-between'>
+                          <h4 className='font-semibold text-gray-700'>Front Side</h4>
+                          <StatusBadge status={selectedMember.cccd.frontStatus} />
+                        </div>
+                        <div
+                          className='relative rounded-lg overflow-hidden border-2 border-gray-200 cursor-pointer group hover:border-blue-400 transition-all'
+                          onClick={() => setSelectedImage(selectedMember.cccd.frontImage)}
+                        >
+                          <img
+                            src={getDecryptedImageUrl(selectedMember.cccd.frontImage)}
+                            alt='Front'
+                            className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
+                          />
+                          <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
+                            <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
+                              Click to enlarge
+                            </span>
+                          </div>
+                        </div>
+                        {selectedMember.cccd.frontStatus === 'PENDING' && selectedMember.cccd.backStatus !== 'PENDING' && (
+                          <div className='flex gap-2'>
+                            <button
+                              onClick={async () => {
+                                const doc = selectedMember.cccd
+                                if (doc.frontId) {
+                                  const confirmed = window.confirm('Approve front side of CCCD?')
+                                  if (!confirmed) return
+                                  await staffApi.reviewDocument(doc.frontId, 'APPROVE')
+                                  toast.success('Front side approved')
+                                  await updateStatus(selectedMember.id, 'cccd', 'front', 'APPROVED')
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CheckOutlined />
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                const doc = selectedMember.cccd
+                                if (doc.frontId) {
+                                  Modal.confirm({
+                                    title: 'Reject Front Side',
+                                    content: (
+                                      <div className='mt-4'>
+                                        <Input.TextArea
+                                          id='reject-front-reason'
+                                          rows={3}
+                                          placeholder='Enter rejection reason...'
+                                        />
+                                      </div>
+                                    ),
+                                    onOk: async (close) => {
+                                      const reason = (document.getElementById('reject-front-reason') as HTMLTextAreaElement)?.value?.trim()
+                                      if (!reason) {
+                                        message.error('Rejection reason is required')
+                                        return Promise.reject()
+                                      }
+                                      await staffApi.reviewDocument(doc.frontId!, 'REJECT', reason)
+                                      toast.success('Document rejected')
+                                      await updateStatus(selectedMember.id, 'cccd', 'front', 'REJECTED')
+                                      close()
+                                    }
+                                  })
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CloseOutlined />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                        {selectedMember.cccd.frontInfo && (
+                          <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
+                            {selectedMember.cccd.frontInfo.documentNumber && (
+                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.cccd.frontInfo.documentNumber}</div>
+                            )}
+                            {selectedMember.cccd.frontInfo.dateOfBirth && (
+                              <div><span className='font-semibold'>DOB:</span> {selectedMember.cccd.frontInfo.dateOfBirth}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Back Side */}
+                      <div className='space-y-3'>
+                        <div className='flex items-center justify-between'>
+                          <h4 className='font-semibold text-gray-700'>Back Side</h4>
+                          <StatusBadge status={selectedMember.cccd.backStatus} />
+                        </div>
+                        <div
+                          className='relative rounded-lg overflow-hidden border-2 border-gray-200 cursor-pointer group hover:border-blue-400 transition-all'
+                          onClick={() => setSelectedImage(selectedMember.cccd.backImage)}
+                        >
+                          <img
+                            src={getDecryptedImageUrl(selectedMember.cccd.backImage)}
+                            alt='Back'
+                            className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
+                          />
+                          <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
+                            <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
+                              Click to enlarge
+                            </span>
+                          </div>
+                        </div>
+                        {selectedMember.cccd.backStatus === 'PENDING' && selectedMember.cccd.frontStatus !== 'PENDING' && (
+                          <div className='flex gap-2'>
+                            <button
+                              onClick={async () => {
+                                const doc = selectedMember.cccd
+                                if (doc.backId) {
+                                  const confirmed = window.confirm('Approve back side of CCCD?')
+                                  if (!confirmed) return
+                                  await staffApi.reviewDocument(doc.backId, 'APPROVE')
+                                  toast.success('Back side approved')
+                                  await updateStatus(selectedMember.id, 'cccd', 'back', 'APPROVED')
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CheckOutlined />
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                const doc = selectedMember.cccd
+                                if (doc.backId) {
+                                  Modal.confirm({
+                                    title: 'Reject Back Side',
+                                    content: (
+                                      <div className='mt-4'>
+                                        <Input.TextArea
+                                          id='reject-back-reason'
+                                          rows={3}
+                                          placeholder='Enter rejection reason...'
+                                        />
+                                      </div>
+                                    ),
+                                    onOk: async (close) => {
+                                      const reason = (document.getElementById('reject-back-reason') as HTMLTextAreaElement)?.value?.trim()
+                                      if (!reason) {
+                                        message.error('Rejection reason is required')
+                                        return Promise.reject()
+                                      }
+                                      await staffApi.reviewDocument(doc.backId!, 'REJECT', reason)
+                                      toast.success('Document rejected')
+                                      await updateStatus(selectedMember.id, 'cccd', 'back', 'REJECTED')
+                                      close()
+                                    }
+                                  })
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CloseOutlined />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                        {selectedMember.cccd.backInfo && (
+                          <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
+                            {selectedMember.cccd.backInfo.documentNumber && (
+                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.cccd.backInfo.documentNumber}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Driver License Section */}
+                  <div className='bg-white rounded-lg border border-gray-200 p-6'>
+                    <div className='flex items-center justify-between mb-4'>
+                      <h3 className='text-lg font-bold text-gray-900 flex items-center gap-2'>
+                        <span className='w-2 h-2 rounded-full bg-green-500' />
+                        Driver License (DL)
+                      </h3>
+                      {selectedMember.gplx.frontStatus === 'PENDING' && selectedMember.gplx.backStatus === 'PENDING' && (
+                        <div className='flex gap-2'>
+                          <button
+                            onClick={() => approveBothSides(selectedMember.id, 'gplx')}
+                            className='px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
+                          >
+                            <CheckOutlined />
+                            Approve Both
+                          </button>
+                          <button
+                            onClick={() => rejectBothSides(selectedMember.id, 'gplx')}
+                            className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
+                          >
+                            <CloseOutlined />
+                            Reject Both
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className='grid md:grid-cols-2 gap-6'>
+                      {/* Front Side */}
+                      <div className='space-y-3'>
+                        <div className='flex items-center justify-between'>
+                          <h4 className='font-semibold text-gray-700'>Front Side</h4>
+                          <StatusBadge status={selectedMember.gplx.frontStatus} />
+                        </div>
+                        <div
+                          className='relative rounded-lg overflow-hidden border-2 border-gray-200 cursor-pointer group hover:border-blue-400 transition-all'
+                          onClick={() => setSelectedImage(selectedMember.gplx.frontImage)}
+                        >
+                          <img
+                            src={getDecryptedImageUrl(selectedMember.gplx.frontImage)}
+                            alt='Front'
+                            className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
+                          />
+                          <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
+                            <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
+                              Click to enlarge
+                            </span>
+                          </div>
+                        </div>
+                        {selectedMember.gplx.frontStatus === 'PENDING' && selectedMember.gplx.backStatus !== 'PENDING' && (
+                          <div className='flex gap-2'>
+                            <button
+                              onClick={async () => {
+                                const doc = selectedMember.gplx
+                                if (doc.frontId) {
+                                  const confirmed = window.confirm('Approve front side of Driver License?')
+                                  if (!confirmed) return
+                                  await staffApi.reviewDocument(doc.frontId, 'APPROVE')
+                                  toast.success('Front side approved')
+                                  await updateStatus(selectedMember.id, 'gplx', 'front', 'APPROVED')
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CheckOutlined />
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                const doc = selectedMember.gplx
+                                if (doc.frontId) {
+                                  Modal.confirm({
+                                    title: 'Reject Front Side',
+                                    content: (
+                                      <div className='mt-4'>
+                                        <Input.TextArea
+                                          id='reject-dl-front-reason'
+                                          rows={3}
+                                          placeholder='Enter rejection reason...'
+                                        />
+                                      </div>
+                                    ),
+                                    onOk: async (close) => {
+                                      const reason = (document.getElementById('reject-dl-front-reason') as HTMLTextAreaElement)?.value?.trim()
+                                      if (!reason) {
+                                        message.error('Rejection reason is required')
+                                        return Promise.reject()
+                                      }
+                                      await staffApi.reviewDocument(doc.frontId!, 'REJECT', reason)
+                                      toast.success('Document rejected')
+                                      await updateStatus(selectedMember.id, 'gplx', 'front', 'REJECTED')
+                                      close()
+                                    }
+                                  })
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CloseOutlined />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                        {selectedMember.gplx.frontInfo && (
+                          <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
+                            {selectedMember.gplx.frontInfo.documentNumber && (
+                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.gplx.frontInfo.documentNumber}</div>
+                            )}
+                            {selectedMember.gplx.frontInfo.issueDate && (
+                              <div><span className='font-semibold'>Issue:</span> {selectedMember.gplx.frontInfo.issueDate}</div>
+                            )}
+                            {selectedMember.gplx.frontInfo.expiryDate && (
+                              <div><span className='font-semibold'>Expiry:</span> {selectedMember.gplx.frontInfo.expiryDate}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Back Side */}
+                      <div className='space-y-3'>
+                        <div className='flex items-center justify-between'>
+                          <h4 className='font-semibold text-gray-700'>Back Side</h4>
+                          <StatusBadge status={selectedMember.gplx.backStatus} />
+                        </div>
+                        <div
+                          className='relative rounded-lg overflow-hidden border-2 border-gray-200 cursor-pointer group hover:border-blue-400 transition-all'
+                          onClick={() => setSelectedImage(selectedMember.gplx.backImage)}
+                        >
+                          <img
+                            src={getDecryptedImageUrl(selectedMember.gplx.backImage)}
+                            alt='Back'
+                            className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
+                          />
+                          <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
+                            <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
+                              Click to enlarge
+                            </span>
+                          </div>
+                        </div>
+                        {selectedMember.gplx.backStatus === 'PENDING' && selectedMember.gplx.frontStatus !== 'PENDING' && (
+                          <div className='flex gap-2'>
+                            <button
+                              onClick={async () => {
+                                const doc = selectedMember.gplx
+                                if (doc.backId) {
+                                  const confirmed = window.confirm('Approve back side of Driver License?')
+                                  if (!confirmed) return
+                                  await staffApi.reviewDocument(doc.backId, 'APPROVE')
+                                  toast.success('Back side approved')
+                                  await updateStatus(selectedMember.id, 'gplx', 'back', 'APPROVED')
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CheckOutlined />
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => {
+                                const doc = selectedMember.gplx
+                                if (doc.backId) {
+                                  Modal.confirm({
+                                    title: 'Reject Back Side',
+                                    content: (
+                                      <div className='mt-4'>
+                                        <Input.TextArea
+                                          id='reject-dl-back-reason'
+                                          rows={3}
+                                          placeholder='Enter rejection reason...'
+                                        />
+                                      </div>
+                                    ),
+                                    onOk: async (close) => {
+                                      const reason = (document.getElementById('reject-dl-back-reason') as HTMLTextAreaElement)?.value?.trim()
+                                      if (!reason) {
+                                        message.error('Rejection reason is required')
+                                        return Promise.reject()
+                                      }
+                                      await staffApi.reviewDocument(doc.backId!, 'REJECT', reason)
+                                      toast.success('Document rejected')
+                                      await updateStatus(selectedMember.id, 'gplx', 'back', 'REJECTED')
+                                      close()
+                                    }
+                                  })
+                                }
+                              }}
+                              className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
+                            >
+                              <CloseOutlined />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                        {selectedMember.gplx.backInfo && (
+                          <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
+                            {selectedMember.gplx.backInfo.documentNumber && (
+                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.gplx.backInfo.documentNumber}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className='bg-white rounded-lg border border-gray-200 p-12 text-center'>
+                <svg className='w-16 h-16 mx-auto mb-4 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                </svg>
+                <p className='text-lg font-medium text-gray-600'>Select a user to review documents</p>
+              </div>
+            )}
           </div>
         )}
       </div>
