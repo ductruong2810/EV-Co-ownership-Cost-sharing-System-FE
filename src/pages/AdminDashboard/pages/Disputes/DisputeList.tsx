@@ -9,7 +9,7 @@ import staffApi from '../../../../apis/staff.api'
 import type { DisputeSummary } from '../../../../types/api/dispute.type'
 import type { groupStaffItem } from '../../../../types/api/staff.type'
 import Skeleton from '../../../../components/Skeleton'
-import EmptyState from '../EmptyState'
+import EmptyState from '../EmptyState/EmptyState'
 import path from '../../../../constants/path'
 
 const { Option } = Select
@@ -50,7 +50,6 @@ const DisputeList = () => {
 
   // Preview selected dispute
   const [previewDisputeId, setPreviewDisputeId] = useState<number | null>(null)
-  const previewDispute = filtered.find((d) => d.disputeId === previewDisputeId)
 
   // Fetch groups for filter dropdown
   const { data: groupsData } = useQuery({
@@ -121,6 +120,9 @@ const DisputeList = () => {
 
     return result
   }, [disputes, searchTerm])
+
+  // Preview selected dispute (moved after filtered is defined)
+  const previewDispute = filtered.find((d) => d.disputeId === previewDisputeId)
 
   const summary = useMemo(() => {
     return {
