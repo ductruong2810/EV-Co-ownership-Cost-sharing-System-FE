@@ -384,7 +384,7 @@ const DisputeList = () => {
         // Count only disputes that are currently visible in the filtered list
         const visibleSelectedCount = filtered.filter((d) => selectedDisputeIds.has(d.disputeId)).length
         return visibleSelectedCount > 0 ? (
-        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between'>
+        <div className='bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-center justify-between'>
           <div className='flex items-center gap-3'>
             <span className='font-semibold text-blue-900'>{visibleSelectedCount} dispute(s) selected</span>
           </div>
@@ -521,13 +521,15 @@ const DisputeList = () => {
         {/* Right Panel - Preview */}
         <div className='lg:col-span-1'>
           {previewDispute ? (
-            <div className='sticky top-6 bg-white rounded-2xl border border-gray-200 shadow-lg p-6 space-y-4'>
+            <div className='sticky top-6 bg-white rounded-2xl border border-gray-200 shadow-lg p-5 space-y-4 max-w-md ml-auto'>
               <div className='flex items-start justify-between'>
                 <div>
                   <h3 className='text-lg font-bold text-gray-900'>{previewDispute.title}</h3>
                   <p className='text-sm text-gray-600 mt-1'>{previewDispute.groupName}</p>
                 </div>
-                <Tag color={statusColors[previewDispute.status] || 'default'}>{previewDispute.status}</Tag>
+                <Tag color={statusColors[previewDispute.status] || 'default'} className='font-medium px-3 py-1 rounded-full'>
+                  {previewDispute.status}
+                </Tag>
               </div>
 
               <div className='space-y-3 pt-4 border-t border-gray-200'>
@@ -551,6 +553,14 @@ const DisputeList = () => {
                     })}
                   </p>
                 </div>
+                {previewDispute.shortDescription && (
+                  <div>
+                    <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Summary</p>
+                    <p className='text-sm text-gray-700 mt-1 line-clamp-3'>
+                      {previewDispute.shortDescription}
+                    </p>
+                  </div>
+                )}
                 {previewDispute.assignedStaffName && (
                   <div>
                     <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Assigned to</p>

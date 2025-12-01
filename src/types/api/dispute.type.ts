@@ -29,6 +29,7 @@ export interface DisputeSummary {
   reporterName?: string
   groupName?: string
   assignedStaffName?: string
+  shortDescription?: string
 }
 
 export interface SimpleUser {
@@ -76,7 +77,8 @@ export const mapDisputeResponseToSummary = (dto: DisputeResponseDTO): DisputeSum
     createdAt: dto.createdAt,
     reporterName: dto.createdByName,
     groupName: dto.groupName,
-    assignedStaffName: dto.resolvedByName
+    assignedStaffName: dto.resolvedByName,
+    shortDescription: dto.description
   }
 }
 
