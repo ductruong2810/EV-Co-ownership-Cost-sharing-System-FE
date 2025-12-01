@@ -24,13 +24,14 @@ export default function DashboardCardElement({ color, content, children, moveLin
   console.log(allowAccess)
   return (
     <motion.div
-      variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+      variants={{ hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } }}
       whileHover={{
-        y: -5,
-        boxShadow: `0 15px 40px ${color.boxShadow}`
+        y: -8,
+        scale: 1.01,
+        boxShadow: `0 20px 60px ${color.boxShadow}`
       }}
-      transition={{ duration: 0.3 }}
-      className={`group relative flex flex-col bg-slate-800/60 backdrop-blur-md rounded-xl shadow-lg p-6 border transition-all duration-300 ${color.classDivBorder} hover:bg-slate-800/70`}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+      className={`group relative flex flex-col bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-lg p-6 border transition-all duration-300 ${color.classDivBorder} hover:bg-slate-800/75`}
     >
       {/* Content */}
       <div className='relative z-10 flex flex-col h-full'>
@@ -40,7 +41,7 @@ export default function DashboardCardElement({ color, content, children, moveLin
         </h2>
 
         {/* Description */}
-        <p className='text-slate-100 text-sm leading-relaxed mb-5 flex-grow'>{content.body}</p>
+        <p className='text-slate-100/90 text-[0.92rem] leading-relaxed mb-5 flex-grow'>{content.body}</p>
 
         {/* Children (e.g. input field) */}
         {children}
