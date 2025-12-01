@@ -1817,7 +1817,6 @@ export default function Dashboard() {
             </Col>
           </Row>
         )}
-      </div>
     </AdminPageContainer>
   )
 }

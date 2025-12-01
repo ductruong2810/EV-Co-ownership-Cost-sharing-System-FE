@@ -1591,6 +1591,6 @@ export default function CheckLicense() {
           <button>close</button>
         </form>
       </dialog>
-    </div>
+    </AdminPageContainer>
   )
 }
