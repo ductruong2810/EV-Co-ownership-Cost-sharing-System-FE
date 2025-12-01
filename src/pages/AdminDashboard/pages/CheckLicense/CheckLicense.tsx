@@ -1384,7 +1384,6 @@ export default function CheckLicense() {
             )}
           </div>
         )}
-      </div>
 
       <AnimatePresence>
         {(detailData || loadingDetail) && (
