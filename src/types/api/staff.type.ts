@@ -94,6 +94,7 @@ export interface Booking {
   qrCode: string // JSON string, chứa thông tin booking
   startDateTime: string // ISO DateTime string
   endDateTime: string // ISO DateTime string
+  status?: 'CONFIRMED' | 'CANCELLED' | string
 }
 
 export interface GetGroupById {

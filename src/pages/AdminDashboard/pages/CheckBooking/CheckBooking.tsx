@@ -393,7 +393,6 @@ export default function CheckBooking() {
               pageSize={ITEMS_PER_PAGE}
               onChange={(p) => {
                 setPage(p)
-                setExpanded(null)
               }}
               showSizeChanger={false}
             />

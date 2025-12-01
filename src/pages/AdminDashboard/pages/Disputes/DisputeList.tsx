@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Tag, Select, Input, DatePicker, Collapse, Button, Space, Checkbox, Modal, message } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs, { Dayjs } from 'dayjs'
 import disputeApi from '../../../../apis/dispute.api'
@@ -36,7 +36,8 @@ const DisputeList = () => {
   const queryClient = useQueryClient()
 
   // Basic filters
-  const [statusFilter, setStatusFilter] = useState<string>('OPEN')
+  // Mặc định hiển thị tất cả trạng thái
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
 
   // Advanced filters
@@ -122,8 +123,15 @@ const DisputeList = () => {
     return result
   }, [disputes, searchTerm])
 
-  // Preview selected dispute (moved after filtered is defined)
+  // Preview selected dispute (moved sau khi filtered được tính)
   const previewDispute = filtered.find((d) => d.disputeId === previewDisputeId)
+
+  // Khi load trang hoặc khi danh sách filtered thay đổi, tự chọn dispute đầu tiên để preview
+  useEffect(() => {
+    if (!previewDisputeId && filtered.length > 0) {
+      setPreviewDisputeId(filtered[0].disputeId)
+    }
+  }, [filtered, previewDisputeId])
 
   const summary = useMemo(() => {
     return {
@@ -433,9 +441,10 @@ const DisputeList = () => {
         />
       </section>
 
-      <div className='grid gap-4 grid-cols-1 lg:grid-cols-3'>
+      {/* Main content: list + preview, giống bố cục trang Group */}
+      <div className='grid gap-6 lg:grid-cols-[1.65fr,1fr]'>
         {/* Left Panel - Dispute Columns */}
-        <div className='lg:col-span-2 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'>
+        <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'>
           {statusColumns
             .filter((column) => statusFilter === 'ALL' || column.key === statusFilter)
             .map((column) => {
