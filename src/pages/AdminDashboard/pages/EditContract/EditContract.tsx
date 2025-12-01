@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Input, Select } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
-import adminApi from '../../../../apis/admin.api'
 import { useNavigate } from 'react-router-dom'
+
+import adminApi from '../../../../apis/admin.api'
 import Skeleton from '../../../../components/Skeleton'
 import logger from '../../../../utils/logger'
+import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Option } = Select
 
@@ -19,15 +22,14 @@ export default function EditContract() {
     queryFn: () => adminApi.getContractsForEdit()
   })
 
-  // Sample data - replace with your API data
   const allContracts = allContractQuery?.data?.data || []
   logger.debug('Contracts for edit:', allContracts)
 
-  // Filter and search logic
   const contracts = useMemo(() => {
-    let filtered = allContracts.filter((contract: any) => contract?.approvalStatus === 'SIGNED' || contract?.approvalStatus === 'PENDING')
+    let filtered = allContracts.filter(
+      (contract: any) => contract?.approvalStatus === 'SIGNED' || contract?.approvalStatus === 'PENDING'
+    )
 
-    // Search by ID or group name
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(
@@ -38,7 +40,6 @@ export default function EditContract() {
       )
     }
 
-    // Filter by status
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter((contract: any) => contract.approvalStatus === statusFilter)
     }
@@ -46,7 +47,6 @@ export default function EditContract() {
     return filtered
   }, [allContracts, searchTerm, statusFilter])
 
-  //
   const handleViewFeedback = ({
     contractId,
     groupId,
@@ -60,62 +60,66 @@ export default function EditContract() {
   }
 
   if (allContractQuery.isLoading) return <Skeleton />
+
   if (allContractQuery?.data?.data.length === 0)
     return (
-      <div className='min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 flex items-center justify-center p-6'>
+      <AdminPageContainer>
+        <AdminPageHeader
+          eyebrow='Contracts & Team'
+          title='Contract Editing'
+          subtitle='Review and manage contract feedback'
+        />
         <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center'>
           <h2 className='text-2xl font-semibold text-gray-700 mb-2'>No contracts available for editing</h2>
           <p className='text-gray-500'>There are no contracts that require editing at this time.</p>
         </div>
-      </div>
+      </AdminPageContainer>
     )
+
   return (
-    <div className='min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-4 sm:p-6'>
-      <div className='max-w-7xl mx-auto'>
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Contract Editing</h1>
-          <p className='text-gray-600'>Review and manage contract feedback</p>
+    <AdminPageContainer>
+      <AdminPageHeader
+        eyebrow='Contracts & Team'
+        title='Contract Editing'
+        subtitle='Review and manage contract feedback'
+      />
+
+      {/* Search and Filter Section */}
+      <div className='mb-6 flex flex-col sm:flex-row gap-4'>
+        <Input
+          placeholder='Search by contract ID, group ID, or group name...'
+          prefix={<SearchOutlined className='text-gray-400' />}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          allowClear
+          className='flex-1'
+          size='large'
+        />
+        <Select value={statusFilter} onChange={setStatusFilter} className='w-full sm:w-48' size='large'>
+          <Option value='ALL'>All Status</Option>
+          <Option value='SIGNED'>Signed</Option>
+          <Option value='PENDING'>Pending</Option>
+        </Select>
+      </div>
+
+      {/* Results count */}
+      {contracts.length !==
+        allContracts.filter((c: any) => c?.approvalStatus === 'SIGNED' || c?.approvalStatus === 'PENDING').length && (
+        <div className='mb-4 text-sm text-gray-600'>
+          Showing {contracts.length} of{' '}
+          {allContracts.filter((c: any) => c?.approvalStatus === 'SIGNED' || c?.approvalStatus === 'PENDING').length} contracts
+          {searchTerm && ` matching "${searchTerm}"`}
+          {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
         </div>
+      )}
 
-        {/* Search and Filter Section */}
-        <div className='mb-6 flex flex-col sm:flex-row gap-4'>
-          <Input
-            placeholder='Search by contract ID, group ID, or group name...'
-            prefix={<SearchOutlined className='text-gray-400' />}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            allowClear
-            className='flex-1'
-            size='large'
-          />
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            className='w-full sm:w-48'
-            size='large'
-          >
-            <Option value='ALL'>All Status</Option>
-            <Option value='SIGNED'>Signed</Option>
-            <Option value='PENDING'>Pending</Option>
-          </Select>
+      {contracts.length === 0 ? (
+        <div className='bg-white rounded-xl shadow-lg p-8 text-center'>
+          <h2 className='text-xl font-semibold text-gray-700'>No contracts available for editing.</h2>
         </div>
-
-        {/* Results count */}
-        {contracts.length !== allContracts.filter((c: any) => c?.approvalStatus === 'SIGNED' || c?.approvalStatus === 'PENDING').length && (
-          <div className='mb-4 text-sm text-gray-600'>
-            Showing {contracts.length} of {allContracts.filter((c: any) => c?.approvalStatus === 'SIGNED' || c?.approvalStatus === 'PENDING').length} contracts
-            {searchTerm && ` matching "${searchTerm}"`}
-            {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
-          </div>
-        )}
-
-               {contracts.length === 0 ? (
-          <div className='bg-white rounded-xl shadow-lg p-8 text-center'>
-            <h2 className='text-xl font-semibold text-gray-700'>No contracts available for editing.</h2>
-          </div>
-        ) : (
-          <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
-            <div className='overflow-x-auto'>
+      ) : (
+        <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
+          <div className='overflow-x-auto'>
             <table className='min-w-full divide-y divide-gray-200'>
               <thead className='bg-gray-100'>
                 <tr>
@@ -153,16 +157,24 @@ export default function EditContract() {
                     </td>
                   </tr>
                 ) : (
-                  contracts.map((contract) => (
+                  contracts.map((contract: any) => (
                     <tr key={contract.id} className='hover:bg-gray-50 transition-colors'>
                       <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>#{contract.id}</td>
                       <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>{contract.groupName}</td>
-                               <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                 {new Date(contract.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                               </td>
-                               <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                 {new Date(contract.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                               </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
+                        {new Date(contract.startDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
+                        {new Date(contract.endDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </td>
                       <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
                         {Math.ceil(
                           (new Date(contract.endDate).getTime() - new Date(contract.startDate).getTime()) /
@@ -183,9 +195,15 @@ export default function EditContract() {
                           {contract.approvalStatus}
                         </span>
                       </td>
-                               <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-                                 {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
-                               </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                        {contract.createdAt
+                          ? new Date(contract.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          : '-'}
+                      </td>
                       <td className='px-6 py-4 whitespace-nowrap text-right text-sm'>
                         <div className='flex justify-end gap-2'>
                           <button
@@ -207,10 +225,9 @@ export default function EditContract() {
                 )}
               </tbody>
             </table>
-            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </AdminPageContainer>
   )
 }
