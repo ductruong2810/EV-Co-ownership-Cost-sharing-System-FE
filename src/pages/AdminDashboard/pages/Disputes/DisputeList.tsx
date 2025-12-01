@@ -341,7 +341,9 @@ const DisputeList = () => {
                   className='w-full'
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+                    String(option?.label ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
                 >
                   {groups.map((group) => (
