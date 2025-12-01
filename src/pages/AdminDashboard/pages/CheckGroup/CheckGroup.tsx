@@ -674,7 +674,6 @@ export default function CheckGroup() {
             )}
           </div>
         </div>
-      </div>
     </AdminPageContainer>
   )
 }
