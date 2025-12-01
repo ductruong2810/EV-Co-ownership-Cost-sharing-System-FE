@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import staffApi from '../../../../apis/staff.api'
 import Skeleton from '../../../../components/Skeleton'
 import { exportFinancialReportToPDF, type FinancialReportData } from '../../../../utils/pdfExport'
+import AdminPageContainer from '../../AdminPageContainer'
 
 const { Option } = Select
 const { Title, Text } = Typography
@@ -139,19 +140,18 @@ export default function FinancialReports() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-6'>
-      <div className='max-w-4xl mx-auto'>
-        <div className='mb-8'>
-          <div className='flex items-center gap-3 mb-2'>
-            <FileTextOutlined className='text-3xl text-green-600' />
-            <Title level={2} className='mb-0'>
-              Financial Reports
-            </Title>
-          </div>
-          <Text className='text-gray-600'>
-            Export consolidated financial reports for all groups in the system
-          </Text>
+    <AdminPageContainer className='max-w-4xl'>
+      <div className='mb-8'>
+        <div className='flex items-center gap-3 mb-2'>
+          <FileTextOutlined className='text-3xl text-green-600' />
+          <Title level={2} className='mb-0'>
+            Financial Reports
+          </Title>
         </div>
+        <Text className='text-gray-600'>
+          Export consolidated financial reports for all groups in the system
+        </Text>
+      </div>
 
         {error && (
           <Alert
@@ -229,7 +229,7 @@ export default function FinancialReports() {
           </Space>
         </Card>
 
-        <Card className='mt-6 rounded-xl shadow-lg border border-gray-200'>
+      <Card className='mt-6 rounded-xl shadow-lg border border-gray-200'>
           <Title level={4} className='mb-3'>
             Report Information
           </Title>
@@ -258,9 +258,8 @@ export default function FinancialReports() {
               </ul>
             </div>
           </Space>
-        </Card>
-      </div>
-    </div>
+      </Card>
+    </AdminPageContainer>
   )
 }
 

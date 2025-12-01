@@ -12,6 +12,7 @@ import EmptyState from '../EmptyState'
 import StatusBadge from './components/StatusBadge'
 import type { DocumentInfo, UserDetails } from '../../../../types/api/staff.type'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import AdminPageContainer from '../../AdminPageContainer'
 
 const { Option } = Select
 
@@ -711,11 +712,16 @@ export default function CheckLicense() {
   const selectedMember = filteredMembers.find((m) => m.id === selectedMemberId) || null
 
   if (loading) return <Skeleton />
-  if (members.length === 0) return <EmptyState />
+  if (members.length === 0) {
+    return (
+      <AdminPageContainer className='max-w-7xl'>
+        <EmptyState />
+      </AdminPageContainer>
+    )
+  }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-4 sm:p-6'>
-      <div className='max-w-7xl mx-auto'>
+    <AdminPageContainer className='max-w-7xl'>
         <div className='mb-6'>
           <div className='flex items-center justify-between mb-4'>
             <div>
