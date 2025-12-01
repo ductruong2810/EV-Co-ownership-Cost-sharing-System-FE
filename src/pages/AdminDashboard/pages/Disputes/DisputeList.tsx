@@ -12,6 +12,7 @@ import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState/EmptyState'
 import path from '../../../../constants/path'
 import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -269,7 +270,7 @@ const DisputeList = () => {
     setDateRange([null, null])
     setGroupIdFilter(undefined)
     setDisputeTypeFilter('ALL')
-    setStatusFilter('OPEN')
+    setStatusFilter('ALL')
   }
 
   const hasActiveFilters = searchTerm || dateRange[0] || dateRange[1] || groupIdFilter || disputeTypeFilter !== 'ALL'
@@ -278,13 +279,11 @@ const DisputeList = () => {
 
   return (
     <AdminPageContainer>
-      <header className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
-        <div>
-          <p className='text-xs font-semibold uppercase tracking-widest text-rose-300'>Staff escalation</p>
-          <h1 className='text-3xl font-bold text-slate-900'>Dispute center</h1>
-          <p className='text-slate-500 text-sm'>Monitor and resolve incident reports across groups.</p>
-        </div>
-        <div className='flex gap-2'>
+      <AdminPageHeader
+        eyebrow='Staff escalation'
+        title='Dispute center'
+        subtitle='Monitor and resolve incident reports across groups.'
+        rightSlot={
           <Select
             value={statusFilter}
             onChange={(value) => setStatusFilter(value)}
@@ -297,8 +296,8 @@ const DisputeList = () => {
               { label: 'Rejected', value: 'REJECTED' }
             ]}
           />
-        </div>
-      </header>
+        }
+      />
 
       {/* Search and Filters */}
       <div className='space-y-3'>

@@ -13,6 +13,7 @@ import StatusBadge from './components/StatusBadge'
 import type { DocumentInfo, UserDetails } from '../../../../types/api/staff.type'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Option } = Select
 
@@ -722,25 +723,21 @@ export default function CheckLicense() {
 
   return (
     <AdminPageContainer className='max-w-7xl'>
-        <div className='mb-6'>
-          <div className='flex items-center justify-between mb-4'>
-            <div>
-              <h1 className='text-2xl font-bold text-gray-900 mb-1'>Document Verification</h1>
-              <p className='text-sm text-gray-600'>
-                Total: <span className='font-semibold text-blue-600'>{members.length}</span> pending documents
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                const modal = document.getElementById('review-guidelines-modal')
-                if (modal) (modal as any).showModal()
-              }}
-              className='px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors'
-            >
-              Guidelines
-            </button>
-          </div>
-        </div>
+      <AdminPageHeader
+        title='Document Verification'
+        subtitle={`Total: ${members.length} pending documents`}
+        rightSlot={
+          <button
+            onClick={() => {
+              const modal = document.getElementById('review-guidelines-modal')
+              if (modal) (modal as any).showModal()
+            }}
+            className='px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors'
+          >
+            Guidelines
+          </button>
+        }
+      />
 
         <div className='mb-4 grid grid-cols-4 gap-3'>
           <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>

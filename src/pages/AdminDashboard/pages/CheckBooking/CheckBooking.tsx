@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import EmptyState from '../EmptyState'
 import dayjs, { Dayjs } from 'dayjs'
 import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -147,12 +148,10 @@ export default function CheckBooking() {
 
   return (
     <AdminPageContainer>
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Booking Management</h1>
-          <p className='text-gray-600'>
-            Manage bookings by co-owners • Total {filteredUsers.length} of {data.length} users • Page {page}/{total}
-          </p>
-        </div>
+      <AdminPageHeader
+        title='Booking Management'
+        subtitle={`Manage bookings by co-owners • Total ${filteredUsers.length} of ${data.length} users • Page ${page}/${total}`}
+      />
 
         <div className='mb-6 grid gap-3 md:grid-cols-4'>
           <SummaryCard

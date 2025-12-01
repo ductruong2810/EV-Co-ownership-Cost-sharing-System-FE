@@ -14,7 +14,8 @@ import {
   CarOutlined,
   SettingOutlined,
   AlertOutlined,
-  HistoryOutlined
+  HistoryOutlined,
+  DollarOutlined
 } from '@ant-design/icons'
 import { getRoleFromLS } from '../../utils/auth'
 import path from '../../constants/path'
@@ -284,9 +285,13 @@ export default function AdminDashboard() {
                       } text-sm font-medium transition-all duration-200`
                     }}
                   >
-                    {({ isActive }) => (
+                    {() => (
                       <>
-                        <FileTextOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                        <DollarOutlined
+                          className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${
+                            sidebarCollapsed ? '' : 'mr-3'
+                          }`}
+                        />
                         {!sidebarCollapsed && <span>Financial Reports</span>}
                       </>
                     )}

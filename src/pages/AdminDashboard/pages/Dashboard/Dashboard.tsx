@@ -29,6 +29,7 @@ import adminApi from '../../../../apis/admin.api'
 import type { DashboardStatistics } from '../../../../types/api/dashboard.type'
 import logger from '../../../../utils/logger'
 import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Title } = Typography
 const { RangePicker } = DatePicker
@@ -879,21 +880,16 @@ export default function Dashboard() {
 
   return (
     <AdminPageContainer className='max-w-7xl'>
-        {/* Header Section */}
-        <div className='mb-8'>
-          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
-            <div>
-              <h1 className='text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-2'>
-                Dashboard Report
-              </h1>
-              <p className='text-gray-600 text-lg'>System overview and statistics</p>
-            </div>
-            <div className='flex items-center gap-2 text-sm text-gray-500'>
-              <CalendarOutlined />
-              <span>{dayjs().format('DD MMMM YYYY')}</span>
-            </div>
+      <AdminPageHeader
+        title='Dashboard Report'
+        subtitle='System overview and statistics'
+        rightSlot={
+          <div className='flex items-center gap-2 text-sm text-gray-500'>
+            <CalendarOutlined />
+            <span>{dayjs().format('DD MMMM YYYY')}</span>
           </div>
-        </div>
+        }
+      />
 
         {/* Error Alert */}
         {error && (

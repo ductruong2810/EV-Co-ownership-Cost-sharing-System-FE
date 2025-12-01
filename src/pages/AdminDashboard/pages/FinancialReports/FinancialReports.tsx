@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Button, DatePicker, Select, Card, Space, Typography, Alert } from 'antd'
-import { DownloadOutlined, FileTextOutlined, FilePdfOutlined } from '@ant-design/icons'
+import { DownloadOutlined, FilePdfOutlined, DollarOutlined } from '@ant-design/icons'
 import { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import staffApi from '../../../../apis/staff.api'
 import Skeleton from '../../../../components/Skeleton'
 import { exportFinancialReportToPDF, type FinancialReportData } from '../../../../utils/pdfExport'
 import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Option } = Select
 const { Title, Text } = Typography
@@ -141,17 +142,12 @@ export default function FinancialReports() {
 
   return (
     <AdminPageContainer className='max-w-4xl'>
-      <div className='mb-8'>
-        <div className='flex items-center gap-3 mb-2'>
-          <FileTextOutlined className='text-3xl text-green-600' />
-          <Title level={2} className='mb-0'>
-            Financial Reports
-          </Title>
-        </div>
-        <Text className='text-gray-600'>
-          Export consolidated financial reports for all groups in the system
-        </Text>
-      </div>
+      <AdminPageHeader
+        eyebrow='Finance'
+        title='Financial Reports'
+        subtitle='Export consolidated financial reports for all groups in the system'
+        rightSlot={<DollarOutlined className='text-2xl text-green-600' />}
+      />
 
         {error && (
           <Alert

@@ -12,6 +12,7 @@ import { InfoCircleOutlined, RightOutlined, TeamOutlined, CalendarOutlined } fro
 import dayjs, { Dayjs } from 'dayjs'
 import ActivityTimeline, { type ActivityItem } from '../../../../components/ActivityTimeline'
 import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -336,13 +337,11 @@ export default function CheckGroup() {
 
   return (
     <AdminPageContainer>
-        <header className='flex flex-col gap-2'>
-          <p className='text-sm font-semibold uppercase tracking-wider text-indigo-400'>Staff workspace</p>
-          <h1 className='text-3xl font-bold text-gray-900'>Group approvals</h1>
-          <p className='text-gray-600'>
-            Review and approve new co-ownership groups. Use the filters to prioritise pending submissions.
-          </p>
-        </header>
+      <AdminPageHeader
+        eyebrow='Staff workspace'
+        title='Group approvals'
+        subtitle='Review and approve new co-ownership groups. Use the filters to prioritise pending submissions.'
+      />
 
         {/* Summary */}
         <div className='grid grid-cols-2 gap-3 md:grid-cols-4'>
