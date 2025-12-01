@@ -28,6 +28,7 @@ import type { ReactNode } from 'react'
 import adminApi from '../../../../apis/admin.api'
 import type { DashboardStatistics } from '../../../../types/api/dashboard.type'
 import logger from '../../../../utils/logger'
+import AdminPageContainer from '../../AdminPageContainer'
 
 const { Title } = Typography
 const { RangePicker } = DatePicker
@@ -877,8 +878,7 @@ export default function Dashboard() {
   const hasWarnings = openDisputes > 0 || overdueMaintenances > 0
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+    <AdminPageContainer className='max-w-7xl'>
         {/* Header Section */}
         <div className='mb-8'>
           <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
@@ -1818,6 +1818,6 @@ export default function Dashboard() {
           </Row>
         )}
       </div>
-    </div>
+    </AdminPageContainer>
   )
 }

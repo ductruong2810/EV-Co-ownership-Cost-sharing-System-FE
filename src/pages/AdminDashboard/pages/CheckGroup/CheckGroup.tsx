@@ -11,6 +11,7 @@ import EmptyState from '../EmptyState'
 import { InfoCircleOutlined, RightOutlined, TeamOutlined, CalendarOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import ActivityTimeline, { type ActivityItem } from '../../../../components/ActivityTimeline'
+import AdminPageContainer from '../../AdminPageContainer'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -327,17 +328,14 @@ export default function CheckGroup() {
 
   if (allGroupData.length === 0) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6'>
-        <div className='max-w-6xl mx-auto'>
-          <EmptyState />
-        </div>
-      </div>
+      <AdminPageContainer>
+        <EmptyState />
+      </AdminPageContainer>
     )
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6'>
-      <div className='mx-auto flex w-full max-w-6xl flex-col gap-6'>
+    <AdminPageContainer>
         <header className='flex flex-col gap-2'>
           <p className='text-sm font-semibold uppercase tracking-wider text-indigo-400'>Staff workspace</p>
           <h1 className='text-3xl font-bold text-gray-900'>Group approvals</h1>
@@ -677,6 +675,6 @@ export default function CheckGroup() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminPageContainer>
   )
 }

@@ -11,6 +11,7 @@ import type { groupStaffItem } from '../../../../types/api/staff.type'
 import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState/EmptyState'
 import path from '../../../../constants/path'
+import AdminPageContainer from '../../AdminPageContainer'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -268,7 +269,7 @@ const DisputeList = () => {
   if (isLoading) return <Skeleton />
 
   return (
-    <div className='max-w-6xl mx-auto p-4 sm:p-6 space-y-5'>
+    <AdminPageContainer>
       <header className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
         <div>
           <p className='text-xs font-semibold uppercase tracking-widest text-rose-300'>Staff escalation</p>
@@ -596,7 +597,7 @@ const DisputeList = () => {
           )}
         </div>
       </div>
-    </div>
+    </AdminPageContainer>
   )
 }
 

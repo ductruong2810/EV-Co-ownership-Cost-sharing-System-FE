@@ -9,6 +9,7 @@ import type { GetGroupById, UserOfStaff } from '../../../../types/api/staff.type
 import { useNavigate } from 'react-router-dom'
 import EmptyState from '../EmptyState'
 import dayjs, { Dayjs } from 'dayjs'
+import AdminPageContainer from '../../AdminPageContainer'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -136,11 +137,16 @@ export default function CheckBooking() {
 
   // Render
   if (isLoading) return <Skeleton />
-  if (!data.length) return <EmptyState />
+  if (!data.length) {
+    return (
+      <AdminPageContainer>
+        <EmptyState />
+      </AdminPageContainer>
+    )
+  }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6'>
-      <div className='max-w-6xl mx-auto'>
+    <AdminPageContainer>
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-900 mb-2'>Booking Management</h1>
           <p className='text-gray-600'>
@@ -394,7 +400,7 @@ export default function CheckBooking() {
           </div>
         )}
       </div>
-    </div>
+    </AdminPageContainer>
   )
 }
 
