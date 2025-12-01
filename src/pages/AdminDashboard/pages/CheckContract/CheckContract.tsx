@@ -9,6 +9,8 @@ import Skeleton from '../../../../components/Skeleton'
 import type { ContractResponse, ContractDetail } from '../../../../types/api/admin.type'
 import { formatToVND } from '../../../../utils/formatPrice'
 import EmptyState from '../EmptyState'
+import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -216,14 +218,14 @@ function CheckContract() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 p-4 sm:p-6'>
-      <div className='max-w-7xl mx-auto'>
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Contract Approval</h1>
-          <p className='text-gray-600'>Review and approve pending contracts</p>
-        </div>
+    <AdminPageContainer>
+      <AdminPageHeader
+        eyebrow='Contracts & Team'
+        title='Contract Approval'
+        subtitle='Review and approve pending contracts'
+      />
 
-        {/* Search and Filter Section */}
+      {/* Search and Filter Section */}
         <div className='mb-6 space-y-3'>
           <div className='flex flex-col sm:flex-row gap-4'>
             <Input
@@ -297,10 +299,10 @@ function CheckContract() {
           </div>
         )}
 
-        {/* TABLE */}
-        <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
+      {/* TABLE */}
+      <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
         <div className='overflow-x-auto'>
-        <table className='w-full text-sm text-gray-700 min-w-[800px]'>
+          <table className='w-full text-sm text-gray-700 min-w-[800px]'>
           <thead className='bg-gray-100 text-gray-700 uppercase text-xs'>
             <tr>
               {['ID', 'Group', 'Start date', 'End date', 'Deposit amount', 'Status', 'Actions'].map((header) => (
@@ -573,8 +575,7 @@ function CheckContract() {
           </div>
         </div>
       )}
-      </div>
-    </div>
+    </AdminPageContainer>
   )
 }
 

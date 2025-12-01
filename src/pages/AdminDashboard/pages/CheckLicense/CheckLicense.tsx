@@ -715,14 +715,14 @@ export default function CheckLicense() {
   if (loading) return <Skeleton />
   if (members.length === 0) {
     return (
-      <AdminPageContainer className='max-w-7xl'>
+      <AdminPageContainer>
         <EmptyState />
       </AdminPageContainer>
     )
   }
 
   return (
-    <AdminPageContainer className='max-w-7xl'>
+    <AdminPageContainer>
       <AdminPageHeader
         title='Document Verification'
         subtitle={`Total: ${members.length} pending documents`}

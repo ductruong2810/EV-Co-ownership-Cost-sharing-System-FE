@@ -141,7 +141,7 @@ export default function FinancialReports() {
   }
 
   return (
-    <AdminPageContainer className='max-w-4xl'>
+    <AdminPageContainer>
       <AdminPageHeader
         eyebrow='Finance'
         title='Financial Reports'

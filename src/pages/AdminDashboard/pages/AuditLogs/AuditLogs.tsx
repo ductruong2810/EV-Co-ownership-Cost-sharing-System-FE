@@ -12,6 +12,8 @@ import { useState } from 'react'
 import dayjs, { Dayjs } from 'dayjs'
 import auditApi from '../../../../apis/audit.api'
 import type { ColumnsType } from 'antd/es/table'
+import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 
 const { RangePicker } = DatePicker
 const { Option } = Select
@@ -161,20 +163,13 @@ const AuditLogs = () => {
   ]
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        {/* Header */}
-        <div className='mb-6'>
-          <div className='flex items-center gap-3 mb-2'>
-            <HistoryOutlined className='text-3xl text-indigo-600' />
-            <div>
-              <Title level={2} className='!mb-1'>
-                Audit Logs
-              </Title>
-              <Text type='secondary'>View system activity and user actions history</Text>
-            </div>
-          </div>
-        </div>
+    <AdminPageContainer>
+      <AdminPageHeader
+        eyebrow='System & Audit'
+        title='Audit Logs'
+        subtitle='View system activity and user actions history'
+        rightSlot={<HistoryOutlined className='text-2xl text-indigo-600' />}
+      />
 
         {/* Info Alert */}
         <Alert
@@ -298,8 +293,7 @@ const AuditLogs = () => {
             />
           )}
         </Card>
-      </div>
-    </div>
+    </AdminPageContainer>
   )
 }
 

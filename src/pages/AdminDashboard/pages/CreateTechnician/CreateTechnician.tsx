@@ -7,6 +7,8 @@ import { toast } from 'react-toastify'
 import adminApi from '../../../../apis/admin.api'
 import Skeleton from '../../../../components/Skeleton'
 import logger from '../../../../utils/logger'
+import AdminPageContainer from '../../AdminPageContainer'
+import AdminPageHeader from '../../AdminPageHeader'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 
@@ -33,7 +35,12 @@ const createTechnicianSchema = yup.object({
     )
 })
 
-type CreateTechnicianForm = yup.InferType<typeof createTechnicianSchema>
+interface CreateTechnicianForm {
+  fullName: string
+  email: string
+  phoneNumber: string
+  password: string
+}
 
 export default function CreateTechnician() {
   const queryClient = useQueryClient()
@@ -45,8 +52,8 @@ export default function CreateTechnician() {
     handleSubmit,
     formState: { errors },
     reset
-  } = useForm<CreateTechnicianForm>({
-    resolver: yupResolver<FieldValues>(createTechnicianSchema)
+  } = useForm({
+    resolver: yupResolver(createTechnicianSchema)
   })
 
   // Query to get all technicians
@@ -89,12 +96,12 @@ export default function CreateTechnician() {
   if (isLoading) return <Skeleton />
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-6'>
-      <div className='max-w-6xl mx-auto'>
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>Create Technician Account</h1>
-          <p className='text-gray-600'>Create a new technician account for vehicle maintenance</p>
-        </div>
+    <AdminPageContainer>
+      <AdminPageHeader
+        eyebrow='Contracts & Team'
+        title='Create Technician Account'
+        subtitle='Create a new technician account for vehicle maintenance'
+      />
 
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           {/* Create Form */}
@@ -236,8 +243,7 @@ export default function CreateTechnician() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </AdminPageContainer>
   )
 }
 
