@@ -243,12 +243,7 @@ function Routers() {
       element: <RegisterLayout />,
       children: [{ path: '*', element: <NotFound /> }]
     }
-  ],
-  {
-    future: {
-      v7_startTransition: true
-    }
-  })
+  ])
 
   return <RouterProvider router={routers} />
 }
