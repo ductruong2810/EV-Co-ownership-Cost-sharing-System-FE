@@ -399,7 +399,6 @@ export default function CheckBooking() {
             />
           </div>
         )}
-      </div>
     </AdminPageContainer>
   )
 }
