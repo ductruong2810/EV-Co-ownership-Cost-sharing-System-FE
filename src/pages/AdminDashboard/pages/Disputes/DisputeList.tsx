@@ -268,7 +268,7 @@ const DisputeList = () => {
   if (isLoading) return <Skeleton />
 
   return (
-    <div className='p-4 sm:p-6 space-y-5'>
+    <div className='max-w-6xl mx-auto p-4 sm:p-6 space-y-5'>
       <header className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
         <div>
           <p className='text-xs font-semibold uppercase tracking-widest text-rose-300'>Staff escalation</p>
