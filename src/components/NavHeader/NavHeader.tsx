@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import authApi from '../../apis/auth.api'
 import { clearLS, getAccessTokenFromLS, getEmailAccountFromLS, getUserIdFromLS } from '../../utils/auth'
 import { AppContext } from '../../contexts/app.context'
+import { useLanguage } from '../../contexts/language.context'
 import { showSuccessToast } from '../Error'
 import classNames from 'classnames'
 import type { GetAllNotifications } from '../../types/api/user.type'
@@ -28,8 +29,8 @@ import type { WebSocketStatus } from '../../hooks/useWebSocket'
 function NavHeader() {
   const userId = getUserIdFromLS()
 
-  // language state
-  const [lang, setLang] = useState('English')
+  const { language, toggleLanguage } = useLanguage()
+  const isEn = language === 'en'
   const [isAccountOpen, setIsAccountOpen] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [enableNotificationScroll, setEnableNotificationScroll] = useState(false)
@@ -41,22 +42,22 @@ function NavHeader() {
   // global state from context
   const { setIsAuthenticated, websocketStatus } = useContext(AppContext)
 
-  // Simple status text for end-users: chỉ phân biệt Online / Offline, chi tiết để log/debug
+  // Simple status text for end-users: Online / Offline (ngôn ngữ theo language context)
   const statusStyles: Record<WebSocketStatus, { label: string; color: string }> = {
     connected: {
-      label: 'Realtime online',
+      label: isEn ? 'Realtime online' : 'Kết nối realtime',
       color: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
     },
     connecting: {
-      label: 'Realtime offline',
+      label: isEn ? 'Realtime offline' : 'Mất kết nối realtime',
       color: 'bg-amber-400 animate-pulse'
     },
     disconnected: {
-      label: 'Realtime offline',
+      label: isEn ? 'Realtime offline' : 'Mất kết nối realtime',
       color: 'bg-gray-400'
     },
     error: {
-      label: 'Realtime offline',
+      label: isEn ? 'Realtime offline' : 'Mất kết nối realtime',
       color: 'bg-red-500 animate-pulse'
     }
   }
@@ -184,7 +185,9 @@ function NavHeader() {
                    before:content-[""] before:absolute before:-top-6 before:left-0 before:right-0 before:h-6'
           >
             {isNotificationsLoading ? (
-              <div className='px-4 py-3 text-sm text-gray-500'>Loading notifications...</div>
+              <div className='px-4 py-3 text-sm text-gray-500'>
+                {isEn ? 'Loading notifications...' : 'Đang tải thông báo...'}
+              </div>
             ) : notifications.length > 0 ? (
               <div
                 className={`transition-all duration-500 ease-in-out ${
@@ -233,13 +236,15 @@ function NavHeader() {
                       onClick={handleSetState(setEnableNotificationScroll)}
                       className='text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors'
                     >
-                      Show less
+                      {isEn ? 'Show less' : 'Thu gọn'}
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className='px-4 py-3 text-sm text-gray-500'>No notifications yet</div>
+              <div className='px-4 py-3 text-sm text-gray-500'>
+                {isEn ? 'No notifications yet' : 'Chưa có thông báo nào'}
+              </div>
             )}
           </div>
         )}
@@ -254,7 +259,9 @@ function NavHeader() {
         title={
           <div className='flex items-center gap-2'>
             <BellOutlined className='text-teal-500 text-xl' />
-            <span className='text-lg font-bold text-teal-700'>Notification details</span>
+            <span className='text-lg font-bold text-teal-700'>
+              {isEn ? 'Notification details' : 'Chi tiết thông báo'}
+            </span>
           </div>
         }
         className='custom-notification-modal'
@@ -311,7 +318,9 @@ function NavHeader() {
               <div className='px-4 py-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer transition-all duration-200 text-gray-700 font-medium group'>
                 <Link to={path.profile} className='flex items-center gap-3'>
                   <UserOutlined className='text-blue-500 group-hover:text-blue-600 transition-colors' />
-                  <span className='group-hover:text-blue-600 transition-colors'>My Account</span>
+                  <span className='group-hover:text-blue-600 transition-colors'>
+                    {isEn ? 'My Account' : 'Tài khoản của tôi'}
+                  </span>
                 </Link>
               </div>
 
@@ -319,7 +328,7 @@ function NavHeader() {
                 <Link to={path.uploadLicense} className='flex items-center gap-3'>
                   <SafetyCertificateOutlined className='text-green-500 group-hover:text-green-600 transition-colors' />
                   <span className='group-hover:text-green-600 transition-colors'>
-                    Update Driver License & Citizen ID
+                    {isEn ? 'Update Driver License & Citizen ID' : 'Cập nhật GPLX & CCCD'}
                   </span>
                 </Link>
               </div>
@@ -327,14 +336,18 @@ function NavHeader() {
               <div className='px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 cursor-pointer transition-all duration-200 text-gray-700 font-medium group'>
                 <Link to={path.paymentHistory} className='flex items-center gap-3'>
                   <TransactionOutlined className='text-purple-500 group-hover:text-purple-600 transition-colors' />
-                  <span className='group-hover:text-purple-600 transition-colors'>Payment history</span>
+                  <span className='group-hover:text-purple-600 transition-colors'>
+                    {isEn ? 'Payment history' : 'Lịch sử thanh toán'}
+                  </span>
                 </Link>
               </div>
 
               <div className='px-4 py-3 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-yellow-100 cursor-pointer transition-all duration-200 text-gray-700 font-medium group'>
                 <Link to={path.changePassword} className='flex items-center gap-3'>
                   <LockOutlined className='text-orange-500 group-hover:text-orange-600 transition-colors' />
-                  <span className='group-hover:text-orange-600 transition-colors'>Change password</span>
+                  <span className='group-hover:text-orange-600 transition-colors'>
+                    {isEn ? 'Change password' : 'Đổi mật khẩu'}
+                  </span>
                 </Link>
               </div>
             </div>
@@ -349,7 +362,9 @@ function NavHeader() {
                   })}
                 >
                   <LogoutOutlined className='text-red-500 group-hover:text-red-600 transition-colors' />
-                  <span className='group-hover:text-red-600 transition-colors'>Logout</span>
+                  <span className='group-hover:text-red-600 transition-colors'>
+                    {isEn ? 'Logout' : 'Đăng xuất'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -360,11 +375,11 @@ function NavHeader() {
       {/* Language */}
       <div
         className='hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-teal-50/50 transition-all duration-300 cursor-pointer group'
-        onClick={() => setLang((prev) => (prev === 'English' ? 'Tiếng Việt' : 'English'))}
+        onClick={toggleLanguage}
       >
         <GlobalOutlined className='text-xl sm:text-2xl text-gray-600 group-hover:text-teal-500 transition-all duration-300 group-hover:scale-110' />
         <span className='text-gray-700 group-hover:text-teal-600 font-medium w-20 sm:w-24 inline-block text-sm transition-colors duration-300'>
-          {lang}
+          {language === 'en' ? 'English' : 'Tiếng Việt'}
         </span>
       </div>
     </div>

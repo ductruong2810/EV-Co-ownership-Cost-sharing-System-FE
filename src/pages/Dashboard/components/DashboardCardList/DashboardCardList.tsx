@@ -81,7 +81,7 @@ export default function DashboardCardList({ allowAccess }: { allowAccess: boolea
         }}
       />
 
-      {/* Enter Code */}
+      {/* Invite Code */}
       <DashboardCardElement
         handleVerify={() => handleVerify(otp.current?.value || '')}
         allowAccess={allowAccess}
@@ -94,8 +94,8 @@ export default function DashboardCardList({ allowAccess }: { allowAccess: boolea
         }}
         moveLink=''
         content={{
-          title: 'Enter Code',
-          body: 'Enter a group code to join your EV community.',
+          title: 'Invite Code',
+          body: 'Use your invite code to join your EV community.',
           button: 'Join'
         }}
       >
@@ -103,7 +103,7 @@ export default function DashboardCardList({ allowAccess }: { allowAccess: boolea
           <input
             ref={otp}
             type='text'
-            placeholder='Enter group code'
+            placeholder='Enter invite code'
             className='w-full px-5 py-3.5 rounded-2xl border-3 border-indigo-200/70 bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/60 focus:border-white/80 focus:shadow-[0_0_25px_rgba(99,102,241,0.5)] transition-all duration-400 backdrop-blur-xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]'
           />
         </div>
