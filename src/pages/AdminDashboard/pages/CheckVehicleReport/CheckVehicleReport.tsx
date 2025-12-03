@@ -26,15 +26,16 @@ const METRIC_STYLES = {
 
 export function CheckVehicleReport() {
   const queryClient = useQueryClient()
-  const { data, isPending, isError, error } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ['vehicleChecks'],
     queryFn: () => technicianApi.getAllVehicleCheck(),
     staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10
+    gcTime: 1000 * 60 * 10,
+    retry: 1
   })
 
   if (isPending) return <Skeleton />
-  if (isError) return <ErrorState error={error as Error} />
+  if (isError) return <ErrorState error={error as Error} onRetry={() => refetch()} />
 
   const reportData: VehicleCheck[] = data?.data ?? []
 
@@ -246,12 +247,21 @@ const EmptyState = () => (
   </div>
 )
 
-const ErrorState = ({ error }: { error: Error | null }) => (
+const ErrorState = ({ error, onRetry }: { error: Error | null; onRetry?: () => void }) => (
   <div className='min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6 flex items-center justify-center'>
-    <div className='bg-white rounded-2xl shadow-lg p-8 border border-red-200 max-w-md text-center'>
+    <div className='bg-white rounded-2xl shadow-lg p-8 border border-red-200 max-w-md text-center space-y-4'>
       <p className='text-red-700 font-semibold'>
         {error instanceof Error ? error.message : 'Failed to load report list'}
       </p>
+      {onRetry && (
+        <button
+          type='button'
+          onClick={onRetry}
+          className='rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700'
+        >
+          Retry
+        </button>
+      )}
     </div>
   </div>
 )

@@ -41,11 +41,11 @@ function NavHeader() {
   // global state from context
   const { setIsAuthenticated, websocketStatus } = useContext(AppContext)
 
-  const statusStyles: Record<WebSocketStatus, { label: string; color: string; show: boolean }> = {
-    connected: { label: 'Realtime online', color: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]', show: false },
-    connecting: { label: 'Đang kết nối realtime...', color: 'bg-amber-400 animate-pulse', show: true },
-    disconnected: { label: 'Realtime offline', color: 'bg-gray-400', show: true },
-    error: { label: 'Realtime error', color: 'bg-red-500 animate-pulse', show: true }
+  const statusStyles: Record<WebSocketStatus, { label: string; color: string }> = {
+    connected: { label: 'Realtime online', color: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]' },
+    connecting: { label: 'Đang kết nối realtime...', color: 'bg-amber-400 animate-pulse' },
+    disconnected: { label: 'Realtime offline', color: 'bg-gray-400' },
+    error: { label: 'Realtime error', color: 'bg-red-500 animate-pulse' }
   }
   const currentStatusStyle = statusStyles[websocketStatus] || statusStyles.disconnected
 
@@ -142,15 +142,13 @@ function NavHeader() {
     <Skeleton />
   ) : (
     <div className='flex items-center gap-2 sm:gap-4'>
-      {currentStatusStyle.show && (
-        <div
-          className='hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200/60 bg-white/90 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm opacity-80 hover:opacity-100'
-          title={currentStatusStyle.label}
-        >
-          <span className={`w-2 h-2 rounded-full ${currentStatusStyle.color}`} />
-          <span className='text-[10px] font-medium text-gray-600'>{currentStatusStyle.label}</span>
-        </div>
-      )}
+      <div
+        className='hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200/80 bg-gradient-to-r from-white to-gray-50/80 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm'
+        title={currentStatusStyle.label}
+      >
+        <span className={`w-2.5 h-2.5 rounded-full ${currentStatusStyle.color} animate-pulse`} />
+        <span className='text-xs font-semibold text-gray-700'>{currentStatusStyle.label}</span>
+      </div>
       {/* Notification */}
       <div onMouseEnter={() => setIsNotificationOpen(true)} onMouseLeave={() => setIsNotificationOpen(false)}>
         <div ref={notificationRefs.setReference} className='relative'>

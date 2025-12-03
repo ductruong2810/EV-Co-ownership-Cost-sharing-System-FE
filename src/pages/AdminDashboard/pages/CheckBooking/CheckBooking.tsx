@@ -30,12 +30,13 @@ export default function CheckBooking() {
   const navigate = useNavigate()
 
   // Fetch users
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading, isError, error, refetch } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const res = await staffApi.getUsers()
       return Array.isArray(res?.data) ? res.data : []
-    }
+    },
+    retry: 1
   })
 
   // Filter and search logic - Only show CO_OWNER users
@@ -138,6 +139,24 @@ export default function CheckBooking() {
 
   // Render
   if (isLoading) return <Skeleton />
+
+  if (isError) {
+    return (
+      <AdminPageContainer>
+        <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
+          <p className='mb-3 text-base font-semibold text-red-700'>
+            Failed to load users
+          </p>
+          <p className='mb-4 text-sm text-red-600'>
+            {error instanceof Error ? error.message : 'Please check your connection and try again.'}
+          </p>
+          <Button type='primary' danger onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      </AdminPageContainer>
+    )
+  }
   if (!data.length) {
     return (
       <AdminPageContainer>

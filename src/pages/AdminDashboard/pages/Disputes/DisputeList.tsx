@@ -58,7 +58,8 @@ const DisputeList = () => {
   const { data: groupsData } = useQuery({
     queryKey: ['groups-for-filter'],
     queryFn: () => staffApi.getAllGroupStaff(0, 1000),
-    staleTime: 1000 * 60 * 5 // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    retry: 1
   })
 
   const groups: groupStaffItem[] = groupsData?.data?.content || []
@@ -99,9 +100,10 @@ const DisputeList = () => {
   }, [statusFilter, disputeTypeFilter, groupIdFilter, dateRange])
 
   // Fetch disputes with filters
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['disputes', queryParams],
-    queryFn: () => disputeApi.list(queryParams)
+    queryFn: () => disputeApi.list(queryParams),
+    retry: 1
   })
 
   const disputes: DisputeSummary[] = data?.data.content || []
@@ -276,6 +278,24 @@ const DisputeList = () => {
   const hasActiveFilters = searchTerm || dateRange[0] || dateRange[1] || groupIdFilter || disputeTypeFilter !== 'ALL'
 
   if (isLoading) return <Skeleton />
+
+  if (isError) {
+    return (
+      <AdminPageContainer>
+        <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
+          <p className='mb-3 text-base font-semibold text-red-700'>
+            Failed to load disputes
+          </p>
+          <p className='mb-4 text-sm text-red-600'>
+            {error instanceof Error ? error.message : 'Please check your connection and try again.'}
+          </p>
+          <Button type='primary' danger onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      </AdminPageContainer>
+    )
+  }
 
   return (
     <AdminPageContainer>

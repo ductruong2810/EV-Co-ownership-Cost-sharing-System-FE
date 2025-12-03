@@ -39,7 +39,8 @@ export default function CheckGroup() {
   const groupListQuery = useQuery({
     queryKey: ['groupList', { page: currentPage, size: pageSize }],
     // keep previous page data while fetching the next one
-    queryFn: () => staffApi.getAllGroupStaff(currentPage, pageSize)
+    queryFn: () => staffApi.getAllGroupStaff(currentPage, pageSize),
+    retry: 1
   })
 
   // Bulk approve mutation
@@ -137,7 +138,7 @@ export default function CheckGroup() {
     })
   }
 
-  const { isPending } = groupListQuery
+  const { isPending, isError, error, refetch } = groupListQuery
 
   const allGroupData: groupStaffItem[] = groupListQuery.data?.data?.content || []
 
@@ -325,6 +326,24 @@ export default function CheckGroup() {
 
   if (isPending) {
     return <Skeleton />
+  }
+
+  if (isError) {
+    return (
+      <AdminPageContainer>
+        <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
+          <p className='mb-3 text-base font-semibold text-red-700'>
+            Failed to load groups
+          </p>
+          <p className='mb-4 text-sm text-red-600'>
+            {error instanceof Error ? error.message : 'Please check your connection and try again.'}
+          </p>
+          <Button type='primary' danger onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      </AdminPageContainer>
+    )
   }
 
   if (allGroupData.length === 0) {

@@ -31,7 +31,8 @@ export default function BookingQr() {
       const user = Array.isArray(res?.data) ? res.data.find((u: any) => u.userId === Number(userId)) : null
       return user
     },
-    enabled: !!userId
+    enabled: !!userId,
+    retry: 1
   })
 
   // Fetch group info
@@ -43,13 +44,15 @@ export default function BookingQr() {
       const group = Array.isArray(res?.data) ? res.data.find((g: any) => g.groupId === Number(groupId)) : null
       return group
     },
-    enabled: !!userId && !!groupId
+    enabled: !!userId && !!groupId,
+    retry: 1
   })
 
   const {
     data: bookingResponse,
     isLoading,
-    error
+    error,
+    refetch
   } = useQuery({
     queryKey: ['booking', userId, groupId],
     queryFn: () =>
@@ -57,7 +60,8 @@ export default function BookingQr() {
         userId: Number(userId),
         groupId: Number(groupId)
       }),
-    enabled: !!userId && !!groupId
+    enabled: !!userId && !!groupId,
+    retry: 1
   })
 
   const allBookings = bookingResponse?.data?.content || []
@@ -192,12 +196,14 @@ export default function BookingQr() {
   if (error)
     return (
       <div className='min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 flex items-center justify-center p-6'>
-        <div className='bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-lg max-w-md'>
+        <div className='bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-lg max-w-md text-center'>
           <p className='font-semibold text-lg mb-2'>Error loading bookings</p>
-          <p className='text-sm'>{error instanceof Error ? error.message : 'Unknown error'}</p>
+          <p className='text-sm'>
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </p>
           <Button
             type='primary'
-            onClick={() => window.location.reload()}
+            onClick={() => refetch()}
             className='mt-4'
           >
             Retry

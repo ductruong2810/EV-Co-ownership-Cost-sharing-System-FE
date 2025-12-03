@@ -158,7 +158,8 @@ function MaintenanceList() {
     error: errorUserMsg
   } = useQuery<MaintenanceReport[], Error>({
     queryKey: ['technician', 'rejectedUsers'],
-    queryFn: () => technicianApi.getAllUserReport().then((res) => res.data)
+    queryFn: () => technicianApi.getAllUserReport().then((res) => res.data),
+    retry: 1
   })
 
   logger.debug('User vehicle list:', userVehicleList)
@@ -171,7 +172,8 @@ function MaintenanceList() {
     error: errorMaintMsg
   } = useQuery<MaintenanceRequest[], Error>({
     queryKey: ['technician', 'myMaintenances'],
-    queryFn: () => technicianApi.getAllMaintance().then((res) => res.data)
+    queryFn: () => technicianApi.getAllMaintance().then((res) => res.data),
+    retry: 1
   })
 
   // State for modal and form
@@ -370,8 +372,38 @@ function MaintenanceList() {
   }
 
   if (loadingUser || loadingMaint) return <Skeleton />
-  if (errorUser) return <div className='text-rose-600 p-6'>{errorUserMsg?.message}</div>
-  if (errorMaint) return <div className='text-rose-600 p-6'>{errorMaintMsg?.message}</div>
+
+  if (errorUser) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-6 flex items-center justify-center'>
+        <div className='max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow'>
+          <p className='mb-3 text-base font-semibold text-red-700'>
+            Failed to load vehicles needing maintenance
+          </p>
+          <p className='mb-4 text-sm text-red-600'>{errorUserMsg?.message || 'Please try again later.'}</p>
+          <Button type='primary' danger onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'rejectedUsers'] })}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (errorMaint) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-6 flex items-center justify-center'>
+        <div className='max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow'>
+          <p className='mb-3 text-base font-semibold text-red-700'>
+            Failed to load maintenance requests
+          </p>
+          <p className='mb-4 text-sm text-red-600'>{errorMaintMsg?.message || 'Please try again later.'}</p>
+          <Button type='primary' danger onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'myMaintenances'] })}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const selectedVehicle =
     form.vehicleId && form.userId
