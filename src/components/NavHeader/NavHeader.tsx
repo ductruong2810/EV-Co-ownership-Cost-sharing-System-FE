@@ -41,11 +41,24 @@ function NavHeader() {
   // global state from context
   const { setIsAuthenticated, websocketStatus } = useContext(AppContext)
 
+  // Simple status text for end-users: chỉ phân biệt Online / Offline, chi tiết để log/debug
   const statusStyles: Record<WebSocketStatus, { label: string; color: string }> = {
-    connected: { label: 'Realtime online', color: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]' },
-    connecting: { label: 'Đang kết nối realtime...', color: 'bg-amber-400 animate-pulse' },
-    disconnected: { label: 'Realtime offline', color: 'bg-gray-400' },
-    error: { label: 'Realtime error', color: 'bg-red-500 animate-pulse' }
+    connected: {
+      label: 'Realtime online',
+      color: 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+    },
+    connecting: {
+      label: 'Realtime offline',
+      color: 'bg-amber-400 animate-pulse'
+    },
+    disconnected: {
+      label: 'Realtime offline',
+      color: 'bg-gray-400'
+    },
+    error: {
+      label: 'Realtime offline',
+      color: 'bg-red-500 animate-pulse'
+    }
   }
   const currentStatusStyle = statusStyles[websocketStatus] || statusStyles.disconnected
 
@@ -60,7 +73,10 @@ function NavHeader() {
   })
 
   //call api get all notification
-  const { data: notifications = [], isPending } = useQuery({
+  const {
+    data: notifications = [],
+    isPending: isNotificationsLoading
+  } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => userApi.getAllNotification().then((res) => res.data),
     staleTime: 10000,
@@ -138,9 +154,7 @@ function NavHeader() {
     setIsModalOpen(true)
   }
 
-  return isPending ? (
-    <Skeleton />
-  ) : (
+  return (
     <div className='flex items-center gap-2 sm:gap-4'>
       <div
         className='hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200/80 bg-gradient-to-r from-white to-gray-50/80 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm'
@@ -169,7 +183,9 @@ function NavHeader() {
             className='bg-white rounded-xl shadow-2xl border border-gray-200/80 py-2 min-w-[300px] max-w-[400px] z-50 backdrop-blur-sm
                    before:content-[""] before:absolute before:-top-6 before:left-0 before:right-0 before:h-6'
           >
-            {notifications.length > 0 && (
+            {isNotificationsLoading ? (
+              <div className='px-4 py-3 text-sm text-gray-500'>Loading notifications...</div>
+            ) : notifications.length > 0 ? (
               <div
                 className={`transition-all duration-500 ease-in-out ${
                   enableNotificationScroll
@@ -222,6 +238,8 @@ function NavHeader() {
                   </div>
                 )}
               </div>
+            ) : (
+              <div className='px-4 py-3 text-sm text-gray-500'>No notifications yet</div>
             )}
           </div>
         )}
