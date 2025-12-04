@@ -3,7 +3,7 @@ import { Button, Result } from 'antd'
 import { HomeOutlined, ReloadOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import path from '../../constants/path'
-import useI18n from '../../i18n/useI18n'
+import { useI18n } from '../../i18n/useI18n'
 
 interface ErrorPageProps {
   statusCode?: 404 | 500 | 403 | 401
