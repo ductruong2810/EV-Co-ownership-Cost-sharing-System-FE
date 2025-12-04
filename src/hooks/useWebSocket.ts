@@ -24,6 +24,7 @@ export type WebSocketStatus = 'connecting' | 'connected' | 'disconnected' | 'err
 
 interface UseWebSocketOptions {
   initialGroupId?: string
+  userId?: string // Pass userId from AppContext to trigger re-connection when it changes
 }
 
 interface UseWebSocketResult {
@@ -37,7 +38,9 @@ const TOAST_CACHE_LIMIT = 50
 export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult {
   const queryClient = useQueryClient()
   const clientRef = useRef<Client | null>(null)
-  const userId = getUserIdFromLS()
+  // Use userId from options (AppContext) if provided, otherwise fallback to localStorage
+  // This ensures hook re-runs when userId changes after login
+  const userId = options?.userId || getUserIdFromLS()
   const isConnectedRef = useRef(false)
   const [status, setStatus] = useState<WebSocketStatus>('disconnected')
   const subscriptionsRef = useRef<Map<string, StompSubscription>>(new Map())

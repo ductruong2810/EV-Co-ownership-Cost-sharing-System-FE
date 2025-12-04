@@ -63,7 +63,7 @@ export default function Login() {
     }
   }, [rememberedEmail, setValue])
 
-  const { setIsAuthenticated } = useContext(AppContext)
+  const { setIsAuthenticated, setUserId } = useContext(AppContext)
   const navigate = useNavigate()
 
   // loginMutation sử dụng react-query dùng để fetch api đăng ký tài khoảng
@@ -104,6 +104,7 @@ export default function Login() {
           const userId = getUserIdFromToken()
           if (userId) {
             setUserIdToLS(userId)
+            setUserId(userId) // Update AppContext state to trigger WebSocket connection
           }
           
           setIsAuthenticated(true)
