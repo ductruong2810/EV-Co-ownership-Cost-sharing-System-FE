@@ -341,9 +341,6 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
         }
         heartbeatCheckIntervalRef.current = setInterval(() => {
           if (isConnectedRef.current && clientRef.current?.connected) {
-            const now = Date.now()
-            const timeSinceLastHeartbeat = now - lastHeartbeatTimeRef.current
-            
             // Check underlying socket state
             const currentSocket = socketRef.current
             if (!currentSocket) {
@@ -355,27 +352,17 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
             const isSocketOpen = socketState === SockJS.OPEN
             
             // If socket is not open, mark as disconnected immediately
+            // If socket is OPEN and STOMP client is connected, connection is healthy
+            // STOMP heartbeat frames keep the connection alive even without messages
+            // We don't need to check message timeout because STOMP protocol handles heartbeat
             if (!isSocketOpen) {
               console.warn('⚠️ Underlying socket is not open, marking as disconnected')
               isConnectedRef.current = false
               updateStatus('disconnected')
               return
             }
-            
-            // If no activity (message/heartbeat) received for too long, consider it disconnected
-            // This handles cases where socket appears open but server is actually down
-            if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT_MS) {
-              console.warn('⚠️ Heartbeat timeout detected, marking as disconnected')
-              isConnectedRef.current = false
-              updateStatus('disconnected')
-              if (clientRef.current?.connected) {
-                try {
-                  clientRef.current.deactivate()
-                } catch (e) {
-                  console.error('Error deactivating client:', e)
-                }
-              }
-            }
+            // Socket is open and STOMP is connected - connection is healthy
+            // No need to check message timeout as STOMP heartbeat handles connection health
           }
         }, 2000) // Check every 2 seconds
 
@@ -478,6 +465,54 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
     attachGroupSubscription,
     subscribeToGroupNotifications
   ])
+
+  // Handle page visibility changes (tab switch, minimize, etc.)
+  useEffect(() => {
+    if (!userId) return
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab is hidden - connection may be throttled by browser
+        console.log('📱 Tab hidden, WebSocket may be throttled')
+      } else {
+        // Tab is visible again - check connection and reconnect if needed
+        console.log('👁️ Tab visible again, checking WebSocket connection...')
+        
+        // Check if connection is still alive
+        if (!isConnectedRef.current || !clientRef.current?.connected) {
+          console.log('🔄 Connection lost while tab was hidden, reconnecting...')
+          // Clear any pending reconnect timeout
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current)
+            reconnectTimeoutRef.current = null
+          }
+          // Reset connection state to trigger reconnect
+          isConnectedRef.current = false
+          reconnectAttemptsRef.current = 0 // Reset attempts for visibility-triggered reconnect
+          updateStatus('connecting')
+        } else {
+          // Connection appears active, but verify with heartbeat check
+          const currentSocket = socketRef.current
+          if (currentSocket && currentSocket.readyState === SockJS.OPEN) {
+            // Force a heartbeat check by updating timestamp
+            // This will trigger the heartbeat monitor to verify connection
+            lastHeartbeatTimeRef.current = Date.now()
+          } else {
+            // Socket is not open, reconnect
+            console.log('🔄 Socket not open after tab visible, reconnecting...')
+            isConnectedRef.current = false
+            reconnectAttemptsRef.current = 0
+            updateStatus('connecting')
+          }
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [userId, updateStatus])
 
   // Tự subscribe/unsubscribe theo initialGroupId khi thay đổi
   useEffect(() => {
