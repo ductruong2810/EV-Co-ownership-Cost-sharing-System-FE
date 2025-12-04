@@ -30,6 +30,7 @@ import type { DashboardStatistics } from '../../../../types/api/dashboard.type'
 import logger from '../../../../utils/logger'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Title } = Typography
 const { RangePicker } = DatePicker
@@ -88,6 +89,7 @@ type QuickStatCard = {
 }
 
 export default function Dashboard() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   // Default to today for lighter query and avoid errors
   const today = dayjs()
@@ -369,10 +371,10 @@ export default function Dashboard() {
     return [
       {
         id: 'revenue',
-        label: 'Total Revenue',
+        label: t('admin_dashboard_quick_revenue'),
         value: formatCurrencyCompact(statistics.totalRevenue),
         detailLabel: null,
-        detailValue: `${formatCount(statistics.successfulPayments)} payments`,
+        detailValue: `${formatCount(statistics.successfulPayments)} ${t('admin_dashboard_quick_payments')}`,
         icon: <DollarOutlined className='text-xl' />,
         iconBg: 'bg-emerald-50 text-emerald-600',
         link: 'dashboard',
@@ -380,20 +382,20 @@ export default function Dashboard() {
       },
       {
         id: 'funds',
-        label: 'Fund Balance',
+        label: t('admin_dashboard_quick_funds'),
         value: formatCurrencyCompact(statistics.totalFundBalance),
         detailLabel: null,
-        detailValue: `${formatCount(statistics.totalFunds)} funds`,
+        detailValue: `${formatCount(statistics.totalFunds)} ${t('admin_dashboard_quick_fund_count')}`,
         icon: <BankOutlined className='text-xl' />,
         iconBg: 'bg-sky-50 text-sky-600',
         link: 'funds'
       },
       {
         id: 'groups',
-        label: 'Groups in system',
+        label: t('admin_dashboard_quick_groups'),
         value: formatCount(statistics.totalGroups),
-        detailLabel: `${formatCount(statistics.pendingGroups)} pending approvals`,
-        detailValue: `${formatCount(statistics.activeGroups)} active`,
+        detailLabel: `${formatCount(statistics.pendingGroups)} ${t('admin_dashboard_quick_pending_approvals')}`,
+        detailValue: `${formatCount(statistics.activeGroups)} ${t('admin_dashboard_quick_active')}`,
         icon: <TeamOutlined className='text-xl' />,
         iconBg: 'bg-indigo-50 text-indigo-600',
         link: 'groups',
@@ -401,10 +403,10 @@ export default function Dashboard() {
       },
       {
         id: 'bookings',
-        label: 'Bookings',
+        label: t('admin_dashboard_quick_bookings'),
         value: formatCount(statistics.totalBookings),
         detailLabel: null,
-        detailValue: `${formatCount(statistics.completedBookings)} completed`,
+        detailValue: `${formatCount(statistics.completedBookings)} ${t('admin_dashboard_quick_completed')}`,
         icon: <CalendarOutlined className='text-xl' />,
         iconBg: 'bg-orange-50 text-orange-500',
         link: 'checkBooking',
@@ -412,10 +414,10 @@ export default function Dashboard() {
       },
       {
         id: 'maintenance',
-        label: 'Maintenance tasks',
+        label: t('admin_dashboard_quick_maintenance'),
         value: formatCount(statistics.totalMaintenances),
-        detailLabel: `${formatCount(openMaintenances)} in progress`,
-        detailValue: `${formatCount(statistics.totalMaintenances - openMaintenances)} closed`,
+        detailLabel: `${formatCount(openMaintenances)} ${t('admin_dashboard_in_progress')}`,
+        detailValue: `${formatCount(statistics.totalMaintenances - openMaintenances)} ${t('admin_dashboard_quick_closed')}`,
         icon: <ToolOutlined className='text-xl' />,
         iconBg: 'bg-amber-50 text-amber-600',
         link: 'maintenance',
@@ -423,17 +425,17 @@ export default function Dashboard() {
       },
       {
         id: 'disputes',
-        label: 'Support cases',
+        label: t('admin_dashboard_quick_support'),
         value: formatCount(statistics.totalDisputes),
-        detailLabel: `${formatCount(openDisputes)} open`,
-        detailValue: `${formatCount(statistics.disputesByStatus?.IN_REVIEW || 0)} in review`,
+        detailLabel: `${formatCount(openDisputes)} ${t('admin_dashboard_quick_open')}`,
+        detailValue: `${formatCount(statistics.disputesByStatus?.IN_REVIEW || 0)} ${t('admin_dashboard_quick_in_review')}`,
         icon: <ExclamationCircleOutlined className='text-xl' />,
         iconBg: 'bg-rose-50 text-rose-600',
         link: 'disputes',
         trendValue: trend(statistics.totalDisputes, statistics.previousTotalDisputes)
       }
     ]
-  }, [statistics])
+  }, [statistics, t])
 
   // Helper function to format role name
   const formatRoleName = (role: string) => {
@@ -489,13 +491,14 @@ export default function Dashboard() {
   console.log('Statistics usersByRole:', statistics?.usersByRole)
 
   // Payment Status Data for Pie Chart
-  const paymentStatusData = statistics
-    ? [
-        { type: 'Success', value: Number(statistics.successfulPayments) || 0 },
-        { type: 'Pending', value: Number(statistics.pendingPayments) || 0 },
-        { type: 'Failed', value: Number(statistics.failedPayments) || 0 }
-      ].filter((d) => d.value > 0)
-    : []
+  const paymentStatusData = useMemo(() => {
+    if (!statistics) return []
+    return [
+      { type: t('admin_dashboard_chart_success'), value: Number(statistics.successfulPayments) || 0 },
+      { type: t('admin_dashboard_chart_pending'), value: Number(statistics.pendingPayments) || 0 },
+      { type: t('admin_dashboard_chart_failed'), value: Number(statistics.failedPayments) || 0 }
+    ].filter((d) => d.value > 0)
+  }, [statistics, t])
 
   // Revenue Data for Line Chart (trend)
   const revenueData = statistics
@@ -550,7 +553,7 @@ export default function Dashboard() {
           overflow: 'hidden',
           textOverflow: 'ellipsis'
         },
-        content: 'Total\n' + finalUsersByRoleData.reduce((sum, d) => sum + d.value, 0) + ' users'
+        content: `${t('admin_dashboard_chart_total_users').split('\n')[0]}\n${finalUsersByRoleData.reduce((sum, d) => sum + d.value, 0)} ${t('admin_dashboard_chart_total_users').split('\n')[1] || 'users'}`
       }
     },
     autoFit: true
@@ -620,11 +623,11 @@ export default function Dashboard() {
     },
     meta: {
       revenue: {
-        alias: 'Doanh Thu',
+        alias: t('admin_dashboard_chart_revenue'),
         formatter: (value: number) => formatCurrency(value)
       },
       period: {
-        alias: periodType === 'WEEK' ? 'Tuần' : periodType === 'DAY' ? 'Ngày' : 'Tháng'
+        alias: periodType === 'WEEK' ? t('admin_dashboard_chart_week') : periodType === 'DAY' ? t('admin_dashboard_chart_day') : t('admin_dashboard_chart_month')
       }
     },
     xAxis: {
@@ -766,28 +769,29 @@ export default function Dashboard() {
     })
   }
 
-  const financialComparisonData = statistics
-    ? [
-        {
-          type: 'Revenue',
-          amount: (() => {
-            // Try multiple sources for revenue
-            const rev =
-              statistics.totalRevenue || rawStatistics?.payments?.totalAmount || rawStatistics?.totalPaymentAmount || 0
-            const numRev = Number(rev)
-            return rev !== null && rev !== undefined && !isNaN(numRev) && isFinite(numRev) ? numRev : 0
-          })()
-        },
-        {
-          type: 'Expenses',
-          amount: (() => {
-            const exp = statistics.totalExpenseAmount || rawStatistics?.totalExpenseAmount || 0
-            const numExp = Number(exp)
-            return exp !== null && exp !== undefined && !isNaN(numExp) && isFinite(numExp) ? numExp : 0
-          })()
-        }
-      ]
-    : [] // Always show both Revenue and Expenses, even if 0
+  const financialComparisonData = useMemo(() => {
+    if (!statistics) return []
+    return [
+      {
+        type: t('admin_dashboard_chart_revenue'),
+        amount: (() => {
+          // Try multiple sources for revenue
+          const rev =
+            statistics.totalRevenue || rawStatistics?.payments?.totalAmount || rawStatistics?.totalPaymentAmount || 0
+          const numRev = Number(rev)
+          return rev !== null && rev !== undefined && !isNaN(numRev) && isFinite(numRev) ? numRev : 0
+        })()
+      },
+      {
+        type: t('admin_dashboard_chart_expenses'),
+        amount: (() => {
+          const exp = statistics.totalExpenseAmount || rawStatistics?.totalExpenseAmount || 0
+          const numExp = Number(exp)
+          return exp !== null && exp !== undefined && !isNaN(numExp) && isFinite(numExp) ? numExp : 0
+        })()
+      }
+    ]
+  }, [statistics, rawStatisticsKey, t])
 
   const financialComparisonConfig: ColumnConfig = {
     data: financialComparisonData,
@@ -852,13 +856,13 @@ export default function Dashboard() {
   const getPeriodLabel = () => {
     switch (periodType) {
       case 'DAY':
-        return 'Day'
+        return t('admin_dashboard_chart_day')
       case 'WEEK':
-        return 'Week'
+        return t('admin_dashboard_chart_week')
       case 'MONTH':
-        return 'Month'
+        return t('admin_dashboard_chart_month')
       default:
-        return 'Month'
+        return t('admin_dashboard_chart_month')
     }
   }
 
@@ -881,8 +885,8 @@ export default function Dashboard() {
   return (
     <AdminPageContainer className='max-w-7xl'>
       <AdminPageHeader
-        title='Dashboard Report'
-        subtitle='System overview and statistics'
+        title={t('admin_dashboard_title')}
+        subtitle={t('admin_dashboard_subtitle')}
         rightSlot={
           <div className='flex items-center gap-2 text-sm text-gray-500'>
             <CalendarOutlined />
@@ -894,15 +898,15 @@ export default function Dashboard() {
         {/* Error Alert */}
         {error && (
           <Alert
-            message='Failed to load data'
-            description='Please try selecting a different time range or try again later.'
+            message={t('admin_dashboard_error_load')}
+            description={t('admin_dashboard_error_desc')}
             type='error'
             showIcon
             closable
             className='mb-6 rounded-lg shadow-sm border-l-4 border-red-500'
             action={
               <Button size='small' type='primary' onClick={() => refetch()}>
-                Retry
+                {t('admin_dashboard_retry')}
               </Button>
             }
           />
@@ -916,18 +920,17 @@ export default function Dashboard() {
                 <div className='flex items-center gap-3'>
                   <WarningOutlined className='text-xl text-amber-600' />
                   <div>
-                    <div className='font-semibold text-gray-900'>Action Required</div>
+                    <div className='font-semibold text-gray-900'>{t('admin_dashboard_action_required')}</div>
                     <div className='text-sm text-gray-600 mt-1'>
                       {openDisputes > 0 && (
                         <span>
-                          {openDisputes} open dispute{openDisputes > 1 ? 's' : ''} need{openDisputes === 1 ? 's' : ''}{' '}
-                          attention
+                          {openDisputes} {openDisputes === 1 ? t('admin_dashboard_open_disputes') : t('admin_dashboard_open_disputes_plural')} {openDisputes === 1 ? t('admin_dashboard_needs_attention') : t('admin_dashboard_needs_attention_plural')}
                         </span>
                       )}
                       {openDisputes > 0 && overdueMaintenances > 0 && <span className='mx-2'>•</span>}
                       {overdueMaintenances > 0 && (
                         <span>
-                          {overdueMaintenances} maintenance task{overdueMaintenances > 1 ? 's' : ''} in progress
+                          {overdueMaintenances} {overdueMaintenances === 1 ? t('admin_dashboard_maintenance_tasks') : t('admin_dashboard_maintenance_tasks_plural')} {t('admin_dashboard_in_progress')}
                         </span>
                       )}
                     </div>
@@ -941,7 +944,7 @@ export default function Dashboard() {
                       onClick={() => navigate('/manager/disputes')}
                       className='flex items-center gap-1 text-amber-700 hover:text-amber-800 font-semibold'
                     >
-                      View Disputes <RightOutlined className='text-xs' />
+                      {t('admin_dashboard_view_disputes')} <RightOutlined className='text-xs' />
                     </Button>
                   )}
                   {overdueMaintenances > 0 && (
@@ -951,7 +954,7 @@ export default function Dashboard() {
                       onClick={() => navigate('/manager/maintenance')}
                       className='flex items-center gap-1 text-amber-700 hover:text-amber-800 font-semibold'
                     >
-                      View Maintenance <RightOutlined className='text-xs' />
+                      {t('admin_dashboard_view_maintenance')} <RightOutlined className='text-xs' />
                     </Button>
                   )}
                 </div>
@@ -968,26 +971,26 @@ export default function Dashboard() {
         {isLoading && (
           <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
             <Spin size='large' />
-            <span className='ml-3 text-gray-600 font-medium'>Loading dashboard data...</span>
+            <span className='ml-3 text-gray-600 font-medium'>{t('admin_dashboard_loading')}</span>
           </div>
         )}
 
         {/* Date Filter Section */}
         <Card className='mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm' styles={{ body: { padding: '24px' } }}>
           <div className='mb-6'>
-            <h3 className='text-lg font-semibold text-gray-800 mb-1'>Filter by time</h3>
-            <p className='text-sm text-gray-500'>Select a time period to view statistics</p>
+            <h3 className='text-lg font-semibold text-gray-800 mb-1'>{t('admin_dashboard_filter_time')}</h3>
+            <p className='text-sm text-gray-500'>{t('admin_dashboard_filter_desc')}</p>
           </div>
 
           {/* Preset Buttons */}
           <div className='mb-6 flex flex-wrap gap-2'>
             {[
-              { key: 'all', label: 'All' },
-              { key: 'today', label: 'Today' },
-              { key: 'thisWeek', label: 'This Week' },
-              { key: 'thisMonth', label: 'This Month' },
-              { key: 'last7Days', label: 'Last 7 Days' },
-              { key: 'last30Days', label: 'Last 30 Days' }
+              { key: 'all', label: t('admin_dashboard_preset_all') },
+              { key: 'today', label: t('admin_dashboard_preset_today') },
+              { key: 'thisWeek', label: t('admin_dashboard_preset_this_week') },
+              { key: 'thisMonth', label: t('admin_dashboard_preset_this_month') },
+              { key: 'last7Days', label: t('admin_dashboard_preset_last_7_days') },
+              { key: 'last30Days', label: t('admin_dashboard_preset_last_30_days') }
             ].map((preset) => (
               <Button
                 key={preset.key}
@@ -1020,7 +1023,7 @@ export default function Dashboard() {
               value={selectedMonth}
               onChange={handleMonthChange}
               format='MM/YYYY'
-              placeholder='Select month'
+              placeholder={t('admin_dashboard_select_month')}
               style={{ width: 160 }}
               className='rounded-lg'
             />
@@ -1029,7 +1032,7 @@ export default function Dashboard() {
               value={dateRange}
               onChange={handleRangeChange}
               format='DD/MM/YYYY'
-              placeholder={['From date', 'To date']}
+              placeholder={[t('admin_dashboard_from_date'), t('admin_dashboard_to_date')]}
               style={{ width: 320 }}
               className='rounded-lg'
             />
@@ -1056,7 +1059,7 @@ export default function Dashboard() {
                           card.trendValue >= 0 ? 'text-emerald-600' : 'text-rose-600'
                         }`}
                       >
-                        {`${card.trendValue >= 0 ? '+' : ''}${card.trendValue.toFixed(1)}% vs last period`}
+                        {`${card.trendValue >= 0 ? '+' : ''}${card.trendValue.toFixed(1)}% ${t('admin_dashboard_trend_vs_last')}`}
                       </p>
                     )}
                   </div>
@@ -1068,14 +1071,14 @@ export default function Dashboard() {
                   {card.detailLabel && <p>{card.detailLabel}</p>}
                   <p className='font-semibold text-gray-900'>{card.detailValue}</p>
                 </div>
-                {card.link && <p className='mt-3 text-xs font-semibold text-indigo-500'>View details →</p>}
+                {card.link && <p className='mt-3 text-xs font-semibold text-indigo-500'>{t('admin_dashboard_view_details')}</p>}
               </button>
             ))}
           </div>
         ) : (
           <Card className='mb-8 shadow-md'>
             <div className='py-12 text-center text-gray-400'>
-              {isLoading ? 'Loading data...' : 'No data available. Please select a different time range.'}
+              {isLoading ? t('admin_dashboard_loading') : t('admin_dashboard_no_data')}
             </div>
           </Card>
         )}
@@ -1087,7 +1090,7 @@ export default function Dashboard() {
             title={
               <div className='flex items-center gap-2'>
                 <LineChartOutlined className='text-blue-600' />
-                <span className='text-lg font-semibold text-gray-800'>Performance Metrics</span>
+                <span className='text-lg font-semibold text-gray-800'>{t('admin_dashboard_performance_metrics')}</span>
               </div>
             }
           >
@@ -1095,7 +1098,7 @@ export default function Dashboard() {
               <Col xs={24} sm={12} md={6}>
                 <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
                   <div className='flex items-center justify-between mb-2'>
-                    <span className='text-xs font-semibold text-gray-500 uppercase'>Booking Rate</span>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>{t('admin_dashboard_booking_rate')}</span>
                     <CheckCircleOutlined className='text-green-500' />
                   </div>
                   <p className='text-2xl font-bold text-gray-900'>
@@ -1105,14 +1108,14 @@ export default function Dashboard() {
                     %
                   </p>
                   <p className='text-xs text-gray-500 mt-1'>
-                    {formatCount(statistics.totalBookings)} bookings / {formatCount(statistics.totalGroups)} groups
+                    {formatCount(statistics.totalBookings)} {t('admin_dashboard_bookings_label')} / {formatCount(statistics.totalGroups)} {t('admin_dashboard_groups_label')}
                   </p>
                 </div>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
                   <div className='flex items-center justify-between mb-2'>
-                    <span className='text-xs font-semibold text-gray-500 uppercase'>Payment Success</span>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>{t('admin_dashboard_payment_success')}</span>
                     <DollarOutlined className='text-emerald-500' />
                   </div>
                   <p className='text-2xl font-bold text-gray-900'>
@@ -1122,14 +1125,14 @@ export default function Dashboard() {
                     %
                   </p>
                   <p className='text-xs text-gray-500 mt-1'>
-                    {formatCount(statistics.successfulPayments)} / {formatCount(statistics.totalPayments)} payments
+                    {formatCount(statistics.successfulPayments)} / {formatCount(statistics.totalPayments)} {t('admin_dashboard_payments_total')}
                   </p>
                 </div>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
                   <div className='flex items-center justify-between mb-2'>
-                    <span className='text-xs font-semibold text-gray-500 uppercase'>Dispute Rate</span>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>{t('admin_dashboard_dispute_rate')}</span>
                     <ExclamationCircleOutlined className='text-amber-500' />
                   </div>
                   <p className='text-2xl font-bold text-gray-900'>
@@ -1139,14 +1142,14 @@ export default function Dashboard() {
                     %
                   </p>
                   <p className='text-xs text-gray-500 mt-1'>
-                    {formatCount(statistics.totalDisputes)} disputes / {formatCount(statistics.totalBookings)} bookings
+                    {formatCount(statistics.totalDisputes)} {t('admin_dashboard_disputes_label')} / {formatCount(statistics.totalBookings)} {t('admin_dashboard_bookings_label')}
                   </p>
                 </div>
               </Col>
               <Col xs={24} sm={12} md={6}>
                 <div className='bg-white rounded-xl p-4 border border-gray-100 shadow-sm'>
                   <div className='flex items-center justify-between mb-2'>
-                    <span className='text-xs font-semibold text-gray-500 uppercase'>Avg Revenue/Group</span>
+                    <span className='text-xs font-semibold text-gray-500 uppercase'>{t('admin_dashboard_avg_revenue')}</span>
                     <FundProjectionScreenOutlined className='text-indigo-500' />
                   </div>
                   <p className='text-2xl font-bold text-gray-900'>
@@ -1155,7 +1158,7 @@ export default function Dashboard() {
                       : '0 ₫'}
                   </p>
                   <p className='text-xs text-gray-500 mt-1'>
-                    {formatCurrencyCompact(statistics.totalRevenue)} total revenue
+                    {formatCurrencyCompact(statistics.totalRevenue)} {t('admin_dashboard_total_revenue_label')}
                   </p>
                 </div>
               </Col>
@@ -1179,7 +1182,7 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold text-lg'>Users by Role</span>}
+                title={<span className='text-white font-semibold text-lg'>{t('admin_dashboard_chart_users_role')}</span>}
               >
                 {finalUsersByRoleData.length > 0 ? (
                   <div style={{ height: 320 }}>
@@ -1189,7 +1192,7 @@ export default function Dashboard() {
                   <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
                     <div className='text-center'>
                       <UserOutlined className='text-4xl mb-2 opacity-50' />
-                      <p className='text-sm'>No user data available</p>
+                      <p className='text-sm'>{t('admin_dashboard_chart_no_user_data')}</p>
                     </div>
                   </div>
                 )}
@@ -1209,7 +1212,7 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold text-lg'>Groups by Status</span>}
+                title={<span className='text-white font-semibold text-lg'>{t('admin_dashboard_chart_groups_status')}</span>}
               >
                 {groupsByStatusData.length > 0 ? (
                   <div style={{ height: 320 }}>
@@ -1219,7 +1222,7 @@ export default function Dashboard() {
                   <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
                     <div className='text-center'>
                       <TeamOutlined className='text-4xl mb-2 opacity-50' />
-                      <p className='text-sm'>No group data available</p>
+                      <p className='text-sm'>{t('admin_dashboard_chart_no_group_data')}</p>
                     </div>
                   </div>
                 )}
@@ -1239,7 +1242,7 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold text-lg'>Transaction Status</span>}
+                title={<span className='text-white font-semibold text-lg'>{t('admin_dashboard_chart_transaction_status')}</span>}
               >
                 {paymentStatusData.length > 0 ? (
                   <div style={{ height: 320 }}>
@@ -1249,7 +1252,7 @@ export default function Dashboard() {
                   <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
                     <div className='text-center'>
                       <DollarOutlined className='text-4xl mb-2 opacity-50' />
-                      <p className='text-sm'>No transaction data available</p>
+                      <p className='text-sm'>{t('admin_dashboard_chart_no_transaction_data')}</p>
                     </div>
                   </div>
                 )}
@@ -1273,7 +1276,7 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold text-lg'>Revenue Trend by {getPeriodLabel()}</span>}
+                title={<span className='text-white font-semibold text-lg'>{t('admin_dashboard_chart_revenue_trend')} {t(`admin_dashboard_chart_${getPeriodLabel().toLowerCase()}`)}</span>}
               >
                 {hasRevenueData && hasPositiveRevenue ? (
                   <div style={{ height: 380 }}>
@@ -1282,16 +1285,16 @@ export default function Dashboard() {
                 ) : hasRevenueData ? (
                   <div className='flex h-[380px] flex-col items-center justify-center gap-3 text-center bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg'>
                     <LineChartOutlined className='text-5xl text-emerald-500 opacity-60' />
-                    <p className='text-base font-semibold text-gray-700'>No revenue in this time period</p>
+                    <p className='text-base font-semibold text-gray-700'>{t('admin_dashboard_chart_no_revenue_period')}</p>
                     <p className='text-sm text-gray-500 max-w-md'>
-                      Try selecting a wider range or another date filter to view revenue data.
+                      {t('admin_dashboard_chart_no_revenue_desc')}
                     </p>
                   </div>
                 ) : (
                   <div className='flex h-[380px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
                     <div className='text-center'>
                       <LineChartOutlined className='text-5xl mb-3 opacity-50' />
-                      <p className='text-sm font-medium'>No revenue data available for this time period</p>
+                      <p className='text-sm font-medium'>{t('admin_dashboard_chart_no_revenue_data')}</p>
                     </div>
                   </div>
                 )}
@@ -1314,13 +1317,13 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold'>User Statistics</span>}
+                title={<span className='text-white font-semibold'>{t('admin_dashboard_stat_user_stats')}</span>}
               >
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
                     <Statistic
                       title={
-                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Co-Owners</span>
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_co_owners')}</span>
                       }
                       value={statistics.totalCoOwners}
                       prefix={<UserOutlined className='text-green-600' />}
@@ -1329,7 +1332,7 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Staff</span>}
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_staff')}</span>}
                       value={statistics.totalStaff}
                       prefix={<UserOutlined className='text-blue-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
@@ -1338,7 +1341,7 @@ export default function Dashboard() {
                   <div className='p-4 bg-purple-50 rounded-lg border border-purple-100'>
                     <Statistic
                       title={
-                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Technicians</span>
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_technicians')}</span>
                       }
                       value={statistics.totalTechnicians}
                       prefix={<UserOutlined className='text-purple-600' />}
@@ -1347,7 +1350,7 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-red-50 rounded-lg border border-red-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Admins</span>}
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_admins')}</span>}
                       value={statistics.totalAdmins}
                       prefix={<UserOutlined className='text-red-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#dc2626' }}
@@ -1368,12 +1371,12 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold'>Transaction Statistics</span>}
+                title={<span className='text-white font-semibold'>{t('admin_dashboard_stat_transaction_stats')}</span>}
               >
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total</span>}
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_total')}</span>}
                       value={statistics.totalPayments}
                       prefix={<DollarOutlined className='text-blue-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#0284c7' }}
@@ -1381,7 +1384,7 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Success</span>}
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_success')}</span>}
                       value={statistics.successfulPayments}
                       prefix={<CheckCircleOutlined className='text-green-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#059669' }}
@@ -1389,7 +1392,7 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-yellow-50 rounded-lg border border-yellow-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Pending</span>}
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_pending')}</span>}
                       value={statistics.pendingPayments}
                       prefix={<ClockCircleOutlined className='text-yellow-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#d97706' }}
@@ -1397,7 +1400,7 @@ export default function Dashboard() {
                   </div>
                   <div className='p-4 bg-red-50 rounded-lg border border-red-100'>
                     <Statistic
-                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Failed</span>}
+                      title={<span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_failed')}</span>}
                       value={statistics.failedPayments}
                       prefix={<CloseCircleOutlined className='text-red-600' />}
                       valueStyle={{ fontSize: '24px', fontWeight: '700', color: '#dc2626' }}
@@ -1418,13 +1421,13 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold'>Recent Activity (30 Days)</span>}
+                title={<span className='text-white font-semibold'>{t('admin_dashboard_stat_recent_activity')}</span>}
               >
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
                     <Statistic
                       title={
-                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Users</span>
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_new_users')}</span>
                       }
                       value={statistics.newUsersLast30Days}
                       prefix={<UserOutlined className='text-green-600' />}
@@ -1434,7 +1437,7 @@ export default function Dashboard() {
                   <div className='p-4 bg-blue-50 rounded-lg border border-blue-100'>
                     <Statistic
                       title={
-                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Groups</span>
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_new_groups')}</span>
                       }
                       value={statistics.newGroupsLast30Days}
                       prefix={<TeamOutlined className='text-blue-600' />}
@@ -1444,7 +1447,7 @@ export default function Dashboard() {
                   <div className='p-4 bg-purple-50 rounded-lg border border-purple-100 col-span-2'>
                     <Statistic
                       title={
-                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>New Contracts</span>
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_stat_new_contracts')}</span>
                       }
                       value={statistics.newContractsLast30Days}
                       prefix={<FileTextOutlined className='text-purple-600' />}
@@ -1461,7 +1464,7 @@ export default function Dashboard() {
         {statistics && (
           <Row gutter={[24, 24]} className='mb-8'>
             <Col xs={24}>
-              <h2 className='text-2xl font-bold text-gray-800 mb-4'>Operational Overview</h2>
+              <h2 className='text-2xl font-bold text-gray-800 mb-4'>{t('admin_dashboard_operational_overview')}</h2>
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
@@ -1476,14 +1479,14 @@ export default function Dashboard() {
                 </div>
                 <Statistic
                   title={
-                    <span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Total Bookings</span>
+                    <span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>{t('admin_dashboard_total_bookings')}</span>
                   }
                   value={statistics.totalBookings || 0}
                   valueStyle={{ color: '#0284c7', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
                 <div className='mt-4 pt-4 border-t border-blue-100'>
                   <div className='flex items-center justify-between'>
-                    <span className='text-xs text-gray-500 font-medium'>Completed</span>
+                    <span className='text-xs text-gray-500 font-medium'>{t('admin_dashboard_quick_completed')}</span>
                     <span className='text-sm font-bold text-blue-600'>{statistics.completedBookings || 0}</span>
                   </div>
                 </div>
@@ -1501,13 +1504,13 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Disputes</span>}
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>{t('admin_dashboard_operational_disputes')}</span>}
                   value={statistics.totalDisputes || 0}
                   valueStyle={{ color: '#ea580c', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
                 <div className='mt-4 pt-4 border-t border-orange-100'>
                   <div className='flex items-center justify-between'>
-                    <span className='text-xs text-gray-500 font-medium'>Open</span>
+                    <span className='text-xs text-gray-500 font-medium'>{t('admin_dashboard_quick_open')}</span>
                     <span className='text-sm font-bold text-orange-600'>{statistics.disputesByStatus?.OPEN || 0}</span>
                   </div>
                 </div>
@@ -1525,13 +1528,13 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <Statistic
-                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Incidents</span>}
+                  title={<span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>{t('admin_dashboard_operational_incidents')}</span>}
                   value={statistics.totalIncidents || 0}
                   valueStyle={{ color: '#dc2626', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
                 <div className='mt-4 pt-4 border-t border-red-100'>
                   <div className='flex items-center justify-between'>
-                    <span className='text-xs text-gray-500 font-medium'>Pending</span>
+                    <span className='text-xs text-gray-500 font-medium'>{t('admin_dashboard_stat_pending')}</span>
                     <span className='text-sm font-bold text-red-600'>{statistics.incidentsByStatus?.PENDING || 0}</span>
                   </div>
                 </div>
@@ -1550,14 +1553,14 @@ export default function Dashboard() {
                 </div>
                 <Statistic
                   title={
-                    <span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>Maintenances</span>
+                    <span className='text-gray-600 font-medium text-sm uppercase tracking-wide'>{t('admin_dashboard_operational_maintenances')}</span>
                   }
                   value={statistics.totalMaintenances || 0}
                   valueStyle={{ color: '#7c3aed', fontSize: '32px', fontWeight: '700', lineHeight: '1.2' }}
                 />
                 <div className='mt-4 pt-4 border-t border-purple-100'>
                   <div className='flex items-center justify-between'>
-                    <span className='text-xs text-gray-500 font-medium'>In Progress</span>
+                    <span className='text-xs text-gray-500 font-medium'>{t('admin_dashboard_in_progress')}</span>
                     <span className='text-sm font-bold text-purple-600'>
                       {statistics.maintenancesByStatus?.IN_PROGRESS || 0}
                     </span>
@@ -1583,7 +1586,7 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold text-lg'>Bookings by Status</span>}
+                title={<span className='text-white font-semibold text-lg'>{t('admin_dashboard_chart_bookings_status')}</span>}
               >
                 {bookingsByStatusData.length > 0 ? (
                   <div style={{ height: 320 }}>
@@ -1593,7 +1596,7 @@ export default function Dashboard() {
                   <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
                     <div className='text-center'>
                       <CalendarOutlined className='text-4xl mb-2 opacity-50' />
-                      <p className='text-sm'>No booking data available</p>
+                      <p className='text-sm'>{t('admin_dashboard_chart_no_booking_data')}</p>
                     </div>
                   </div>
                 )}
@@ -1612,7 +1615,7 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold text-lg'>Contracts by Status</span>}
+                title={<span className='text-white font-semibold text-lg'>{t('admin_dashboard_chart_contracts_status')}</span>}
               >
                 {contractsByStatusData.length > 0 ? (
                   <div style={{ height: 320 }}>
@@ -1622,7 +1625,7 @@ export default function Dashboard() {
                   <div className='flex h-[320px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
                     <div className='text-center'>
                       <FileTextOutlined className='text-4xl mb-2 opacity-50' />
-                      <p className='text-sm'>No contract data available</p>
+                      <p className='text-sm'>{t('admin_dashboard_chart_no_contract_data')}</p>
                     </div>
                   </div>
                 )}
@@ -1635,7 +1638,7 @@ export default function Dashboard() {
         {statistics && (
           <Row gutter={[24, 24]} className='mb-8'>
             <Col xs={24}>
-              <h2 className='text-2xl font-bold text-gray-800 mb-4'>Financial Overview</h2>
+              <h2 className='text-2xl font-bold text-gray-800 mb-4'>{t('admin_dashboard_financial_overview')}</h2>
             </Col>
 
             <Col xs={24} lg={16}>
@@ -1650,7 +1653,7 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold text-lg'>Revenue vs Expenses</span>}
+                title={<span className='text-white font-semibold text-lg'>{t('admin_dashboard_revenue_vs_expenses')}</span>}
               >
                 {financialComparisonData.length > 0 ? (
                   <div style={{ height: 300 }}>
@@ -1660,7 +1663,7 @@ export default function Dashboard() {
                   <div className='flex h-[300px] items-center justify-center text-gray-400 bg-gray-50 rounded-lg'>
                     <div className='text-center'>
                       <DollarOutlined className='text-4xl mb-2 opacity-50' />
-                      <p className='text-sm'>No financial data available</p>
+                      <p className='text-sm'>{t('admin_dashboard_no_financial_data')}</p>
                     </div>
                   </div>
                 )}
@@ -1678,13 +1681,13 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold'>Fund Information</span>}
+                title={<span className='text-white font-semibold'>{t('admin_dashboard_fund_info')}</span>}
               >
                 <div className='space-y-4'>
                   <div className='p-4 bg-purple-50 rounded-lg border border-purple-100'>
                     <Statistic
                       title={
-                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Funds</span>
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_total_funds')}</span>
                       }
                       value={statistics.totalFunds || 0}
                       prefix={<FundProjectionScreenOutlined className='text-purple-600' />}
@@ -1694,7 +1697,7 @@ export default function Dashboard() {
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100'>
                     <Statistic
                       title={
-                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>Total Balance</span>
+                        <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>{t('admin_dashboard_total_balance')}</span>
                       }
                       value={formatCurrencyCompact(statistics.totalFundBalance || 0)}
                       prefix={<BankOutlined className='text-green-600' />}
@@ -1712,7 +1715,7 @@ export default function Dashboard() {
                     <Statistic
                       title={
                         <span className='text-gray-600 text-xs font-medium uppercase tracking-wide'>
-                          Total Expenses
+                          {t('admin_dashboard_total_expenses')}
                         </span>
                       }
                       value={formatCurrencyCompact(statistics.totalExpenseAmount || 0)}
@@ -1737,7 +1740,7 @@ export default function Dashboard() {
         {statistics && (
           <Row gutter={[24, 24]} className='mb-8'>
             <Col xs={24}>
-              <h2 className='text-2xl font-bold text-gray-800 mb-4'>System Health</h2>
+              <h2 className='text-2xl font-bold text-gray-800 mb-4'>{t('admin_dashboard_system_health')}</h2>
             </Col>
 
             <Col xs={24} lg={12}>
@@ -1751,20 +1754,20 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold'>Disputes Tracking</span>}
+                title={<span className='text-white font-semibold'>{t('admin_dashboard_disputes_tracking')}</span>}
               >
                 <div className='grid grid-cols-3 gap-4'>
                   <div className='p-4 bg-orange-50 rounded-lg border border-orange-100 text-center'>
                     <div className='text-2xl font-bold text-orange-600 mb-1'>
                       {statistics.disputesByStatus?.OPEN || 0}
                     </div>
-                    <div className='text-xs text-gray-600 font-medium uppercase'>Open</div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>{t('admin_disputes_status_open')}</div>
                   </div>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100 text-center'>
                     <div className='text-2xl font-bold text-green-600 mb-1'>
                       {statistics.disputesByStatus?.RESOLVED || 0}
                     </div>
-                    <div className='text-xs text-gray-600 font-medium uppercase'>Resolved</div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>{t('admin_dashboard_resolved')}</div>
                   </div>
                   <div className='p-4 bg-red-50 rounded-lg border border-red-100 text-center'>
                     <div className='text-2xl font-bold text-red-600 mb-1'>
@@ -1787,20 +1790,20 @@ export default function Dashboard() {
                   },
                   body: { padding: '24px' }
                 }}
-                title={<span className='text-white font-semibold'>Incidents Tracking</span>}
+                title={<span className='text-white font-semibold'>{t('admin_dashboard_incidents_tracking')}</span>}
               >
                 <div className='grid grid-cols-3 gap-4'>
                   <div className='p-4 bg-yellow-50 rounded-lg border border-yellow-100 text-center'>
                     <div className='text-2xl font-bold text-yellow-600 mb-1'>
                       {statistics.incidentsByStatus?.PENDING || 0}
                     </div>
-                    <div className='text-xs text-gray-600 font-medium uppercase'>Pending</div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>{t('admin_dashboard_stat_pending')}</div>
                   </div>
                   <div className='p-4 bg-green-50 rounded-lg border border-green-100 text-center'>
                     <div className='text-2xl font-bold text-green-600 mb-1'>
                       {statistics.incidentsByStatus?.APPROVED || 0}
                     </div>
-                    <div className='text-xs text-gray-600 font-medium uppercase'>Approved</div>
+                    <div className='text-xs text-gray-600 font-medium uppercase'>{t('admin_dashboard_approved')}</div>
                   </div>
                   <div className='p-4 bg-red-50 rounded-lg border border-red-100 text-center'>
                     <div className='text-2xl font-bold text-red-600 mb-1'>

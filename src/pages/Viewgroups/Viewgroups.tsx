@@ -7,7 +7,7 @@ import { GroupContext } from '../../hooks/useGroupList'
 import type { GroupItem } from '../../types/api/group.type'
 import DataTable from './components/DataTable'
 import EmptyGroup from './components/EmptyGroup'
-import HeroSection from './components/HeroSection'
+import HeroSection from './components/HeroSection/HeroSection'
 import logger from '../../utils/logger'
 
 export default function Viewgroups() {

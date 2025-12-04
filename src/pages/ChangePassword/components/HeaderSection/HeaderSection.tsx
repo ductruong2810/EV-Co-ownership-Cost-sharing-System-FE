@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function HeaderSection() {
+  const { t } = useI18n()
+
   return (
     <div className='text-center space-y-4 relative'>
       {/* Lock Icon with Effects */}
@@ -39,9 +42,9 @@ export default function HeaderSection() {
         transition={{ delay: 0.3, duration: 0.5 }}
       >
         <h2 className='text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.7)] mb-2'>
-          Change Password
+          {t('change_password_title')}
         </h2>
-        <p className='text-white/75 text-sm font-medium'>Keep your account secure</p>
+        <p className='text-white/75 text-sm font-medium'>{t('change_password_subtitle')}</p>
       </motion.div>
     </div>
   )

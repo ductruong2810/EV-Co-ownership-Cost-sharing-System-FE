@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query'
 import groupApi from '../../../../apis/group.api'
 import { useNavigate } from 'react-router-dom'
 import { getGroupIdFromLS } from '../../../../utils/auth'
+import { useI18n } from '../../../../i18n/useI18n'
 
 interface CameraError extends Error {
   name: string
@@ -13,6 +14,7 @@ interface CameraError extends Error {
 }
 
 export default function CheckQR() {
+  const { t } = useI18n()
   const groupId = getGroupIdFromLS()
   // kiểm tra coi có đang quét hay không
   const [isScanning, setIsScanning] = useState(false)
@@ -38,7 +40,7 @@ export default function CheckQR() {
         const endTime = response?.data?.bookingInfo?.endTime
         const brand = response?.data?.vehicleInfo?.brand || ''
         const licensePlate = response?.data?.vehicleInfo?.licensePlate || ''
-        toast.success('Scan QR Successful!')
+        toast.success(t('gp_checkqr_toast_scan_success'))
         console.log(response?.data?.bookingId)
 
         if (response?.data?.status === 'success') {
@@ -100,13 +102,13 @@ export default function CheckQR() {
       const cameraError = error as CameraError
 
       if (cameraError.name === 'NotAllowedError') {
-        toast.error('You have denied camera access')
+        toast.error(t('gp_checkqr_toast_camera_denied'))
       } else if (cameraError.name === 'NotFoundError') {
-        toast.error('Camera not found on device')
+        toast.error(t('gp_checkqr_toast_camera_not_found'))
       } else if (cameraError.name === 'NotReadableError') {
-        toast.error('Camera is being used by another app')
+        toast.error(t('gp_checkqr_toast_camera_in_use'))
       } else {
-        toast.error(`Error: ${cameraError.message}`)
+        toast.error(`${t('gp_checkqr_toast_camera_error')}: ${cameraError.message}`)
       }
     }
   }, [])
@@ -169,7 +171,7 @@ export default function CheckQR() {
         console.log(' QR Code:', code.data)
         QRVerify.mutate(code.data)
       } else {
-        toast.error('QR code not found in image')
+        toast.error(t('gp_checkqr_toast_qr_not_found'))
       }
       // giải phóng URL tạm thời để tránh rò rỉ bộ nhớ
       URL.revokeObjectURL(imageUrl)
@@ -177,7 +179,7 @@ export default function CheckQR() {
 
     img.onerror = () => {
       // nếu lỗi thông báo không thể load ảnh
-      toast.error('Unable to load image')
+      toast.error(t('gp_checkqr_toast_image_load_fail'))
       URL.revokeObjectURL(imageUrl)
     }
 
@@ -193,7 +195,7 @@ export default function CheckQR() {
   return (
     <div className='w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 md:p-10 space-y-6'>
       <header className='flex items-center space-x-4 mb-6'>
-        <h1 className='text-2xl font-bold text-gray-800 flex-grow'> Scan QR code: Check-in/Check-out </h1>
+        <h1 className='text-2xl font-bold text-gray-800 flex-grow'> {t('gp_checkqr_header_title')} </h1>
         <div className='p-2 rounded-md bg-indigo-50'>
           <QrcodeOutlined className='text-xl text-indigo-600' />
         </div>
@@ -205,7 +207,7 @@ export default function CheckQR() {
             <div className='p-4 rounded-full bg-gray-800 mb-4'>
               <CameraOutlined className='text-6xl text-gray-400' />
             </div>
-            <p className='text-gray-400 text-base leading-relaxed'>Click "Start Scan" to open the camera</p>
+            <p className='text-gray-400 text-base leading-relaxed'>{t('gp_checkqr_camera_placeholder')}</p>
           </div>
         )}
 
@@ -231,7 +233,7 @@ export default function CheckQR() {
           className='w-full bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2 text-lg'
         >
           <QrcodeOutlined className='text-xl' />
-          <span>Start Scanning QR</span>
+          <span>{t('gp_checkqr_start_scan_button')}</span>
         </button>
       ) : (
         <>
@@ -240,7 +242,7 @@ export default function CheckQR() {
             className='w-full bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-gray-700 hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2 text-lg'
           >
             <StopOutlined className='text-xl' />
-            <span>Turn off Camera</span>
+            <span>{t('gp_checkqr_turn_off_camera_button')}</span>
           </button>
 
           <div className='relative'>
@@ -252,7 +254,7 @@ export default function CheckQR() {
               className='w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2 text-lg'
             >
               <PictureOutlined className='text-xl' />
-              <span>Upload QR Image</span>
+              <span>{t('gp_checkqr_upload_image_button')}</span>
             </button>
           </div>
         </>

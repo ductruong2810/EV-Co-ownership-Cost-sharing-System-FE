@@ -26,6 +26,7 @@ import { loginSchema, type LoginSchema } from '../../utils/rule'
 import { LOGIN_IMG_URL } from '../../constants/images'
 import logger from '../../utils/logger'
 import { getUserFriendlyError, convertToErrorInfo } from '../../utils/errorHandler'
+import { useI18n } from '../../i18n/useI18n'
 
 type LoginErrorResponse = {
   errors?: { message?: string }[]
@@ -38,6 +39,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const rememberedEmail = getRememberedEmailFromLS()
+  const { t } = useI18n()
 
   const {
     register,
@@ -157,13 +159,13 @@ export default function Login() {
               className='w-full max-w-xl space-y-6'
             >
               <h2 className='text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-indigo-400 drop-shadow-lg'>
-                Welcome Back
+                {t('login_title')}
               </h2>
-              <p className='text-center text-gray-300'>Login to your account</p>
+              <p className='text-center text-gray-300'>{t('login_subtitle')}</p>
 
               {/* Email */}
               <div>
-                <label className='block mb-2 text-sm font-medium text-gray-300'>Email</label>
+                <label className='block mb-2 text-sm font-medium text-gray-300'>{t('login_email_label')}</label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                     <HiMail className='h-5 w-5 text-gray-400' />
@@ -172,7 +174,7 @@ export default function Login() {
                     {...register('email')}
                     type='email'
                     className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition'
-                    placeholder='Enter your email'
+                    placeholder={t('login_email_placeholder')}
                   />
                 </div>
                 {errors.email && <p className='text-red-400 text-sm mt-1'>{errors.email.message}</p>}
@@ -180,7 +182,7 @@ export default function Login() {
 
               {/* Password */}
               <div>
-                <label className='block mb-2 text-sm font-medium text-gray-300'>Password</label>
+                <label className='block mb-2 text-sm font-medium text-gray-300'>{t('login_password_label')}</label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                     <HiLockClosed className='h-5 w-5 text-gray-400' />
@@ -189,7 +191,7 @@ export default function Login() {
                     {...register('password')}
                     type={showPassword ? 'text' : 'password'}
                     className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
-                    placeholder='Enter your password'
+                    placeholder={t('login_password_placeholder')}
                   />
                   <button
                     type='button'
@@ -209,7 +211,7 @@ export default function Login() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className='text-gray-300'
                 >
-                  <span className='text-gray-300 text-sm'>Remember me</span>
+                  <span className='text-gray-300 text-sm'>{t('login_remember_me')}</span>
                 </Checkbox>
               </div>
 
@@ -241,25 +243,25 @@ export default function Login() {
                 {loginMutation.isPending ? (
                   <>
                     <AiOutlineLoading3Quarters className='h-5 w-5 animate-spin' />
-                    <span>Logging in...</span>
+                    <span>{t('login_button_loading')}</span>
                   </>
                 ) : (
                   <>
-                    <span>Login</span>
+                    <span>{t('login_button')}</span>
                     <HiArrowRight className='h-5 w-5' />
                   </>
                 )}
               </motion.button>
 
               <p className='text-center text-sm text-gray-400'>
-                Don’t have an account?{' '}
+                {t('login_no_account')}{' '}
                 <Link to={path.register} className='text-cyan-300 hover:underline'>
-                  Sign up
+                  {t('login_sign_up')}
                 </Link>
               </p>
               <div className='text-center text-sm text-gray-400'>
                 <Link to={path.forgotPassword} className='text-emerald-300 hover:underline'>
-                  Forgot password?
+                  {t('login_forgot_password')}
                 </Link>
               </div>
             </motion.form>

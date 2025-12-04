@@ -9,11 +9,13 @@ import type { DepositForGroup } from '../../../../types/api/group.type'
 import { formatToVND } from '../../../../utils/formatPrice'
 import ModalCreateDeposit from './components/ModalCreateDeposit'
 import ProgressBar from './components/ProgressBar'
+import { useI18n } from '../../../../i18n/useI18n'
 
 function PaymentDeposit() {
   const { groupId } = useParams<{ groupId: string }>()
 
   const { userId } = useContext(AppContext)
+  const { t } = useI18n()
 
   // Lấy thông tin của toàn bộ nhóm để hiển thị
   const [members, setMembers] = useState<DepositForGroup[]>([])
@@ -65,10 +67,9 @@ function PaymentDeposit() {
 
   const getStatusText = (status: DepositForGroup['depositStatus']) => {
     const statusMap = {
-      PAID: 'Paid',
-      PENDING: 'Pending',
-
-      REFUNDED: 'Refunded'
+      PAID: t('gp_deposit_status_paid'),
+      PENDING: t('gp_deposit_status_pending'),
+      REFUNDED: t('gp_deposit_status_refunded')
     }
     return statusMap[status]
   }
@@ -105,9 +106,9 @@ function PaymentDeposit() {
           <div className='flex items-center justify-between'>
             <div>
               <h1 className='text-3xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent'>
-                Deposit Status
+                {t('gp_deposit_header_title')}
               </h1>
-              <p className='text-sm text-gray-500 mt-1'>Manage and track group deposits</p>
+              <p className='text-sm text-gray-500 mt-1'>{t('gp_deposit_header_subtitle')}</p>
             </div>
 
             <div className='flex items-center gap-3'>
@@ -121,7 +122,7 @@ function PaymentDeposit() {
                   }
                 )}
               >
-                Create Deposit
+                {t('gp_deposit_create_button')}
               </button>
             </div>
           </div>
@@ -131,22 +132,22 @@ function PaymentDeposit() {
         <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-8'>
           {[
             {
-              label: 'Total Members',
+              label: t('gp_deposit_stat_total_members'),
               value: totalMembers,
               gradient: 'from-cyan-500 to-blue-500'
             },
             {
-              label: 'Paid',
+              label: t('gp_deposit_stat_paid'),
               value: paidMembers,
               gradient: 'from-teal-500 to-cyan-600'
             },
             {
-              label: 'Unpaid',
+              label: t('gp_deposit_stat_unpaid'),
               value: unpaidMembers,
               gradient: 'from-sky-500 to-blue-600'
             },
             {
-              label: 'Completion Rate',
+              label: t('gp_deposit_stat_completion'),
               value: `${completionRate}%`,
               gradient: 'from-blue-500 to-indigo-600'
             }
@@ -164,20 +165,17 @@ function PaymentDeposit() {
         {/* Progress Bar */}
         <ProgressBar completionRate={completionRate} paidMembers={paidMembers} totalMembers={totalMembers} />
         <div className='mt-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100/40 shadow-sm mb-3'>
-          <p className='text-sm text-gray-950 leading-relaxed'>
-            Group members need to complete the deposit before participating in using the shared car. The deposit is to
-            ensure commitment and responsibility during the use of the shared property. When the contract ends, this
-            amount will be refunded according to the regulations. The deposit will be 10% of the value of the car
-            divided equally according to the ownership ratio of each member in the group
-          </p>
+          <p className='text-sm text-gray-950 leading-relaxed'>{t('gp_deposit_info_text')}</p>
         </div>
 
         {/* Members Table */}
         <div className='bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden'>
           <div className='p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-blue-50/50'>
             <h2 className='text-xl font-bold text-gray-800 flex items-center gap-3'>
-              Member List
-              <span className='text-sm font-normal text-gray-500'>({members.length} people)</span>
+              {t('gp_deposit_member_list_title')}
+              <span className='text-sm font-normal text-gray-500'>
+                ({members.length} {t('gp_deposit_member_list_count_suffix')})
+              </span>
             </h2>
           </div>
 
@@ -185,7 +183,14 @@ function PaymentDeposit() {
             <table className='w-full'>
               <thead className='bg-gray-50/50 border-b border-gray-100'>
                 <tr>
-                  {['Member', 'Email', 'Rate', 'Amount', 'Status', 'Join Date'].map((header) => (
+                  {[
+                    t('gp_deposit_table_member'),
+                    t('gp_deposit_table_email'),
+                    t('gp_deposit_table_rate'),
+                    t('gp_deposit_table_amount'),
+                    t('gp_deposit_table_status'),
+                    t('gp_deposit_table_join_date')
+                  ].map((header) => (
                     <th
                       key={header}
                       className='px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider'

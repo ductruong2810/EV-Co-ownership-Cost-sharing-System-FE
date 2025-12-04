@@ -14,6 +14,7 @@ import auditApi from '../../../../apis/audit.api'
 import type { ColumnsType } from 'antd/es/table'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { RangePicker } = DatePicker
 const { Option } = Select
@@ -34,6 +35,7 @@ export interface AuditLog {
 }
 
 const AuditLogs = () => {
+  const { t } = useI18n()
   const [searchTerm, setSearchTerm] = useState('')
   const [actionTypeFilter, setActionTypeFilter] = useState<string>('ALL')
   const [entityTypeFilter, setEntityTypeFilter] = useState<string>('ALL')
@@ -86,7 +88,7 @@ const AuditLogs = () => {
 
   const columns: ColumnsType<AuditLog> = [
     {
-      title: 'Timestamp',
+      title: t('admin_audit_logs_column_timestamp'),
       dataIndex: 'timestamp',
       key: 'timestamp',
       width: 180,
@@ -96,7 +98,7 @@ const AuditLogs = () => {
       sorter: (a, b) => dayjs(a.timestamp).unix() - dayjs(b.timestamp).unix()
     },
     {
-      title: 'User',
+      title: t('admin_audit_logs_column_user'),
       dataIndex: 'userName',
       key: 'userName',
       width: 150,
@@ -111,7 +113,7 @@ const AuditLogs = () => {
       )
     },
     {
-      title: 'Action',
+      title: t('admin_audit_logs_column_action'),
       dataIndex: 'actionType',
       key: 'actionType',
       width: 180,
@@ -128,16 +130,16 @@ const AuditLogs = () => {
         return <Tag color={color}>{actionType}</Tag>
       },
       filters: [
-        { text: 'APPROVE', value: 'APPROVE' },
-        { text: 'REJECT', value: 'REJECT' },
-        { text: 'CREATE', value: 'CREATE' },
-        { text: 'UPDATE', value: 'UPDATE' },
-        { text: 'REVIEW', value: 'REVIEW' }
+        { text: t('admin_audit_logs_action_approve'), value: 'APPROVE' },
+        { text: t('admin_audit_logs_action_reject'), value: 'REJECT' },
+        { text: t('admin_audit_logs_action_create'), value: 'CREATE' },
+        { text: t('admin_audit_logs_action_update'), value: 'UPDATE' },
+        { text: t('admin_audit_logs_action_review'), value: 'REVIEW' }
       ],
       onFilter: (value, record) => record.actionType === value
     },
     {
-      title: 'Entity',
+      title: t('admin_audit_logs_column_entity'),
       key: 'entity',
       width: 150,
       render: (_, record: AuditLog) => {
@@ -154,7 +156,7 @@ const AuditLogs = () => {
       }
     },
     {
-      title: 'Message',
+      title: t('admin_audit_logs_column_message'),
       dataIndex: 'message',
       key: 'message',
       ellipsis: true,
@@ -165,16 +167,16 @@ const AuditLogs = () => {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        eyebrow='System & Audit'
-        title='Audit Logs'
-        subtitle='View system activity and user actions history'
+        eyebrow={t('admin_nav_section_system_audit')}
+        title={t('admin_audit_logs_title')}
+        subtitle={t('admin_audit_logs_subtitle')}
         rightSlot={<HistoryOutlined className='text-2xl text-indigo-600' />}
       />
 
         {/* Info Alert */}
         <Alert
-          message='Audit Log Viewer'
-          description='This page displays all system activities and user actions. The backend endpoint GET /api/audit/logs needs to be implemented to fetch actual data.'
+          message={t('admin_audit_logs_alert_title')}
+          description={t('admin_audit_logs_alert_description')}
           type='info'
           showIcon
           closable
@@ -186,9 +188,9 @@ const AuditLogs = () => {
           <Space direction='vertical' size='middle' className='w-full'>
             <div className='flex flex-wrap gap-3 items-end'>
               <div className='flex-1 min-w-[200px]'>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Search</label>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_audit_logs_filter_search')}</label>
                 <Input
-                  placeholder='Search by message, user, or action...'
+                  placeholder={t('admin_audit_logs_search_placeholder')}
                   prefix={<SearchOutlined className='text-gray-400' />}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -196,49 +198,49 @@ const AuditLogs = () => {
                 />
               </div>
               <div className='w-[180px]'>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Action Type</label>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_audit_logs_filter_action_type')}</label>
                 <Select
                   value={actionTypeFilter}
                   onChange={setActionTypeFilter}
                   className='w-full'
-                  placeholder='All actions'
+                  placeholder={t('admin_audit_logs_all_actions')}
                 >
-                  <Option value='ALL'>All Actions</Option>
-                  <Option value='APPROVE'>Approve</Option>
-                  <Option value='REJECT'>Reject</Option>
-                  <Option value='CREATE'>Create</Option>
-                  <Option value='UPDATE'>Update</Option>
-                  <Option value='REVIEW'>Review</Option>
+                  <Option value='ALL'>{t('admin_audit_logs_all_actions')}</Option>
+                  <Option value='APPROVE'>{t('admin_audit_logs_action_approve')}</Option>
+                  <Option value='REJECT'>{t('admin_audit_logs_action_reject')}</Option>
+                  <Option value='CREATE'>{t('admin_audit_logs_action_create')}</Option>
+                  <Option value='UPDATE'>{t('admin_audit_logs_action_update')}</Option>
+                  <Option value='REVIEW'>{t('admin_audit_logs_action_review')}</Option>
                 </Select>
               </div>
               <div className='w-[180px]'>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Entity Type</label>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_audit_logs_filter_entity_type')}</label>
                 <Select
                   value={entityTypeFilter}
                   onChange={setEntityTypeFilter}
                   className='w-full'
-                  placeholder='All entities'
+                  placeholder={t('admin_audit_logs_all_entities')}
                 >
-                  <Option value='ALL'>All Entities</Option>
-                  <Option value='DOCUMENT'>Document</Option>
-                  <Option value='MAINTENANCE'>Maintenance</Option>
-                  <Option value='VEHICLE_CHECK'>Vehicle Check</Option>
-                  <Option value='GROUP'>Group</Option>
-                  <Option value='CONTRACT'>Contract</Option>
+                  <Option value='ALL'>{t('admin_audit_logs_all_entities')}</Option>
+                  <Option value='DOCUMENT'>{t('admin_audit_logs_entity_document')}</Option>
+                  <Option value='MAINTENANCE'>{t('admin_audit_logs_entity_maintenance')}</Option>
+                  <Option value='VEHICLE_CHECK'>{t('admin_audit_logs_entity_vehicle_check')}</Option>
+                  <Option value='GROUP'>{t('admin_audit_logs_entity_group')}</Option>
+                  <Option value='CONTRACT'>{t('admin_audit_logs_entity_contract')}</Option>
                 </Select>
               </div>
               <div className='w-[320px]'>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Date Range</label>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_audit_logs_filter_date_range')}</label>
                 <RangePicker
                   value={dateRange}
                   onChange={(dates) => setDateRange(dates as [Dayjs | null, Dayjs | null])}
                   format='DD/MM/YYYY'
                   className='w-full'
-                  placeholder={['From date', 'To date']}
+                  placeholder={[t('admin_dashboard_range_from_date_placeholder'), t('admin_dashboard_range_to_date_placeholder')]}
                 />
               </div>
               <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
-                Refresh
+                {t('admin_audit_logs_refresh')}
               </Button>
             </div>
           </Space>
@@ -252,25 +254,25 @@ const AuditLogs = () => {
             </div>
           ) : error ? (
             <Alert
-              message='Failed to load audit logs'
-              description='Please try again later or contact support if the issue persists.'
+              message={t('admin_audit_logs_error_load')}
+              description={t('admin_audit_logs_error_description')}
               type='error'
               showIcon
               className='m-6'
               action={
                 <Button size='small' onClick={() => refetch()}>
-                  Retry
+                  {t('admin_dashboard_retry')}
                 </Button>
               }
             />
           ) : filteredLogs.length === 0 ? (
             <div className='flex flex-col items-center justify-center py-12 text-gray-400'>
               <HistoryOutlined className='text-5xl mb-4 opacity-50' />
-              <p className='text-lg font-medium'>No audit logs found</p>
+              <p className='text-lg font-medium'>{t('admin_audit_logs_empty_title')}</p>
               <p className='text-sm mt-1'>
                 {searchTerm || actionTypeFilter !== 'ALL' || entityTypeFilter !== 'ALL' || dateRange[0]
-                  ? 'Try adjusting your filters'
-                  : 'Audit logs will appear here once the backend endpoint is implemented'}
+                  ? t('admin_audit_logs_empty_try_filters')
+                  : t('admin_audit_logs_empty_backend_not_implemented')}
               </p>
             </div>
           ) : (
@@ -283,7 +285,7 @@ const AuditLogs = () => {
                 pageSize,
                 total,
                 showSizeChanger: true,
-                showTotal: (total) => `Total ${total} logs`,
+                showTotal: (total) => t('admin_audit_logs_pagination_total', { total }),
                 onChange: (newPage, newPageSize) => {
                   setPage(newPage)
                   setPageSize(newPageSize)

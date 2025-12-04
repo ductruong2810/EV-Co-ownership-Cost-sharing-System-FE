@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useI18n } from '../../../../i18n/useI18n'
 
 interface EmptyStateProps {
   title?: string
@@ -6,9 +7,12 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({
-  title = 'Không có dữ liệu',
-  description = 'Hiện tại không có dữ liệu nào để hiển thị'
+  title,
+  description
 }: EmptyStateProps) {
+  const { t } = useI18n()
+  const defaultTitle = title ?? t('empty_state_default_title')
+  const defaultDescription = description ?? t('empty_state_default_description')
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -23,8 +27,8 @@ export default function EmptyState({
           d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
         />
       </svg>
-      <h3 className='text-lg font-bold text-gray-900 mb-2'>{title}</h3>
-      <p className='text-gray-500'>{description}</p>
+      <h3 className='text-lg font-bold text-gray-900 mb-2'>{defaultTitle}</h3>
+      <p className='text-gray-500'>{defaultDescription}</p>
     </motion.div>
   )
 }

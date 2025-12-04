@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
+import { useI18n } from '../../../../../../i18n/useI18n'
 
 const EmptyQRCard = ({ phase }: { phase: string }) => {
+  const { t } = useI18n()
   const isCHECKIN = phase === 'CHECKIN'
   const colors = isCHECKIN
     ? { header: 'bg-teal-700', badge: 'bg-teal-100 text-teal-700', border: 'border-teal-300', bg: 'bg-teal-50' }
@@ -25,8 +27,8 @@ const EmptyQRCard = ({ phase }: { phase: string }) => {
             d='M12 9v2m0 4v2m0 4v2M6 12H4m2 0h16M4 6h16M4 18h16'
           />
         </svg>
-        <p className='text-gray-500 font-medium'>No QR {phase.toLowerCase()}</p>
-        <p className='text-gray-400 text-xs'>Generated after {phase === 'CHECKIN' ? 'check-in' : 'check-out'}</p>
+        <p className='text-gray-500 font-medium'>{t('admin_booking_qr_empty_no_qr', { phase: phase.toLowerCase() })}</p>
+        <p className='text-gray-400 text-xs'>{t('admin_booking_qr_empty_generated_after', { action: phase === 'CHECKIN' ? t('admin_booking_qr_check_in') : t('admin_booking_qr_check_out') })}</p>
       </div>
     </motion.div>
   )

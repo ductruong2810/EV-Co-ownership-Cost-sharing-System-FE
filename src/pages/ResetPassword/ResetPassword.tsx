@@ -7,6 +7,7 @@ import { toast } from 'react-toastify'
 import authApi from '../../apis/auth.api'
 import path from '../../constants/path'
 import { resetPasswordSchema, type ResetPasswordType } from '../../utils/rule'
+import { useI18n } from '../../i18n/useI18n'
 
 interface IResetPassword {
   resetToken: string
@@ -28,6 +29,7 @@ function ResetPassword() {
   })
 
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   const location = useLocation()
 
@@ -62,29 +64,29 @@ function ResetPassword() {
       >
         <img src='src/assets/z7052214352472_9110bb340043f5ad4f507f5a29909fc3.png' alt='logo' className='w-14 mb-3' />
         <h2 className='text-2xl text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-indigo-400 mb-3'>
-          Reset your password
+          {t('reset_title')}
         </h2>
-        <p className='text-gray-300 text-center mb-8'>Enter your new password below.</p>
+        <p className='text-gray-300 text-center mb-8'>{t('reset_subtitle')}</p>
 
         <form className='w-full flex flex-col gap-4' onSubmit={onSubmit}>
           <div>
-            <label className='block text-sm text-gray-300 mb-2'>New Password</label>
+            <label className='block text-sm text-gray-300 mb-2'>{t('reset_new_label')}</label>
             <input
               type='password'
               {...register('newPassword')}
               className='w-full px-4 py-3 rounded-lg border border-gray-600 bg-slate-800/80 text-white focus:ring-2 focus:ring-cyan-400 outline-none'
-              placeholder='Enter new password'
+              placeholder={t('reset_new_placeholder')}
             />
             {errors.newPassword && <p className='text-red-400 text-xs mt-1'>{errors.newPassword.message}</p>}
           </div>
 
           <div>
-            <label className='block text-sm text-gray-300 mb-2'>Confirm Password</label>
+            <label className='block text-sm text-gray-300 mb-2'>{t('reset_confirm_label')}</label>
             <input
               type='password'
               {...register('confirmPassword')}
               className='w-full px-4 py-3 rounded-lg border border-gray-600 bg-slate-800/80 text-white focus:ring-2 focus:ring-indigo-400 outline-none'
-              placeholder='Confirm password'
+              placeholder={t('reset_confirm_placeholder')}
             />
             {errors.confirmPassword && <p className='text-red-400 text-xs mt-1'>{errors.confirmPassword.message}</p>}
           </div>
@@ -93,7 +95,7 @@ function ResetPassword() {
             type='submit'
             className='w-full py-3 rounded-lg bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-500 text-white font-bold shadow mt-6 hover:scale-[1.04] transition'
           >
-            Reset Password
+            {t('reset_button')}
           </button>
         </form>
       </motion.div>

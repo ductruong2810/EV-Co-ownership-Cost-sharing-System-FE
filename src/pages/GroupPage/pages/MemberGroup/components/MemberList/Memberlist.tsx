@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import groupApi from '../../../../../../apis/group.api'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
+import useI18n from '../../../../../../i18n/useI18n'
 
 interface IMemberlistProps {
   members: Member[]
@@ -15,6 +16,7 @@ interface IMemberlistProps {
 
 export default function Memberlist({ members, amount, groupId, currentUserRole, contractStatus }: IMemberlistProps) {
   const queryClient = useQueryClient()
+  const { t } = useI18n()
   // Open delete member modal
   const [isModalOpen, setIsModalOpen] = useState(false)
   // Store member to be deleted
@@ -25,7 +27,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
       return groupApi.deleteMember(groupId, userId.toString())
     },
     onSuccess: () => {
-      toast.success('Member removed successfully!')
+      toast.success(t('gp_member_list_delete_success'))
       queryClient.invalidateQueries({ queryKey: ['members', groupId] })
       setIsModalOpen(false)
       setSelectedMember(null)
@@ -58,7 +60,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
         <div className='px-6 py-5 border-b-[2px] border-white/20 bg-gradient-to-r from-white/10 to-white/5'>
           <h2 className='text-xl font-bold text-white flex items-center gap-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]'>
             <TeamOutlined className='text-2xl text-cyan-200 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]' />
-            List member group
+            {t('gp_member_list_title')}
             <span className='ml-auto px-3 py-1 bg-cyan-400/25 text-cyan-100 text-sm rounded-full border border-cyan-200/40 font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)]'>
               {members.length} / {amount || 0}
             </span>
@@ -82,7 +84,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
                       </h4>
                       {member.groupRole === 'ADMIN' && (
                         <span className='px-2.5 py-0.5 bg-gradient-to-r from-purple-400/30 to-pink-400/30 text-white text-xs font-bold rounded-full border border-purple-300/40 shadow-[0_0_10px_rgba(168,85,247,0.4)]'>
-                          Admin group
+                          {t('gp_member_list_admin_badge')}
                         </span>
                       )}
                     </div>
@@ -99,7 +101,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
                   >
                     <span className='flex items-center gap-2'>
                       <DeleteOutlined className='text-base' />
-                      DELETE
+                      {t('gp_member_list_delete_button')}
                     </span>
                   </button>
                 )}
@@ -113,10 +115,10 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
               <TeamOutlined className='text-6xl text-cyan-200/70 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]' />
             </div>
             <h3 className='text-2xl font-bold text-white mb-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'>
-              No members yet
+              {t('gp_member_list_empty_title')}
             </h3>
             <p className='text-white/75 text-center max-w-md mb-6 font-medium'>
-              Start by inviting the first member to your group. They will receive an invitation email and can join immediately.
+              {t('gp_member_list_empty_subtitle')}
             </p>
           </div>
         )}
@@ -130,7 +132,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
             <div className='px-6 py-4 bg-red-500 flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <ExclamationCircleOutlined className='text-2xl text-white' />
-                <h3 className='text-lg font-bold text-white'>Confirm Remove Member</h3>
+                <h3 className='text-lg font-bold text-white'>{t('gp_member_list_confirm_title')}</h3>
               </div>
               <button
                 onClick={handleCloseModal}
@@ -144,10 +146,11 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
             {/* Content */}
             <div className='px-6 py-6'>
               <p className='text-gray-700 text-base mb-2'>
-                Are you sure you want to remove member{' '}
-                <span className='font-bold text-red-600'>"{selectedMember?.userName}"</span> from the group?
+                {t('gp_member_list_confirm_message_prefix')}{' '}
+                <span className='font-bold text-red-600'>"{selectedMember?.userName}"</span>{' '}
+                {t('gp_member_list_confirm_message_suffix')}
               </p>
-              <p className='text-gray-500 text-sm'>This action cannot be undone.</p>
+              <p className='text-gray-500 text-sm'>{t('gp_member_list_confirm_warning')}</p>
             </div>
 
             {/* Footer */}
@@ -157,7 +160,7 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
                 disabled={deleteMemberMuation.isPending}
                 className='px-6 py-2.5 rounded-lg font-medium text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                Cancel
+                {t('gp_member_list_confirm_cancel')}
               </button>
 
               <button
@@ -165,7 +168,9 @@ export default function Memberlist({ members, amount, groupId, currentUserRole, 
                 disabled={deleteMemberMuation.isPending}
                 className='px-6 py-2.5 rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                {deleteMemberMuation.isPending ? 'Removing...' : 'Remove'}
+                {deleteMemberMuation.isPending
+                  ? t('gp_member_list_confirm_removing')
+                  : t('gp_member_list_confirm_remove')}
               </button>
             </div>
           </div>

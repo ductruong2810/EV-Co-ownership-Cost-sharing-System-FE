@@ -13,6 +13,7 @@ import EmptyState from '../EmptyState/EmptyState'
 import path from '../../../../constants/path'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -33,6 +34,7 @@ const statusColumns = [
 ]
 
 const DisputeList = () => {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -158,13 +160,13 @@ const DisputeList = () => {
       return Promise.all(promises)
     },
     onSuccess: () => {
-      message.success(`Successfully resolved ${selectedDisputeIds.size} dispute(s)`)
+      message.success(`${t('admin_disputes_bulk_resolve_success')} ${selectedDisputeIds.size} dispute(s)`)
       setSelectedDisputeIds(new Set())
       setShowBulkActions(false)
       queryClient.invalidateQueries({ queryKey: ['disputes'] })
     },
     onError: () => {
-      message.error('Failed to resolve some disputes. Please try again.')
+      message.error(t('admin_disputes_bulk_resolve_error'))
     }
   })
 
@@ -180,13 +182,13 @@ const DisputeList = () => {
       return Promise.all(promises)
     },
     onSuccess: () => {
-      message.success(`Successfully rejected ${selectedDisputeIds.size} dispute(s)`)
+      message.success(`${t('admin_disputes_bulk_reject_success')} ${selectedDisputeIds.size} dispute(s)`)
       setSelectedDisputeIds(new Set())
       setShowBulkActions(false)
       queryClient.invalidateQueries({ queryKey: ['disputes'] })
     },
     onError: () => {
-      message.error('Failed to reject some disputes. Please try again.')
+      message.error(t('admin_disputes_bulk_reject_error'))
     }
   })
 
@@ -231,11 +233,11 @@ const DisputeList = () => {
     }
 
     Modal.confirm({
-      title: 'Resolve Selected Disputes',
-      content: `Are you sure you want to resolve ${visibleSelectedIds.length} dispute(s)?`,
-      okText: 'Resolve',
+      title: t('admin_disputes_confirm_resolve_title'),
+      content: `${t('admin_disputes_confirm_resolve_content')} ${visibleSelectedIds.length} dispute(s)?`,
+      okText: t('admin_disputes_confirm_resolve_button'),
       okType: 'primary',
-      cancelText: 'Cancel',
+      cancelText: t('admin_disputes_confirm_cancel'),
       onOk: () => {
         bulkResolveMutation.mutate({
           disputeIds: visibleSelectedIds
@@ -254,11 +256,11 @@ const DisputeList = () => {
     }
 
     Modal.confirm({
-      title: 'Reject Selected Disputes',
-      content: `Are you sure you want to reject ${visibleSelectedIds.length} dispute(s)?`,
-      okText: 'Reject',
+      title: t('admin_disputes_confirm_reject_title'),
+      content: `${t('admin_disputes_confirm_reject_content')} ${visibleSelectedIds.length} dispute(s)?`,
+      okText: t('admin_disputes_status_rejected'),
       okType: 'danger',
-      cancelText: 'Cancel',
+      cancelText: t('admin_disputes_confirm_cancel'),
       onOk: () => {
         bulkRejectMutation.mutate({
           disputeIds: visibleSelectedIds
@@ -284,13 +286,13 @@ const DisputeList = () => {
       <AdminPageContainer>
         <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
           <p className='mb-3 text-base font-semibold text-red-700'>
-            Failed to load disputes
+            {t('admin_disputes_error_load')}
           </p>
           <p className='mb-4 text-sm text-red-600'>
-            {error instanceof Error ? error.message : 'Please check your connection and try again.'}
+            {error instanceof Error ? error.message : t('admin_disputes_error_check_connection')}
           </p>
           <Button type='primary' danger onClick={() => refetch()}>
-            Retry
+            {t('admin_dashboard_retry')}
           </Button>
         </div>
       </AdminPageContainer>
@@ -300,20 +302,20 @@ const DisputeList = () => {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        eyebrow='Staff escalation'
-        title='Dispute center'
-        subtitle='Monitor and resolve incident reports across groups.'
+        eyebrow={t('admin_disputes_eyebrow')}
+        title={t('admin_disputes_title')}
+        subtitle={t('admin_disputes_subtitle')}
         rightSlot={
           <Select
             value={statusFilter}
             onChange={(value) => setStatusFilter(value)}
             style={{ width: 200 }}
             options={[
-              { label: 'All statuses', value: 'ALL' },
-              { label: 'Open', value: 'OPEN' },
-              { label: 'In review', value: 'IN_REVIEW' },
-              { label: 'Resolved', value: 'RESOLVED' },
-              { label: 'Rejected', value: 'REJECTED' }
+              { label: t('admin_disputes_all_statuses'), value: 'ALL' },
+              { label: t('admin_disputes_status_open'), value: 'OPEN' },
+              { label: t('admin_disputes_status_in_review'), value: 'IN_REVIEW' },
+              { label: t('admin_disputes_status_resolved'), value: 'RESOLVED' },
+              { label: t('admin_disputes_status_rejected'), value: 'REJECTED' }
             ]}
           />
         }
@@ -323,7 +325,7 @@ const DisputeList = () => {
       <div className='space-y-3'>
         <div className='flex flex-col sm:flex-row gap-3'>
           <Input
-            placeholder='Search by title, group, reporter, or ID...'
+            placeholder={t('admin_disputes_search_placeholder')}
             prefix={<SearchOutlined className='text-gray-400' />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -337,21 +339,21 @@ const DisputeList = () => {
             className={showAdvancedFilters ? 'bg-blue-500 text-white' : ''}
             size='large'
           >
-            Advanced Filters
+            {t('admin_disputes_advanced_filters')}
           </Button>
           {hasActiveFilters && (
             <Button icon={<ClearOutlined />} onClick={clearFilters} size='large'>
-              Clear
+              {t('admin_disputes_clear')}
             </Button>
           )}
         </div>
 
         {/* Advanced Filters Panel */}
         <Collapse activeKey={showAdvancedFilters ? ['filters'] : []} onChange={(keys) => setShowAdvancedFilters(keys.includes('filters'))}>
-          <Panel key='filters' header='Advanced Filters'>
+          <Panel key='filters' header={t('admin_disputes_advanced_filters')}>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Created Date Range</label>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>{t('admin_disputes_created_date_range')}</label>
                 <RangePicker
                   value={dateRange}
                   onChange={(dates) => setDateRange(dates as [Dayjs | null, Dayjs | null])}
@@ -360,11 +362,11 @@ const DisputeList = () => {
                 />
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Group</label>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>{t('admin_disputes_group')}</label>
                 <Select
                   value={groupIdFilter}
                   onChange={setGroupIdFilter}
-                  placeholder='All groups'
+                  placeholder={t('admin_disputes_all_groups')}
                   allowClear
                   className='w-full'
                   showSearch
@@ -382,18 +384,18 @@ const DisputeList = () => {
                 </Select>
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>Dispute Type</label>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>{t('admin_disputes_dispute_type')}</label>
                 <Select
                   value={disputeTypeFilter}
                   onChange={setDisputeTypeFilter}
                   className='w-full'
                 >
-                  <Option value='ALL'>All Types</Option>
-                  <Option value='PAYMENT'>Payment</Option>
-                  <Option value='USAGE'>Usage</Option>
-                  <Option value='MAINTENANCE'>Maintenance</Option>
-                  <Option value='BEHAVIOR'>Behavior</Option>
-                  <Option value='OTHER'>Other</Option>
+                  <Option value='ALL'>{t('admin_disputes_all_types')}</Option>
+                  <Option value='PAYMENT'>{t('admin_disputes_type_payment')}</Option>
+                  <Option value='USAGE'>{t('admin_disputes_type_usage')}</Option>
+                  <Option value='MAINTENANCE'>{t('admin_disputes_type_maintenance')}</Option>
+                  <Option value='BEHAVIOR'>{t('admin_disputes_type_behavior')}</Option>
+                  <Option value='OTHER'>{t('admin_disputes_type_other')}</Option>
                 </Select>
               </div>
             </div>
@@ -403,8 +405,8 @@ const DisputeList = () => {
         {/* Results count */}
         {(hasActiveFilters || filtered.length !== disputes.length) && (
           <div className='text-sm text-gray-600'>
-            Showing {filtered.length} of {disputes.length} disputes
-            {searchTerm && ` matching "${searchTerm}"`}
+            {t('admin_disputes_showing')} {filtered.length} {t('admin_disputes_of')} {disputes.length} {t('admin_disputes_disputes')}
+            {searchTerm && ` ${t('admin_disputes_matching')} "${searchTerm}"`}
           </div>
         )}
       </div>
@@ -416,7 +418,7 @@ const DisputeList = () => {
         return visibleSelectedCount > 0 ? (
         <div className='bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 flex items-center justify-between'>
           <div className='flex items-center gap-3'>
-            <span className='font-semibold text-blue-900'>{visibleSelectedCount} dispute(s) selected</span>
+            <span className='font-semibold text-blue-900'>{visibleSelectedCount} {t('admin_disputes_selected')}</span>
           </div>
           <Space>
             <Button
@@ -426,7 +428,7 @@ const DisputeList = () => {
               loading={bulkResolveMutation.isPending}
               className='bg-green-600 hover:bg-green-700'
             >
-              Resolve Selected
+              {t('admin_disputes_resolve_selected')}
             </Button>
             <Button
               icon={<CloseOutlined />}
@@ -434,27 +436,27 @@ const DisputeList = () => {
               onClick={handleBulkReject}
               loading={bulkRejectMutation.isPending}
             >
-              Reject Selected
+              {t('admin_disputes_reject_selected')}
             </Button>
             <Button onClick={() => {
               setSelectedDisputeIds(new Set())
               setShowBulkActions(false)
-            }}>Clear Selection</Button>
+            }}>{t('admin_disputes_clear_selection')}</Button>
           </Space>
         </div>
         ) : null
       })()}
 
       <section className='grid gap-3 md:grid-cols-4'>
-        <SummaryCard label='Open' value={summary.open} accent='bg-orange-50 text-orange-700 border-orange-100' />
-        <SummaryCard label='In review' value={summary.review} accent='bg-blue-50 text-blue-700 border-blue-100' />
+        <SummaryCard label={t('admin_disputes_summary_open')} value={summary.open} accent='bg-orange-50 text-orange-700 border-orange-100' />
+        <SummaryCard label={t('admin_disputes_summary_in_review')} value={summary.review} accent='bg-blue-50 text-blue-700 border-blue-100' />
         <SummaryCard
-          label='Resolved'
+          label={t('admin_disputes_summary_resolved')}
           value={summary.resolved}
           accent='bg-emerald-50 text-emerald-700 border-emerald-100'
         />
         <SummaryCard
-          label='Total disputes'
+          label={t('admin_disputes_summary_total')}
           value={summary.total}
           accent='bg-slate-50 text-slate-700 border-slate-100'
         />
@@ -493,7 +495,7 @@ const DisputeList = () => {
                   </div>
                   <div className='space-y-3 max-h-[600px] overflow-y-auto'>
                     {items.length === 0 ? (
-                      <p className='py-6 text-center text-xs text-gray-400'>No disputes here</p>
+                      <p className='py-6 text-center text-xs text-gray-400'>{t('admin_disputes_no_disputes')}</p>
                     ) : (
                       items.map((dispute) => {
                         const isSelected = selectedDisputeIds.has(dispute.disputeId)
@@ -565,15 +567,15 @@ const DisputeList = () => {
 
               <div className='space-y-3 pt-4 border-t border-gray-200'>
                 <div>
-                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Type</p>
+                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>{t('admin_disputes_preview_type')}</p>
                   <p className='text-sm text-gray-900 mt-1'>{previewDispute.type}</p>
                 </div>
                 <div>
-                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Reporter</p>
+                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>{t('admin_disputes_preview_reporter')}</p>
                   <p className='text-sm text-gray-900 mt-1'>{previewDispute.reporterName || '—'}</p>
                 </div>
                 <div>
-                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Created</p>
+                  <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>{t('admin_disputes_preview_created')}</p>
                   <p className='text-sm text-gray-900 mt-1'>
                     {new Date(previewDispute.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -586,7 +588,7 @@ const DisputeList = () => {
                 </div>
                 {previewDispute.shortDescription && (
                   <div>
-                    <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Summary</p>
+                    <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>{t('admin_disputes_preview_summary')}</p>
                     <p className='text-sm text-gray-700 mt-1 line-clamp-3'>
                       {previewDispute.shortDescription}
                     </p>
@@ -594,7 +596,7 @@ const DisputeList = () => {
                 )}
                 {previewDispute.assignedStaffName && (
                   <div>
-                    <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>Assigned to</p>
+                    <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide'>{t('admin_disputes_preview_assigned_to')}</p>
                     <p className='text-sm text-gray-900 mt-1'>{previewDispute.assignedStaffName}</p>
                   </div>
                 )}
@@ -607,20 +609,20 @@ const DisputeList = () => {
                   onClick={() => navigate(`/manager/${path.disputeDetail.replace(':disputeId', previewDispute.disputeId.toString())}`)}
                   className='bg-blue-600 hover:bg-blue-700'
                 >
-                  View Full Details
+                  {t('admin_disputes_view_full_details')}
                 </Button>
                 <Button
                   block
                   onClick={() => setPreviewDisputeId(null)}
                   className='border-gray-300'
                 >
-                  Close Preview
+                  {t('admin_disputes_close_preview')}
                 </Button>
               </div>
             </div>
           ) : (
             <div className='sticky top-6 bg-gray-50 rounded-2xl border border-dashed border-gray-300 p-8 text-center'>
-              <p className='text-sm text-gray-400'>Select a dispute to preview details</p>
+              <p className='text-sm text-gray-400'>{t('admin_disputes_preview_select')}</p>
             </div>
           )}
         </div>

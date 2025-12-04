@@ -1,8 +1,11 @@
 import { Link, NavLink } from 'react-router-dom'
 import path from '../../constants/path'
 import classNames from 'classnames'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function LearnmoreHeader() {
+  const { t } = useI18n()
+
   return (
     <header className='bg-black top-0 z-50 overflow-x-auto '>
       <div className='flex justify-between items-center px-6'>
@@ -24,7 +27,7 @@ export default function LearnmoreHeader() {
               )
             }
           >
-            FAQ'S
+            {t('lm_header_faq')}
           </NavLink>
           <NavLink
             to={path.home.concat('#about')}
@@ -38,7 +41,7 @@ export default function LearnmoreHeader() {
               )
             }
           >
-            ABOUT US
+            {t('lm_header_about')}
           </NavLink>
         </div>
       </div>

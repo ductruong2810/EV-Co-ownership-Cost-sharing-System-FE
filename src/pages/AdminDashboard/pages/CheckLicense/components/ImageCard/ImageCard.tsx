@@ -6,6 +6,7 @@ import { getDecryptedImageUrl } from '../../../../../../utils/imageUrl'
 import type { DocumentInfo } from '../../../../../../types/api/staff.type'
 import type { Status } from '../../CheckLicense'
 import StatusBadge from '../StatusBadge'
+import { useI18n } from '../../../../../../i18n/useI18n'
 
 interface ImageCardProps {
   image: string
@@ -30,18 +31,17 @@ const ImageCard: FC<ImageCardProps> = ({
   documentInfo,
   hideActions = false
 }) => {
+  const { t } = useI18n()
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
 
   const handleApprove = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!documentId) return
-    const confirmed = window.confirm(
-      'Approve this document?\n• Ensure the image is clear\n• OCR information matches the document\n• Document is valid and not expired'
-    )
+    const confirmed = window.confirm(t('admin_check_license_imagecard_approve_confirm'))
     if (!confirmed) return
     await staffApi.reviewDocument(documentId, 'APPROVE')
-    toast.success('Document approved successfully', { autoClose: 2000 })
+    toast.success(t('admin_check_license_imagecard_approve_success'), { autoClose: 2000 })
     auditApi
       .logAction({
         type: 'DOCUMENT_REVIEW',
@@ -56,11 +56,11 @@ const ImageCard: FC<ImageCardProps> = ({
   const handleRejectSubmit = async () => {
     if (!documentId) return
     if (!rejectReason.trim()) {
-      toast.warning('Please provide a rejection note', { autoClose: 2000 })
+      toast.warning(t('admin_check_license_imagecard_reject_note_required'), { autoClose: 2000 })
       return
     }
     await staffApi.reviewDocument(documentId, 'REJECT', rejectReason.trim())
-    toast.success('Document rejected', { autoClose: 2000 })
+    toast.success(t('admin_check_license_imagecard_reject_success'), { autoClose: 2000 })
     auditApi
       .logAction({
         type: 'DOCUMENT_REVIEW',
@@ -87,23 +87,23 @@ const ImageCard: FC<ImageCardProps> = ({
     if (!documentInfo) {
       return (
         <p className='text-xs text-gray-500 italic'>
-          No OCR data available. Please rely on the image for verification.
+          {t('admin_check_license_imagecard_no_ocr')}
         </p>
       )
     }
 
     return (
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm min-w-0'>
-        {infoRow('Document #', documentInfo.documentNumber)}
-        {infoRow('Date of Birth', documentInfo.dateOfBirth)}
-        {infoRow('Issue Date', documentInfo.issueDate)}
-        {infoRow('Expiry Date', documentInfo.expiryDate)}
+        {infoRow(t('admin_check_license_doc_number'), documentInfo.documentNumber)}
+        {infoRow(t('admin_check_license_dob'), documentInfo.dateOfBirth)}
+        {infoRow(t('admin_check_license_issue_date'), documentInfo.issueDate)}
+        {infoRow(t('admin_check_license_expiry_date'), documentInfo.expiryDate)}
         <div className='sm:col-span-2 min-w-0'>
-          {infoRow('Address', documentInfo.address)}
+          {infoRow(t('admin_check_license_address'), documentInfo.address)}
         </div>
         {documentInfo.reviewNote && (
           <div className='sm:col-span-2 min-w-0'>
-            {infoRow('Last review note', documentInfo.reviewNote)}
+            {infoRow(t('admin_check_license_last_review_note'), documentInfo.reviewNote)}
           </div>
         )}
       </div>
@@ -131,7 +131,7 @@ const ImageCard: FC<ImageCardProps> = ({
               className='w-full h-48 lg:h-64 object-cover transition-transform duration-300 group-hover:scale-105'
             />
             <span className='absolute bottom-2 right-2 bg-black/70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm font-medium'>
-              Click to enlarge
+              {t('admin_check_license_click_enlarge')}
             </span>
           </div>
           <div className='flex flex-col lg:w-1/2 min-w-0 overflow-hidden'>
@@ -139,7 +139,7 @@ const ImageCard: FC<ImageCardProps> = ({
               <div className='mb-3 min-w-0'>{renderInfo()}</div>
               {documentInfo?.uploadedAt && (
                 <p className='text-xs text-gray-500 break-words'>
-                  Uploaded: {new Date(documentInfo.uploadedAt).toLocaleString()}
+                  {t('admin_check_license_uploaded')}: {new Date(documentInfo.uploadedAt).toLocaleString()}
                 </p>
               )}
             </div>
@@ -152,7 +152,7 @@ const ImageCard: FC<ImageCardProps> = ({
                   <svg className='w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M5 13l4 4L19 7' />
                   </svg>
-                  <span className='font-semibold'>Approve</span>
+                  <span className='font-semibold'>{t('admin_check_license_approve')}</span>
                 </button>
                 <button
                   onClick={(e) => {
@@ -164,7 +164,7 @@ const ImageCard: FC<ImageCardProps> = ({
                   <svg className='w-5 h-5 flex-shrink-0 group-hover:rotate-90 transition-transform duration-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M6 18L18 6M6 6l12 12' />
                   </svg>
-                  <span className='font-semibold'>Reject</span>
+                  <span className='font-semibold'>{t('admin_check_license_reject')}</span>
                 </button>
               </div>
             )}
@@ -182,7 +182,7 @@ const ImageCard: FC<ImageCardProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className='flex items-center justify-between border-b border-gray-200 pb-3'>
-              <h3 className='text-xl font-bold text-gray-800'>Reject {alt}</h3>
+              <h3 className='text-xl font-bold text-gray-800'>{t('admin_check_license_imagecard_reject_title', { alt })}</h3>
               <button
                 onClick={() => setShowRejectModal(false)}
                 className='text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded'
@@ -193,21 +193,21 @@ const ImageCard: FC<ImageCardProps> = ({
               </button>
             </div>
             <p className='text-sm text-gray-600'>
-              Please provide a reason so the user knows what to fix.
+              {t('admin_check_license_imagecard_reject_desc')}
             </p>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={4}
               className='w-full border-2 border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-300 focus:border-red-400 transition-all'
-              placeholder='Example: Image is blurry / Document expired / Information mismatch...'
+              placeholder={t('admin_check_license_imagecard_reject_placeholder')}
             />
             <div className='flex gap-3 justify-end pt-2'>
               <button
                 onClick={() => setShowRejectModal(false)}
                 className='px-5 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-200'
               >
-                Cancel
+                {t('admin_check_license_cancel')}
               </button>
               <button
                 onClick={handleRejectSubmit}
@@ -216,7 +216,7 @@ const ImageCard: FC<ImageCardProps> = ({
                 <svg className='w-4 h-4 group-hover:rotate-90 transition-transform duration-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M6 18L18 6M6 6l12 12' />
                 </svg>
-                <span>Submit Rejection</span>
+                <span>{t('admin_check_license_imagecard_submit_rejection')}</span>
               </button>
             </div>
           </div>

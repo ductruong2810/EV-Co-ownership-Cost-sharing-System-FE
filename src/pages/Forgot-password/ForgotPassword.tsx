@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useNavigate } from 'react-router-dom'
 import path from '../../constants/path'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function ForgotPassword() {
   const {
@@ -16,6 +17,7 @@ export default function ForgotPassword() {
     resolver: yupResolver<FieldValues>(forgotPasswordSchema)
   })
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   const forgotPasswordMutation = useMutation({
     mutationFn: (email: string) => authApi.forgotPassword({ email })
@@ -56,11 +58,9 @@ export default function ForgotPassword() {
 
         {/* Text */}
         <h1 className='text-2xl font-bold mb-2 bg-gradient-to-r from-teal-300 to-blue-400 bg-clip-text text-transparent'>
-          Reset your password
+          {t('forgot_title')}
         </h1>
-        <p className='text-sm text-gray-300 text-center mb-6'>
-          Enter your email address and we’ll send an OTP to reset your password
-        </p>
+        <p className='text-sm text-gray-300 text-center mb-6'>{t('forgot_subtitle')}</p>
 
         {/* Form */}
         <motion.form
@@ -69,11 +69,11 @@ export default function ForgotPassword() {
           transition={{ delay: 0.2, duration: 0.6 }}
           className='w-full'
         >
-          <label className='block mb-2 text-gray-200 text-sm font-medium'>Your email address</label>
+          <label className='block mb-2 text-gray-200 text-sm font-medium'>{t('forgot_email_label')}</label>
           <input
             type='email'
             className='w-full p-2 mb-4 rounded-md border border-gray-600 bg-slate-800/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400'
-            placeholder='Enter your email'
+            placeholder={t('forgot_email_placeholder')}
             required
             autoComplete='email'
             {...register('email')}
@@ -86,7 +86,7 @@ export default function ForgotPassword() {
             onClick={onSubmit}
             className='w-full bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-300 hover:to-blue-400 text-white font-bold py-2 rounded-md shadow-md transition-all'
           >
-            {forgotPasswordMutation.isPending ? 'Sending...' : 'Reset Password'}
+            {forgotPasswordMutation.isPending ? t('forgot_button_loading') : t('forgot_button')}
           </motion.button>
         </motion.form>
       </motion.div>

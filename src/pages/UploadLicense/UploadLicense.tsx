@@ -10,6 +10,7 @@ import OCREditor from '../../components/OCREditor/OCREditor'
 import userApi from '../../apis/user.api'
 import { toast } from 'react-toastify'
 import type { DocumentInfo } from '../../types/api/user.type'
+import { useI18n } from '../../i18n/useI18n'
 
 export type DocType = 'gplx' | 'cccd'
 export type DocSide = 'front' | 'back'
@@ -147,6 +148,8 @@ export default function UploadLicense() {
 
   const [isPreviewingOcr, setIsPreviewingOcr] = useState(false)
 
+  const { t } = useI18n()
+
   // Preview OCR mutation
   const previewOcrMutation = useMutation({
     mutationFn: ({ frontFile, backFile, documentType }: PreviewOcrPayload) =>
@@ -166,7 +169,7 @@ export default function UploadLicense() {
     onError: (error) => {
       console.error('Failed to preview OCR:', error)
       setIsPreviewingOcr(false)
-      toast.error('Failed to extract information from image. Please try again.', { autoClose: 3000 })
+      toast.error(t('upload_toast_ocr_failed'), { autoClose: 3000 })
     }
   })
 
@@ -186,8 +189,8 @@ export default function UploadLicense() {
       setShowOcrEditor((prev) => ({ ...prev, gplx: false }))
       toast.success(
         <div>
-          <div className='font-semibold mb-1'>✓ Upload Successful</div>
-          <div className='text-sm'>Your driver license has been uploaded and is being reviewed.</div>
+          <div className='font-semibold mb-1'>{t('upload_toast_upload_driver_title')}</div>
+          <div className='text-sm'>{t('upload_toast_upload_driver_body')}</div>
         </div>,
         {
           autoClose: 3000,
@@ -229,8 +232,8 @@ export default function UploadLicense() {
       setShowOcrEditor((prev) => ({ ...prev, cccd: false }))
       toast.success(
         <div>
-          <div className='font-semibold mb-1'>✓ Upload Successful</div>
-          <div className='text-sm'>Your citizen ID has been uploaded and is being reviewed.</div>
+          <div className='font-semibold mb-1'>{t('upload_toast_upload_citizen_title')}</div>
+          <div className='text-sm'>{t('upload_toast_upload_citizen_body')}</div>
         </div>,
         {
           autoClose: 3000,
@@ -286,8 +289,8 @@ export default function UploadLicense() {
       if (!docs.gplx.front || !docs.gplx.back) {
         toast.warning(
           <div>
-            <div className='font-semibold mb-1'>Missing Files</div>
-            <div className='text-sm'>Please upload both front and back images of your driver license to continue.</div>
+            <div className='font-semibold mb-1'>{t('upload_warning_missing_files_title')}</div>
+            <div className='text-sm'>{t('upload_warning_missing_driver_body')}</div>
           </div>,
           {
             autoClose: 3000,
@@ -307,8 +310,8 @@ export default function UploadLicense() {
       if (!docs.cccd.front || !docs.cccd.back) {
         toast.warning(
           <div>
-            <div className='font-semibold mb-1'>Missing Files</div>
-            <div className='text-sm'>Please upload both front and back images of your citizen ID to continue.</div>
+            <div className='font-semibold mb-1'>{t('upload_warning_missing_files_title')}</div>
+            <div className='text-sm'>{t('upload_warning_citizen_body')}</div>
           </div>,
           {
             autoClose: 3000,
@@ -382,8 +385,10 @@ export default function UploadLicense() {
 
         {/* Header */}
         <div className='text-center space-y-3'>
-          <h1 className='text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.7)]'>Upload Documents</h1>
-          <p className='text-white/75 text-sm font-medium'>Upload your driver license and citizen ID in any order</p>
+          <h1 className='text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.7)]'>
+            {t('upload_header_title')}
+          </h1>
+          <p className='text-white/75 text-sm font-medium'>{t('upload_header_subtitle')}</p>
         </div>
 
         {/* Tabs */}
@@ -414,7 +419,7 @@ export default function UploadLicense() {
                     d='M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z'
                   />
                 </svg>
-                <span>{tab === 'gplx' ? 'Driver License' : 'Citizen ID'}</span>
+                <span>{tab === 'gplx' ? t('upload_tab_driver') : t('upload_tab_citizen')}</span>
                 {uploadSuccess[tab] && (
                   <span className='ml-1 flex items-center justify-center w-5 h-5 rounded-full bg-green-400 text-white text-xs font-bold shadow-[0_0_15px_rgba(74,222,128,0.8)]'>
                     ✓
@@ -453,13 +458,13 @@ export default function UploadLicense() {
                   d='M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z'
                 />
               </svg>
-              {activeTab === 'gplx' ? 'Driver License (GPLX)' : 'Citizen ID (CCCD)'}
+              {activeTab === 'gplx' ? t('upload_section_driver') : t('upload_section_citizen')}
             </h3>
             <div className='grid md:grid-cols-2 gap-4'>
               <Field
                 type={activeTab}
                 side='front'
-                label='Front side'
+                label={t('upload_field_front')}
                 handleFileChange={handleFileChange}
                 docs={docs}
                 disabled={isUploading}
@@ -467,7 +472,7 @@ export default function UploadLicense() {
               <Field
                 type={activeTab}
                 side='back'
-                label='Back side'
+                label={t('upload_field_back')}
                 handleFileChange={handleFileChange}
                 docs={docs}
                 disabled={isUploading}
@@ -482,7 +487,7 @@ export default function UploadLicense() {
               className='flex items-center justify-center gap-3 bg-cyan-400/20 backdrop-blur-lg border-[2px] border-cyan-300/40 rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
             >
               <div className='animate-spin rounded-full h-5 w-5 border-b-2 border-cyan-200' />
-              <span className='text-white font-semibold'>Uploading...</span>
+              <span className='text-white font-semibold'>{t('upload_uploading')}</span>
             </motion.div>
           )}
 
@@ -506,7 +511,7 @@ export default function UploadLicense() {
                   d='M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z'
                 />
               </svg>
-              <span className='text-red-200 font-semibold'>Upload failed, please try again!</span>
+              <span className='text-red-200 font-semibold'>{t('upload_failed_banner')}</span>
             </motion.div>
           )}
 
@@ -570,11 +575,11 @@ export default function UploadLicense() {
               </div>
               <div className='flex flex-col'>
                 <span className='text-green-200 font-semibold'>
-                  Upload {activeTab === 'gplx' ? 'driver license' : 'citizen ID'} successfully!
+                  {activeTab === 'gplx'
+                    ? t('upload_status_driver_success')
+                    : t('upload_status_citizen_success')}
                 </span>
-                <span className='text-green-200/70 text-xs mt-0.5'>
-                  Your document is being reviewed. You'll be notified once it's approved.
-                </span>
+                <span className='text-green-200/70 text-xs mt-0.5'>{t('upload_status_reviewing')}</span>
               </div>
             </motion.div>
           )}
@@ -600,10 +605,10 @@ export default function UploadLicense() {
               }`}
             >
               <span className='text-sm text-white font-medium'>
-                {type === 'gplx' ? 'Driver License' : 'Citizen ID'}:
+                {type === 'gplx' ? t('upload_footer_driver') : t('upload_footer_citizen')}:
               </span>
               <span className={`text-sm font-bold ${uploadSuccess[type] ? 'text-green-200' : 'text-white/60'}`}>
-                {uploadSuccess[type] ? '✓ Completed' : 'Not uploaded'}
+                {uploadSuccess[type] ? t('upload_footer_completed') : t('upload_footer_not_uploaded')}
               </span>
             </div>
           ))}

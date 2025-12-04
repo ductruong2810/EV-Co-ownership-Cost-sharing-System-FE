@@ -3,12 +3,14 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo, useRef } from 'react'
 import userApi from '../../apis/user.api'
 import Skeleton from '../../components/Skeleton'
+import { useI18n } from '../../i18n/useI18n'
 import { setUserIdToLS } from '../../utils/auth'
 import DashboardCardList from './components/DashboardCardList'
 import DashboardTitle from './components/DashboardTitle'
 
 export default function Dashboard() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const { t } = useI18n()
 
   const { data: userProfile, isLoading } = useQuery({
     queryKey: ['user-profile'],
@@ -107,11 +109,12 @@ export default function Dashboard() {
                               <div className='flex-1'>
                                 <div className='flex items-center gap-2 mb-1'>
                                   <SafetyCertificateOutlined style={{ fontSize: '18px', color: 'white' }} />
-                                  <h4 className='text-white text-sm font-sans uppercase'>Verification required</h4>
+                                  <h4 className='text-white text-sm font-sans uppercase'>
+                                    {t('dashboard_verification_title')}
+                                  </h4>
                                 </div>
                                 <p className='text-white/95 text-sm font-sans'>
-                                  Please upload your <span className='font-black'>Citizen ID</span> and{' '}
-                                  <span className='font-black'>Driver License</span> to unlock full features.
+                                  {t('dashboard_verification_body')}
                                 </p>
                               </div>
                             </div>

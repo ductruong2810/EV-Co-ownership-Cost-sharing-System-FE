@@ -18,8 +18,10 @@ import TextAreaInput from './components/TextAreaInput'
 import TextInput from './components/TextInput'
 import PriceInput from './components/PriceInput/PriceInput'
 import type { AutoFillInfo } from '../../types/api/group.type'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function CreateGroups() {
+  const { t } = useI18n()
   const {
     register,
     handleSubmit,
@@ -45,12 +47,12 @@ export default function CreateGroups() {
     mutationFn: (body: FormData) => groupApi.CreateGroup(body),
     onSuccess: (response) => {
       console.log('Create group successful:', response?.data)
-      toast.success('Group registration successful!')
+      toast.success(t('cg_toast_create_success'))
       const fullPath = `${path.dashBoard}/${path.viewGroups}`
       navigate(fullPath)
     },
     onError: (error) => {
-      toast.error('Group creation failed. Please try again!')
+      toast.error(t('cg_toast_create_failed'))
       console.error('Create group failed:', error)
     }
   })
@@ -81,15 +83,15 @@ export default function CreateGroups() {
           }
 
           if (autoFillInfo.isRegistrationDocument) {
-            toast.success('Vehicle information extracted successfully!', { autoClose: 2000 })
+            toast.success(t('cg_ocr_success'), { autoClose: 2000 })
           } else {
-            toast.warning('Could not detect vehicle registration document. Please verify the image.', {
+            toast.warning(t('cg_ocr_not_registration'), {
               autoClose: 3000
             })
           }
         } catch (error) {
           console.error('OCR processing failed:', error)
-          toast.error('Failed to extract vehicle information. Please enter manually.')
+          toast.error(t('cg_ocr_failed'))
         } finally {
           setIsProcessingOcr(false)
         }
@@ -179,14 +181,14 @@ export default function CreateGroups() {
               {/* Group Info */}
               <div className='grid grid-cols-2 gap-4'>
                 <TextInput
-                  label='Group name'
-                  placeholder='Enter group name'
+                  label={t('cg_field_group_name_label')}
+                  placeholder={t('cg_field_group_name_placeholder')}
                   register={register('groupName')}
                   error={errors.groupName?.message}
                 />
                 <PriceInput
-                  label='Enter asset value'
-                  placeholder='Enter price (VND)'
+                  label={t('cg_field_asset_value_label')}
+                  placeholder={t('cg_field_asset_value_placeholder')}
                   register={register('assetValue')}
                   error={errors.assetValue?.message}
                   formatNumber={true}
@@ -196,14 +198,14 @@ export default function CreateGroups() {
               {/* License Info */}
               <div className='grid grid-cols-2 gap-4'>
                 <TextInput
-                  label='License plate number'
-                  placeholder='29A-123.45'
+                  label={t('cg_field_license_plate_label')}
+                  placeholder={t('cg_field_license_plate_placeholder')}
                   register={register('licensePlate')}
                   error={errors.licensePlate?.message}
                 />
                 <TextInput
-                  label='Chassis number'
-                  placeholder='RLHRE7EXXXXXXXX'
+                  label={t('cg_field_chassis_label')}
+                  placeholder={t('cg_field_chassis_placeholder')}
                   register={register('chassisNumber')}
                   error={errors.chassisNumber?.message}
                 />
@@ -212,7 +214,7 @@ export default function CreateGroups() {
               {/* Image Uploads */}
               <div className='grid grid-cols-2 gap-4'>
                 <FileUpload
-                  label='Vehicle image'
+                  label={t('cg_field_vehicle_image_label')}
                   file={vehicleImage || null}
                   register={register('vehicleImage')}
                   onRemove={(file) => {
@@ -229,7 +231,7 @@ export default function CreateGroups() {
                 />
                 <div className='space-y-2'>
                   <FileUpload
-                    label='Car parrot shape (Registration Document)'
+                    label={t('cg_field_registration_image_label')}
                     file={registrationImage || null}
                     register={register('registrationImage')}
                     onRemove={(file) => {
@@ -248,7 +250,7 @@ export default function CreateGroups() {
                   {isProcessingOcr && (
                     <div className='flex items-center gap-2 text-sm text-blue-600'>
                       <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600' />
-                      <span>Processing OCR...</span>
+                      <span>{t('cg_ocr_processing')}</span>
                     </div>
                   )}
                   {ocrResult && (
@@ -260,20 +262,34 @@ export default function CreateGroups() {
                       <div className='font-semibold text-green-900 mb-2'>✓ OCR Extracted:</div>
                       <div className='space-y-1 text-gray-700'>
                         {ocrResult.extractedLicensePlate && (
-                          <div>License Plate: <span className='font-semibold'>{ocrResult.extractedLicensePlate}</span></div>
+                          <div>
+                            {t('cg_ocr_license_plate')}{' '}
+                            <span className='font-semibold'>{ocrResult.extractedLicensePlate}</span>
+                          </div>
                         )}
                         {ocrResult.extractedChassisNumber && (
-                          <div>Chassis: <span className='font-semibold'>{ocrResult.extractedChassisNumber}</span></div>
+                          <div>
+                            {t('cg_ocr_chassis')}{' '}
+                            <span className='font-semibold'>{ocrResult.extractedChassisNumber}</span>
+                          </div>
                         )}
                         {ocrResult.extractedBrand && (
-                          <div>Brand: <span className='font-semibold'>{ocrResult.extractedBrand}</span></div>
+                          <div>
+                            {t('cg_ocr_brand')}{' '}
+                            <span className='font-semibold'>{ocrResult.extractedBrand}</span>
+                          </div>
                         )}
                         {ocrResult.extractedModel && (
-                          <div>Model: <span className='font-semibold'>{ocrResult.extractedModel}</span></div>
+                          <div>
+                            {t('cg_ocr_model')}{' '}
+                            <span className='font-semibold'>{ocrResult.extractedModel}</span>
+                          </div>
                         )}
                       </div>
                       {ocrResult.processingTime && (
-                        <div className='text-xs text-gray-500 mt-2'>Processed in {ocrResult.processingTime}</div>
+                        <div className='text-xs text-gray-500 mt-2'>
+                          {t('cg_ocr_processed_in')} {ocrResult.processingTime}
+                        </div>
                       )}
                     </motion.div>
                   )}
@@ -282,16 +298,16 @@ export default function CreateGroups() {
 
               {/* Member Count */}
               <NumberInput
-                label='Number of members'
-                placeholder='Enter member number'
+                label={t('cg_field_member_count_label')}
+                placeholder={t('cg_field_member_count_placeholder')}
                 register={register('maxMembers')}
                 error={errors.maxMembers?.message}
               />
 
               {/* Description */}
               <TextAreaInput
-                label='Describe'
-                placeholder='Enter a description of the group (optional)'
+                label={t('cg_field_description_label')}
+                placeholder={t('cg_field_description_placeholder')}
                 register={register('description')}
                 error={errors.description?.message}
               />
@@ -308,7 +324,7 @@ export default function CreateGroups() {
                 transition={{ type: 'spring', stiffness: 300 }}
                 className='w-full bg-gradient-to-r from-cyan-400 to-sky-500 text-white py-3.5 rounded-xl font-bold text-lg tracking-wide shadow-[0_8px_32px_rgba(6,182,212,0.6),0_0_20px_rgba(6,182,212,0.4)] border-[2px] border-white/40 hover:border-white/60 transition-all duration-400 disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                {groupMutation.isPending ? 'Pending...' : 'Create Group'}
+                {groupMutation.isPending ? t('cg_submit_pending') : t('cg_submit_create')}
               </motion.button>
             </motion.form>
 

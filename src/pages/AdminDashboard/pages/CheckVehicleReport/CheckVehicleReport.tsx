@@ -6,6 +6,7 @@ import Skeleton from '../../../../components/Skeleton'
 import technicianApi from '../../../../apis/technician.api'
 import type { VehicleCheck } from '../../../../types/api/technician.type'
 import { toast } from 'react-toastify'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const STATUS_COLORS = {
   PENDING: 'bg-lime-50 text-lime-600 animate-pulse',
@@ -25,6 +26,7 @@ const METRIC_STYLES = {
 } as const
 
 export function CheckVehicleReport() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ['vehicleChecks'],
@@ -93,12 +95,12 @@ export function CheckVehicleReport() {
           )
         )
       )
-      toast.success(`Updated ${selectedIds.size} reports`)
+      toast.success(t('admin_check_vehicle_report_batch_success', { count: selectedIds.size }))
       clearSelection()
       queryClient.invalidateQueries({ queryKey: ['vehicleChecks'] })
     } catch (err) {
       console.error(err)
-      toast.error('Failed to update some reports')
+      toast.error(t('admin_check_vehicle_report_batch_error'))
     }
   }
 
@@ -113,15 +115,15 @@ export function CheckVehicleReport() {
         />
 
         <section className='mb-5 grid gap-3 md:grid-cols-4'>
-          <SummaryCard label='Pending' value={summary.pending} color='bg-amber-50 text-amber-700 border-amber-100' />
+          <SummaryCard label={t('admin_check_vehicle_report_summary_pending')} value={summary.pending} color='bg-amber-50 text-amber-700 border-amber-100' />
           <SummaryCard
-            label='Approved'
+            label={t('admin_check_vehicle_report_summary_approved')}
             value={summary.approved}
             color='bg-emerald-50 text-emerald-700 border-emerald-100'
           />
-          <SummaryCard label='Rejected' value={summary.rejected} color='bg-rose-50 text-rose-700 border-rose-100' />
+          <SummaryCard label={t('admin_check_vehicle_report_summary_rejected')} value={summary.rejected} color='bg-rose-50 text-rose-700 border-rose-100' />
           <SummaryCard
-            label='Total reports'
+            label={t('admin_check_vehicle_report_summary_total')}
             value={summary.total}
             color='bg-slate-50 text-slate-700 border-slate-100'
           />
@@ -131,23 +133,23 @@ export function CheckVehicleReport() {
           <div className='mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm text-emerald-900 shadow'>
             <div className='flex flex-wrap items-center justify-between gap-3'>
               <span>
-                <strong>{selectedIds.size}</strong> report{selectedIds.size > 1 ? 's' : ''} selected
+                <strong>{selectedIds.size}</strong> {t('admin_check_vehicle_report_selected_count', { count: selectedIds.size })}
               </span>
               <div className='flex gap-2 text-xs font-semibold'>
                 <button
                   onClick={() => handleBatchUpdate('REJECTED')}
                   className='rounded-lg border border-rose-200 px-3 py-1 text-rose-600 hover:bg-rose-50'
                 >
-                  Reject
+                  {t('admin_check_vehicle_report_reject')}
                 </button>
                 <button
                   onClick={() => handleBatchUpdate('APPROVED')}
                   className='rounded-lg border border-emerald-300 bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700'
                 >
-                  Approve
+                  {t('admin_check_vehicle_report_approve')}
                 </button>
                 <button onClick={clearSelection} className='rounded-lg border px-3 py-1 text-gray-500 hover:bg-gray-50'>
-                  Clear
+                  {t('admin_check_vehicle_report_clear')}
                 </button>
               </div>
             </div>
@@ -156,15 +158,14 @@ export function CheckVehicleReport() {
 
         <section className='mb-5 flex flex-col gap-3 rounded-2xl bg-white/80 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between'>
           <div>
-            <p className='text-sm font-semibold text-emerald-900'>Filters</p>
+            <p className='text-sm font-semibold text-emerald-900'>{t('admin_check_vehicle_report_filters')}</p>
             <p className='text-xs text-gray-500'>
-              Showing <span className='font-semibold'>{filteredReports.length}</span> of{' '}
-              <span className='font-semibold'>{reportData.length}</span> reports
+              {t('admin_check_vehicle_report_showing', { showing: filteredReports.length, total: reportData.length })}
             </p>
           </div>
           <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
             <Input
-              placeholder='Search by vehicle, plate, issue...'
+              placeholder={t('admin_check_vehicle_report_search_placeholder')}
               prefix={<SearchOutlined className='text-gray-400' />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -178,10 +179,10 @@ export function CheckVehicleReport() {
               className='w-full sm:w-44'
               size='large'
             >
-              <Select.Option value='ALL'>All statuses</Select.Option>
-              <Select.Option value='PENDING'>Pending</Select.Option>
-              <Select.Option value='APPROVED'>Approved</Select.Option>
-              <Select.Option value='REJECTED'>Rejected</Select.Option>
+              <Select.Option value='ALL'>{t('admin_check_vehicle_report_status_all')}</Select.Option>
+              <Select.Option value='PENDING'>{t('admin_check_vehicle_report_status_pending')}</Select.Option>
+              <Select.Option value='APPROVED'>{t('admin_check_vehicle_report_status_approved')}</Select.Option>
+              <Select.Option value='REJECTED'>{t('admin_check_vehicle_report_status_rejected')}</Select.Option>
             </Select>
           </div>
         </section>
@@ -223,48 +224,55 @@ const PageHeader = ({
   pending: number
   approved: number
   rejected: number
-}) => (
-  <div className='mb-8'>
-    <p className='text-xs font-semibold uppercase tracking-widest text-emerald-400'>Technician panel</p>
-    <h1 className='mt-1 text-3xl font-bold text-gray-900'>Vehicle inspection approval</h1>
-    <p className='text-gray-600'>
-      Review and approve vehicle inspection reports. Total: <span className='font-semibold'>{totalReports}</span> •
-      Pending: <span className='font-semibold'>{pending}</span> • Approved:{' '}
-      <span className='font-semibold'>{approved}</span> • Rejected: <span className='font-semibold'>{rejected}</span>
-    </p>
-  </div>
-)
+}) => {
+  const { t } = useI18n()
+  return (
+    <div className='mb-8'>
+      <p className='text-xs font-semibold uppercase tracking-widest text-emerald-400'>{t('admin_check_vehicle_report_eyebrow')}</p>
+      <h1 className='mt-1 text-3xl font-bold text-gray-900'>{t('admin_check_vehicle_report_title')}</h1>
+      <p className='text-gray-600'>
+        {t('admin_check_vehicle_report_subtitle', { total: totalReports, pending, approved, rejected })}
+      </p>
+    </div>
+  )
+}
 
-const EmptyState = () => (
-  <div className='text-center py-24'>
-    <div className='inline-block mb-4'>
-      <div className='w-20 h-20 bg-gradient-to-br from-emerald-100 to-lime-100 rounded-full flex items-center justify-center'>
-        <span className='text-2xl font-bold text-emerald-600'>OK</span>
+const EmptyState = () => {
+  const { t } = useI18n()
+  return (
+    <div className='text-center py-24'>
+      <div className='inline-block mb-4'>
+        <div className='w-20 h-20 bg-gradient-to-br from-emerald-100 to-lime-100 rounded-full flex items-center justify-center'>
+          <span className='text-2xl font-bold text-emerald-600'>OK</span>
+        </div>
+      </div>
+      <p className='text-green-500 text-lg font-medium'>{t('admin_check_vehicle_report_empty_title')}</p>
+      <p className='text-green-400 text-sm mt-1'>{t('admin_check_vehicle_report_empty_desc')}</p>
+    </div>
+  )
+}
+
+const ErrorState = ({ error, onRetry }: { error: Error | null; onRetry?: () => void }) => {
+  const { t } = useI18n()
+  return (
+    <div className='min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6 flex items-center justify-center'>
+      <div className='bg-white rounded-2xl shadow-lg p-8 border border-red-200 max-w-md text-center space-y-4'>
+        <p className='text-red-700 font-semibold'>
+          {error instanceof Error ? error.message : t('admin_check_vehicle_report_error_load')}
+        </p>
+        {onRetry && (
+          <button
+            type='button'
+            onClick={onRetry}
+            className='rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700'
+          >
+            {t('admin_dashboard_retry')}
+          </button>
+        )}
       </div>
     </div>
-    <p className='text-green-500 text-lg font-medium'>No pending reports</p>
-    <p className='text-green-400 text-sm mt-1'>All reports have been processed</p>
-  </div>
-)
-
-const ErrorState = ({ error, onRetry }: { error: Error | null; onRetry?: () => void }) => (
-  <div className='min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6 flex items-center justify-center'>
-    <div className='bg-white rounded-2xl shadow-lg p-8 border border-red-200 max-w-md text-center space-y-4'>
-      <p className='text-red-700 font-semibold'>
-        {error instanceof Error ? error.message : 'Failed to load report list'}
-      </p>
-      {onRetry && (
-        <button
-          type='button'
-          onClick={onRetry}
-          className='rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700'
-        >
-          Retry
-        </button>
-      )}
-    </div>
-  </div>
-)
+  )
+}
 
 function ReportCard({
   report,
@@ -277,6 +285,7 @@ function ReportCard({
   selected: boolean
   onToggleSelect: () => void
 }) {
+  const { t } = useI18n()
   const isPending = report.status === 'PENDING'
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString('en-GB', {
@@ -319,20 +328,20 @@ function ReportCard({
             onChange={onToggleSelect}
             className='h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500'
           />
-          Select
+          {t('admin_check_vehicle_report_select')}
         </label>
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold
             ${isPending ? 'bg-emerald-100 text-emerald-600' : 'bg-green-100 text-green-500'}
           `}
         >
-          {isPending ? 'NEW' : 'OK'}
+          {isPending ? t('admin_check_vehicle_report_new') : t('admin_check_vehicle_report_ok')}
         </div>
         <div className='flex-1'>
           <div className='flex items-center gap-2'>
-            <h3 className='font-semibold text-emerald-900'>Report #{report.id}</h3>
+            <h3 className='font-semibold text-emerald-900'>{t('admin_check_vehicle_report_report_id', { id: report.id })}</h3>
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${CHECK_TYPE_COLORS[report.checkType]}`}>
-              {report.checkType === 'POST_USE' ? 'After use' : 'Before use'}
+              {report.checkType === 'POST_USE' ? t('admin_check_vehicle_report_after_use') : t('admin_check_vehicle_report_before_use')}
             </span>
           </div>
           <p className='text-xs text-green-500 mt-1'>{formatDate(report.createdAt)}</p>
@@ -340,15 +349,15 @@ function ReportCard({
         <span
           className={`px-2.5 py-1 text-xs font-bold rounded-full whitespace-nowrap ${STATUS_COLORS[report.status]}`}
         >
-          {report.status === 'PENDING' ? 'Pending' : report.status === 'APPROVED' ? 'Approved' : 'Rejected'}
+          {report.status === 'PENDING' ? t('admin_check_vehicle_report_status_pending') : report.status === 'APPROVED' ? t('admin_check_vehicle_report_status_approved') : t('admin_check_vehicle_report_status_rejected')}
         </span>
       </div>
 
       {/* Metrics */}
       <div className='grid grid-cols-3 gap-2 mb-4'>
-        <MetricCard label='Km' value={report.odometer} style={METRIC_STYLES.odometer} />
-        <MetricCard label='Battery' value={`${report.batteryLevel}%`} style={METRIC_STYLES.battery} />
-        <MetricCard label='Cleanliness' value={report.cleanliness ?? '—'} style={METRIC_STYLES.cleanliness} />
+        <MetricCard label={t('admin_check_vehicle_report_metric_km')} value={report.odometer} style={METRIC_STYLES.odometer} />
+        <MetricCard label={t('admin_check_vehicle_report_metric_battery')} value={`${report.batteryLevel}%`} style={METRIC_STYLES.battery} />
+        <MetricCard label={t('admin_check_vehicle_report_metric_cleanliness')} value={report.cleanliness ?? '—'} style={METRIC_STYLES.cleanliness} />
       </div>
 
       {/* Notes & Issues */}
@@ -356,13 +365,13 @@ function ReportCard({
         <div className='mb-4 space-y-2'>
           {report.issues && (
             <div className='bg-red-50 border-l-4 border-red-400 px-3 py-2 rounded-r text-sm'>
-              <span className='font-bold text-red-700'>Issues:</span>
+              <span className='font-bold text-red-700'>{t('admin_check_vehicle_report_issues')}:</span>
               <span className='ml-2 text-red-600'>{report.issues}</span>
             </div>
           )}
           {report.notes && (
             <div className='bg-green-50 border-l-4 border-green-400 px-3 py-2 rounded-r text-sm'>
-              <span className='font-bold text-green-700'>Notes:</span>
+              <span className='font-bold text-green-700'>{t('admin_check_vehicle_report_notes')}:</span>
               <span className='ml-2 text-green-600'>{report.notes}</span>
             </div>
           )}
@@ -377,14 +386,14 @@ function ReportCard({
             disabled={isSubmitting}
             className='flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-2 border-red-300 hover:from-red-100 hover:to-red-200 hover:shadow-lg hover:shadow-red-500/10 disabled:opacity-50'
           >
-            {isSubmitting ? 'Processing...' : 'Reject'}
+            {isSubmitting ? t('admin_check_vehicle_report_processing') : t('admin_check_vehicle_report_reject')}
           </button>
           <button
             onClick={() => checkReport('APPROVED')}
             disabled={isSubmitting}
             className='flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-emerald-600 to-lime-700 text-white hover:from-lime-700 hover:to-green-700 hover:shadow-lg hover:shadow-emerald-600/20 disabled:opacity-50'
           >
-            {isSubmitting ? 'Processing...' : 'Approve'}
+            {isSubmitting ? t('admin_check_vehicle_report_processing') : t('admin_check_vehicle_report_approve')}
           </button>
         </div>
       )}

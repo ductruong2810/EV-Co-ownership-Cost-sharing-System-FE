@@ -10,6 +10,7 @@ import userApi from '../../../../apis/user.api'
 import Skeleton from '../../../../components/Skeleton'
 import { checkoutSchema } from '../../../../utils/rule'
 import SignaturePad from '../../../../components/SignaturePad/SignaturePad'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export interface CheckoutForm {
   odometer: string
@@ -19,6 +20,7 @@ export interface CheckoutForm {
 }
 
 export default function CheckOutResult() {
+  const { t } = useI18n()
   const { bookingId, groupId } = useParams()
   console.log(typeof bookingId)
 
@@ -39,7 +41,7 @@ export default function CheckOutResult() {
     },
     onSuccess: (response) => {
       console.log('Checkout report sent successfully:', response)
-      toast.success('Checkout report sent successfully!')
+      toast.success(t('gp_checkout_toast_success'))
       navigate(`/dashboard/viewGroups/${groupId}/pending-checkout/${bookingId}`)
     }
   })
@@ -60,10 +62,8 @@ export default function CheckOutResult() {
       <div className='w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden'>
         {/* Header */}
         <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white'>
-          <h2 className='text-2xl font-bold text-center'>Confirm Checkout</h2>
-          <p className='text-center text-blue-100 mt-1'>
-            Please fill in all the information before returning the vehicle
-          </p>
+          <h2 className='text-2xl font-bold text-center'>{t('gp_checkout_confirm_title')}</h2>
+          <p className='text-center text-blue-100 mt-1'>{t('gp_checkout_confirm_subtitle')}</p>
         </div>
 
         {/* Form */}
@@ -75,12 +75,12 @@ export default function CheckOutResult() {
             <div>
               <label className=' text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2'>
                 <CarOutlined className='text-blue-600' />
-                Current odometer reading
+                {t('gp_checkout_odometer_label')}
               </label>
               <input
                 type='text'
                 {...register('odometer')}
-                placeholder='Enter the distance traveled'
+                placeholder={t('gp_checkout_odometer_placeholder')}
                 className='w-full border-2 border-gray-200 rounded-xl p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none'
               />
               {errors.odometer && (
@@ -95,12 +95,12 @@ export default function CheckOutResult() {
             <div>
               <label className='block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2'>
                 <ThunderboltOutlined className='text-green-600' />
-                Current battery level (%)
+                {t('gp_checkout_battery_label')}
               </label>
               <input
                 type='text'
                 {...register('batteryLevel')}
-                placeholder='0-100%'
+                placeholder={t('gp_checkout_battery_placeholder')}
                 className='w-full border-2 border-gray-200 rounded-xl p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none'
               />
               {errors.batteryLevel && (
@@ -116,11 +116,11 @@ export default function CheckOutResult() {
           <div>
             <label className='block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2'>
               <FileTextOutlined className='text-indigo-600' />
-              note
+              {t('gp_checkout_note_label')}
             </label>
             <textarea
               {...register('notes')}
-              placeholder='Nhập ghi chú về tình trạng xe, trải nghiệm sử dụng...'
+              placeholder={t('gp_checkout_note_placeholder')}
               rows={4}
               className='w-full border-2 border-gray-200 rounded-xl p-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none resize-none'
             />
@@ -142,7 +142,7 @@ export default function CheckOutResult() {
             type='submit'
             className='w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02]'
           >
-            Send report checkout
+            {t('gp_checkout_send_report_button')}
           </button>
         </form>
       </div>

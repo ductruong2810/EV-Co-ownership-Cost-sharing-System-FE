@@ -14,6 +14,7 @@ import type { DocumentInfo, UserDetails } from '../../../../types/api/staff.type
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 
@@ -41,10 +42,10 @@ interface Member {
   gplx: Document
 }
 
-const DOC_CONFIG = {
-  cccd: { title: 'Citizen ID card', shortTitle: 'CCCD', accent: '#3B82F6' },
-  gplx: { title: 'Driver license', shortTitle: 'DL', accent: '#10B981' }
-}
+const getDocConfig = (t: (key: string) => string) => ({
+  cccd: { title: t('admin_check_license_doc_cccd_title'), shortTitle: t('admin_check_license_doc_cccd_short'), accent: '#3B82F6' },
+  gplx: { title: t('admin_check_license_doc_gplx_title'), shortTitle: t('admin_check_license_doc_gplx_short'), accent: '#10B981' }
+})
 
 function mapUserToMember(user: any): Member {
   const defaultImage = 'https://tailwindflex.com/storage/thumbnails/skeleton-loader/thumb_u.min.webp?v=1'
@@ -78,6 +79,7 @@ function mapUserToMember(user: any): Member {
 }
 
 export default function CheckLicense() {
+  const { t } = useI18n()
   const [members, setMembers] = useState<Member[]>([])
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -98,7 +100,7 @@ export default function CheckLicense() {
       return Promise.all(promises)
     },
     onSuccess: () => {
-      message.success(`Successfully approved ${selectedDocuments.size} document(s)`)
+      message.success(t('admin_check_license_bulk_approve_success', { count: selectedDocuments.size }))
       setSelectedDocuments(new Set())
       setShowBulkActions(false)
       // Reload data
@@ -114,7 +116,7 @@ export default function CheckLicense() {
         .finally(() => setLoading(false))
     },
     onError: () => {
-      message.error('Failed to approve some documents. Please try again.')
+      message.error(t('admin_check_license_bulk_approve_error'))
     }
   })
 
@@ -125,7 +127,7 @@ export default function CheckLicense() {
       return Promise.all(promises)
     },
     onSuccess: () => {
-      message.success(`Successfully rejected ${selectedDocuments.size} document(s)`)
+      message.success(t('admin_check_license_bulk_reject_success', { count: selectedDocuments.size }))
       setSelectedDocuments(new Set())
       setShowBulkActions(false)
       // Reload data
@@ -141,7 +143,7 @@ export default function CheckLicense() {
         .finally(() => setLoading(false))
     },
     onError: () => {
-      message.error('Failed to reject some documents. Please try again.')
+      message.error(t('admin_check_license_bulk_reject_error'))
     }
   })
 
@@ -194,12 +196,12 @@ export default function CheckLicense() {
   const handleBulkApprove = () => {
     const pendingIds = getPendingDocumentIds()
     if (pendingIds.length === 0) {
-      message.warning('No pending documents selected')
+      message.warning(t('admin_check_license_no_pending_selected'))
       return
     }
     Modal.confirm({
-      title: 'Approve Selected Documents',
-      content: `Are you sure you want to approve ${pendingIds.length} pending document(s)?`,
+      title: t('admin_check_license_bulk_approve_title'),
+      content: t('admin_check_license_bulk_approve_content', { count: pendingIds.length }),
       onOk: () => {
         bulkApproveMutation.mutate(pendingIds)
       }
@@ -209,29 +211,29 @@ export default function CheckLicense() {
   const handleBulkReject = () => {
     const pendingIds = getPendingDocumentIds()
     if (pendingIds.length === 0) {
-      message.warning('No pending documents selected')
+      message.warning(t('admin_check_license_no_pending_selected'))
       return
     }
     Modal.confirm({
-      title: 'Reject Selected Documents',
+      title: t('admin_check_license_bulk_reject_title'),
       content: (
         <div className='mt-4'>
-          <p className='mb-2'>Please provide a reason for rejecting {pendingIds.length} document(s):</p>
+          <p className='mb-2'>{t('admin_check_license_bulk_reject_content', { count: pendingIds.length })}</p>
           <Input.TextArea
             id='bulk-rejection-reason'
             rows={3}
-            placeholder='Enter rejection reason...'
+            placeholder={t('admin_check_license_reject_reason_placeholder')}
             required
           />
         </div>
       ),
-      okText: 'Reject',
+      okText: t('admin_check_license_reject'),
       okButtonProps: { danger: true },
       onOk: (close) => {
         const reasonInput = document.getElementById('bulk-rejection-reason') as HTMLTextAreaElement
         const reason = reasonInput?.value?.trim()
         if (!reason) {
-          message.error('Rejection reason is required')
+          message.error(t('admin_check_license_reject_reason_required'))
           return Promise.reject()
         }
         bulkRejectMutation.mutate({ documentIds: pendingIds, reason })
@@ -278,7 +280,7 @@ export default function CheckLicense() {
       }
     } catch (error) {
       console.error('Error reloading data:', error)
-      message.error('Failed to reload data. Please refresh the page.')
+      message.error(t('admin_check_license_reload_error'))
     } finally {
       setLoading(false)
     }
@@ -294,17 +296,17 @@ export default function CheckLicense() {
     const bothPending = doc.frontStatus === 'PENDING' && doc.backStatus === 'PENDING'
 
     if (!bothPending) {
-      message.warning('Both sides must be pending to approve together')
+      message.warning(t('admin_check_license_both_sides_pending_required'))
       return
     }
 
     if (!frontId || !backId) {
-      message.error('Document IDs not found')
+      message.error(t('admin_check_license_doc_ids_not_found'))
       return
     }
 
     const confirmed = window.confirm(
-      `Approve both sides of ${docType.toUpperCase()}?\n• Front and back sides will be approved together\n• Ensure both images are clear and valid`
+      t('admin_check_license_approve_both_sides_confirm', { docType: docType.toUpperCase() })
     )
 
     if (!confirmed) return
@@ -315,7 +317,7 @@ export default function CheckLicense() {
         staffApi.reviewDocument(backId, 'APPROVE')
       ])
       
-      toast.success('Both sides approved successfully', { autoClose: 2000 })
+      toast.success(t('admin_check_license_both_sides_approved'), { autoClose: 2000 })
       
       // Update local state
       setMembers((m) =>
@@ -345,7 +347,7 @@ export default function CheckLicense() {
         .catch(console.error)
         .finally(() => setLoading(false))
     } catch (error) {
-      message.error('Failed to approve both sides. Please try again.')
+      message.error(t('admin_check_license_approve_both_sides_error'))
       console.error(error)
     }
   }
@@ -360,35 +362,35 @@ export default function CheckLicense() {
     const bothPending = doc.frontStatus === 'PENDING' && doc.backStatus === 'PENDING'
 
     if (!bothPending) {
-      message.warning('Both sides must be pending to reject together')
+      message.warning(t('admin_check_license_both_sides_pending_required'))
       return
     }
 
     if (!frontId || !backId) {
-      message.error('Document IDs not found')
+      message.error(t('admin_check_license_doc_ids_not_found'))
       return
     }
 
     Modal.confirm({
-      title: `Reject Both Sides of ${docType.toUpperCase()}`,
+      title: t('admin_check_license_reject_both_sides_title', { docType: docType.toUpperCase() }),
       content: (
         <div className='mt-4'>
-          <p className='mb-2'>Please provide a reason for rejecting both sides:</p>
+          <p className='mb-2'>{t('admin_check_license_reject_both_sides_content')}</p>
           <Input.TextArea
             id='both-sides-rejection-reason'
             rows={4}
-            placeholder='Enter rejection reason...'
+            placeholder={t('admin_check_license_reject_reason_placeholder')}
             required
           />
         </div>
       ),
-      okText: 'Reject Both',
+      okText: t('admin_check_license_reject_both'),
       okButtonProps: { danger: true },
       onOk: async (close) => {
         const reasonInput = document.getElementById('both-sides-rejection-reason') as HTMLTextAreaElement
         const reason = reasonInput?.value?.trim()
         if (!reason) {
-          message.error('Rejection reason is required')
+          message.error(t('admin_check_license_reject_reason_required'))
           return Promise.reject()
         }
 
@@ -398,7 +400,7 @@ export default function CheckLicense() {
             staffApi.reviewDocument(backId, 'REJECT', reason)
           ])
 
-          toast.success('Both sides rejected', { autoClose: 2000 })
+          toast.success(t('admin_check_license_both_sides_rejected'), { autoClose: 2000 })
 
           // Update local state
           setMembers((m) =>
@@ -430,7 +432,7 @@ export default function CheckLicense() {
 
           close()
         } catch (error) {
-          message.error('Failed to reject both sides. Please try again.')
+          message.error(t('admin_check_license_reject_both_sides_error'))
           console.error(error)
           return Promise.reject()
         }
@@ -501,7 +503,7 @@ export default function CheckLicense() {
     onUpdateStatus: (memberId: string, docType: DocType, side: Side, status: Status) => void
   }) => {
     const doc = member[docType]
-    const { title, shortTitle, accent } = DOC_CONFIG[docType]
+    const { title, shortTitle, accent } = getDocConfig(t)[docType]
     const bothPending = doc.frontStatus === 'PENDING' && doc.backStatus === 'PENDING'
 
     return (
@@ -521,22 +523,22 @@ export default function CheckLicense() {
               <button
                 onClick={() => approveBothSides(member.id, docType)}
                 className='px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-105'
-                title='Approve both sides'
+                title={t('admin_check_license_approve_both_sides_tooltip')}
               >
                 <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M5 13l4 4L19 7' />
                 </svg>
-                Approve Both
+                {t('admin_check_license_approve_both')}
               </button>
               <button
                 onClick={() => rejectBothSides(member.id, docType)}
                 className='px-3 py-1.5 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-md hover:shadow-lg hover:scale-105'
-                title='Reject both sides'
+                title={t('admin_check_license_reject_both_sides_tooltip')}
               >
                 <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2.5} d='M6 18L18 6M6 6l12 12' />
                 </svg>
-                Reject Both
+                {t('admin_check_license_reject_both')}
               </button>
             </div>
           )}
@@ -573,7 +575,7 @@ export default function CheckLicense() {
     if (!doc) {
       return (
         <div className='bg-gray-50 rounded-lg p-4 text-center'>
-          <p className='text-sm text-gray-500'>No {title} data</p>
+          <p className='text-sm text-gray-500'>{t('admin_check_license_no_data', { title })}</p>
         </div>
       )
     }
@@ -595,49 +597,49 @@ export default function CheckLicense() {
                   d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
                 />
               </svg>
-              <span className='text-xs font-bold text-blue-900 uppercase'>OCR Extracted Information</span>
+              <span className='text-xs font-bold text-blue-900 uppercase'>{t('admin_check_license_ocr_info')}</span>
             </div>
             <div className='grid grid-cols-2 gap-2 text-xs'>
               {doc.documentNumber && (
                 <div>
-                  <span className='text-blue-700 font-semibold'>Document #:</span>
+                  <span className='text-blue-700 font-semibold'>{t('admin_check_license_doc_number')}:</span>
                   <p className='text-gray-900 mt-0.5 font-mono'>{doc.documentNumber}</p>
                 </div>
               )}
               {doc.dateOfBirth && (
                 <div>
-                  <span className='text-blue-700 font-semibold'>Date of Birth:</span>
+                  <span className='text-blue-700 font-semibold'>{t('admin_check_license_dob')}:</span>
                   <p className='text-gray-900 mt-0.5'>{doc.dateOfBirth}</p>
                 </div>
               )}
               {doc.issueDate && (
                 <div>
-                  <span className='text-blue-700 font-semibold'>Issue Date:</span>
+                  <span className='text-blue-700 font-semibold'>{t('admin_check_license_issue_date')}:</span>
                   <p className='text-gray-900 mt-0.5'>{doc.issueDate}</p>
                 </div>
               )}
               {doc.expiryDate && (
                 <div>
-                  <span className='text-blue-700 font-semibold'>Expiry Date:</span>
+                  <span className='text-blue-700 font-semibold'>{t('admin_check_license_expiry_date')}:</span>
                   <p
                     className={`mt-0.5 ${doc.expiryDate && new Date(doc.expiryDate) < new Date() ? 'text-red-600 font-bold' : 'text-gray-900'}`}
                   >
                     {doc.expiryDate}
-                    {doc.expiryDate && new Date(doc.expiryDate) < new Date() && ' (EXPIRED)'}
+                    {doc.expiryDate && new Date(doc.expiryDate) < new Date() && ` (${t('admin_check_license_expired')})`}
                   </p>
                 </div>
               )}
             </div>
-            <p className='text-xs text-blue-600 mt-2 italic'>⚠️ Verify this information matches the document image</p>
+            <p className='text-xs text-blue-600 mt-2 italic'>{t('admin_check_license_verify_ocr')}</p>
           </div>
 
           <div className='grid grid-cols-2 gap-3 text-sm'>
             <div>
-              <span className='text-gray-600 font-medium'>Document ID:</span>
+              <span className='text-gray-600 font-medium'>{t('admin_check_license_doc_id')}:</span>
               <p className='text-gray-900 mt-1'>{doc.documentId}</p>
             </div>
             <div>
-              <span className='text-gray-600 font-medium'>Status:</span>
+              <span className='text-gray-600 font-medium'>{t('admin_check_license_status')}:</span>
               <p className='mt-1'>
                 <span
                   className={`px-2 py-1 rounded text-xs font-medium ${
@@ -648,20 +650,20 @@ export default function CheckLicense() {
                         : 'bg-yellow-100 text-yellow-700'
                   }`}
                 >
-                  {doc.status}
+                  {doc.status === 'APPROVED' ? t('admin_check_license_status_approved') : doc.status === 'REJECTED' ? t('admin_check_license_status_rejected') : t('admin_check_license_status_pending')}
                 </span>
               </p>
             </div>
             {doc.reviewedBy && (
               <div className='col-span-2'>
-                <span className='text-gray-600 font-medium'>Reviewed By:</span>
+                <span className='text-gray-600 font-medium'>{t('admin_check_license_reviewed_by')}:</span>
                 <p className='text-gray-900 mt-1'>{doc.reviewedBy}</p>
               </div>
             )}
           </div>
           {doc.reviewNote && (
             <div className='pt-3 border-t border-gray-200'>
-              <span className='text-gray-600 font-medium text-sm'>Review Note:</span>
+              <span className='text-gray-600 font-medium text-sm'>{t('admin_check_license_review_note')}:</span>
               <p className='text-gray-900 mt-1 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200'>
                 {doc.reviewNote}
               </p>
@@ -724,8 +726,8 @@ export default function CheckLicense() {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        title='Document Verification'
-        subtitle={`Total: ${members.length} pending documents`}
+        title={t('admin_check_license_title')}
+        subtitle={t('admin_check_license_subtitle', { count: members.length })}
         rightSlot={
           <button
             onClick={() => {
@@ -734,26 +736,26 @@ export default function CheckLicense() {
             }}
             className='px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors'
           >
-            Guidelines
+            {t('admin_check_license_guidelines')}
           </button>
         }
       />
 
         <div className='mb-4 grid grid-cols-4 gap-3'>
           <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
-            <p className='text-xs text-gray-600 mb-1'>Pending</p>
+            <p className='text-xs text-gray-600 mb-1'>{t('admin_check_license_summary_pending')}</p>
             <p className='text-2xl font-bold text-amber-600'>{summary.pending}</p>
           </div>
           <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
-            <p className='text-xs text-gray-600 mb-1'>Approved</p>
+            <p className='text-xs text-gray-600 mb-1'>{t('admin_check_license_summary_approved')}</p>
             <p className='text-2xl font-bold text-green-600'>{summary.approved}</p>
           </div>
           <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
-            <p className='text-xs text-gray-600 mb-1'>Rejected</p>
+            <p className='text-xs text-gray-600 mb-1'>{t('admin_check_license_summary_rejected')}</p>
             <p className='text-2xl font-bold text-red-600'>{summary.rejected}</p>
           </div>
           <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
-            <p className='text-xs text-gray-600 mb-1'>Total</p>
+            <p className='text-xs text-gray-600 mb-1'>{t('admin_check_license_summary_total')}</p>
             <p className='text-2xl font-bold text-gray-700'>{summary.total}</p>
           </div>
         </div>
@@ -761,7 +763,7 @@ export default function CheckLicense() {
         {/* Search and Filter Section */}
         <div className='mb-4 flex flex-col sm:flex-row gap-3'>
           <Input
-            placeholder='Search by name, email, or phone...'
+            placeholder={t('admin_check_license_search_placeholder')}
             prefix={<SearchOutlined className='text-gray-400' />}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -775,19 +777,22 @@ export default function CheckLicense() {
             className='w-full sm:w-48' 
             size='large'
           >
-            <Option value='ALL'>All Status</Option>
-            <Option value='PENDING'>Pending</Option>
-            <Option value='APPROVED'>Approved</Option>
-            <Option value='REJECTED'>Rejected</Option>
+            <Option value='ALL'>{t('admin_check_license_status_all')}</Option>
+            <Option value='PENDING'>{t('admin_check_license_status_pending')}</Option>
+            <Option value='APPROVED'>{t('admin_check_license_status_approved')}</Option>
+            <Option value='REJECTED'>{t('admin_check_license_status_rejected')}</Option>
           </Select>
         </div>
 
         {/* Results count */}
         {filteredMembers.length !== members.length && (
           <div className='mb-4 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600'>
-            <span className='font-semibold'>Showing {filteredMembers.length}</span> of <span className='font-semibold'>{members.length}</span> members
-            {searchTerm && <span className='ml-2'>matching "<span className='font-semibold text-blue-600'>{searchTerm}</span>"</span>}
-            {statusFilter !== 'ALL' && <span className='ml-2'>with status "<span className='font-semibold text-blue-600'>{statusFilter}</span>"</span>}
+            {t('admin_check_license_showing', {
+              showing: filteredMembers.length,
+              total: members.length,
+              searchTerm: searchTerm ? ` "${searchTerm}"` : '',
+              status: statusFilter !== 'ALL' ? ` "${statusFilter}"` : ''
+            })}
           </div>
         )}
 
@@ -801,10 +806,10 @@ export default function CheckLicense() {
                 </div>
                 <div>
                   <p className='text-sm font-bold text-blue-900'>
-                    {selectedDocuments.size} user(s) selected
+                    {t('admin_check_license_selected_users', { count: selectedDocuments.size })}
                   </p>
                   <p className='text-xs text-blue-700'>
-                    {getPendingDocumentIds().length} pending document(s) ready for review
+                    {t('admin_check_license_pending_ready', { count: getPendingDocumentIds().length })}
                   </p>
                 </div>
               </div>
@@ -817,7 +822,7 @@ export default function CheckLicense() {
                   size='large'
                   className='bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 border-0 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200'
                 >
-                  Approve Selected
+                  {t('admin_check_license_approve_selected')}
                 </Button>
                 <Button
                   icon={<CloseOutlined />}
@@ -827,7 +832,7 @@ export default function CheckLicense() {
                   size='large'
                   className='bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 border-0 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200'
                 >
-                  Reject Selected
+                  {t('admin_check_license_reject_selected')}
                 </Button>
                 <Button
                   onClick={() => {
@@ -837,7 +842,7 @@ export default function CheckLicense() {
                   size='large'
                   className='border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200'
                 >
-                  Clear
+                  {t('admin_check_license_clear')}
                 </Button>
               </Space>
             </div>
@@ -850,12 +855,12 @@ export default function CheckLicense() {
               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
             </svg>
             <p className='text-lg font-semibold text-gray-700 mb-2'>
-              {searchTerm || statusFilter !== 'ALL' ? 'No members match your filters' : 'No members found'}
+              {searchTerm || statusFilter !== 'ALL' ? t('admin_check_license_no_match') : t('admin_check_license_no_members')}
             </p>
             <p className='text-sm text-gray-500'>
               {searchTerm || statusFilter !== 'ALL' 
-                ? 'Try adjusting your search or filter criteria' 
-                : 'All documents have been reviewed'}
+                ? t('admin_check_license_try_adjusting') 
+                : t('admin_check_license_all_reviewed')}
             </p>
           </div>
         ) : (
@@ -874,11 +879,11 @@ export default function CheckLicense() {
                     }
                     onChange={(e) => handleSelectAll(e.target.checked)}
                   />
-                  <span className='text-sm font-semibold text-gray-700'>Select All</span>
+                  <span className='text-sm font-semibold text-gray-700'>{t('admin_check_license_select_all')}</span>
                 </div>
                 {selectedDocuments.size > 0 && (
                   <div className='text-xs text-blue-600 font-medium'>
-                    {selectedDocuments.size} selected
+                    {t('admin_check_license_selected_count', { count: selectedDocuments.size })}
                   </div>
                 )}
               </div>
@@ -924,8 +929,8 @@ export default function CheckLicense() {
                               className='text-xs'
                             >
                               {member.cccd.frontStatus === 'PENDING' || member.gplx.frontStatus === 'PENDING'
-                                ? 'Pending'
-                                : 'Done'}
+                                ? t('admin_check_license_status_pending')
+                                : t('admin_check_license_done')}
                             </Tag>
                           </div>
                         </div>
@@ -950,17 +955,17 @@ export default function CheckLicense() {
                       onClick={() => handleViewDetail(selectedMember.id)}
                       className='px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors'
                     >
-                      View OCR
+                      {t('admin_check_license_view_ocr')}
                     </button>
                     <Tag color='green' className='text-xs'>
                       {selectedMember.cccd.frontStatus === selectedMember.cccd.backStatus
-                        ? `${selectedMember.cccd.frontStatus} CCCD`
-                        : `${selectedMember.cccd.frontStatus}/${selectedMember.cccd.backStatus} CCCD`}
+                        ? `${selectedMember.cccd.frontStatus} ${t('admin_check_license_doc_cccd_short')}`
+                        : `${selectedMember.cccd.frontStatus}/${selectedMember.cccd.backStatus} ${t('admin_check_license_doc_cccd_short')}`}
                     </Tag>
                     <Tag color='cyan' className='text-xs'>
                       {selectedMember.gplx.frontStatus === selectedMember.gplx.backStatus
-                        ? `${selectedMember.gplx.frontStatus} DL`
-                        : `${selectedMember.gplx.frontStatus}/${selectedMember.gplx.backStatus} DL`}
+                        ? `${selectedMember.gplx.frontStatus} ${t('admin_check_license_doc_gplx_short')}`
+                        : `${selectedMember.gplx.frontStatus}/${selectedMember.gplx.backStatus} ${t('admin_check_license_doc_gplx_short')}`}
                     </Tag>
                   </div>
                 </div>
@@ -972,7 +977,7 @@ export default function CheckLicense() {
                     <div className='flex items-center justify-between mb-4'>
                       <h3 className='text-lg font-bold text-gray-900 flex items-center gap-2'>
                         <span className='w-2 h-2 rounded-full bg-blue-500' />
-                        Citizen ID Card (CCCD)
+                        {t('admin_check_license_doc_cccd_title')}
                       </h3>
                       {selectedMember.cccd.frontStatus === 'PENDING' && selectedMember.cccd.backStatus === 'PENDING' && (
                         <div className='flex gap-2'>
@@ -981,14 +986,14 @@ export default function CheckLicense() {
                             className='px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CheckOutlined />
-                            Approve
+                            {t('admin_check_license_approve')}
                           </button>
                           <button
                             onClick={() => rejectBothSides(selectedMember.id, 'cccd')}
                             className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CloseOutlined />
-                            Reject
+                            {t('admin_check_license_reject')}
                           </button>
                         </div>
                       )}
@@ -997,7 +1002,7 @@ export default function CheckLicense() {
                       {/* Front Side */}
                       <div className='space-y-3'>
                         <div className='flex items-center justify-between'>
-                          <h4 className='font-semibold text-gray-700'>Front Side</h4>
+                          <h4 className='font-semibold text-gray-700'>{t('admin_check_license_front_side')}</h4>
                           <StatusBadge status={selectedMember.cccd.frontStatus} />
                         </div>
                         <div
@@ -1006,12 +1011,12 @@ export default function CheckLicense() {
                         >
                           <img
                             src={getDecryptedImageUrl(selectedMember.cccd.frontImage)}
-                            alt='Front'
+                            alt={t('admin_check_license_front_side')}
                             className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
                           />
                           <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
                             <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
-                              Click to enlarge
+                              {t('admin_check_license_click_enlarge')}
                             </span>
                           </div>
                         </div>
@@ -1021,41 +1026,41 @@ export default function CheckLicense() {
                               onClick={async () => {
                                 const doc = selectedMember.cccd
                                 if (doc.frontId) {
-                                  const confirmed = window.confirm('Approve front side of CCCD?')
+                                  const confirmed = window.confirm(t('admin_check_license_approve_front_cccd'))
                                   if (!confirmed) return
                                   await staffApi.reviewDocument(doc.frontId, 'APPROVE')
-                                  toast.success('Front side approved')
+                                  toast.success(t('admin_check_license_front_approved'))
                                   await updateStatus(selectedMember.id, 'cccd', 'front', 'APPROVED')
                                 }
                               }}
                               className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CheckOutlined />
-                              Approve
+                              {t('admin_check_license_approve')}
                             </button>
                             <button
                               onClick={() => {
                                 const doc = selectedMember.cccd
                                 if (doc.frontId) {
                                   Modal.confirm({
-                                    title: 'Reject Front Side',
+                                    title: t('admin_check_license_reject_front_title'),
                                     content: (
                                       <div className='mt-4'>
                                         <Input.TextArea
                                           id='reject-front-reason'
                                           rows={3}
-                                          placeholder='Enter rejection reason...'
+                                          placeholder={t('admin_check_license_reject_reason_placeholder')}
                                         />
                                       </div>
                                     ),
                                     onOk: async (close) => {
                                       const reason = (document.getElementById('reject-front-reason') as HTMLTextAreaElement)?.value?.trim()
                                       if (!reason) {
-                                        message.error('Rejection reason is required')
+                                        message.error(t('admin_check_license_reject_reason_required'))
                                         return Promise.reject()
                                       }
                                       await staffApi.reviewDocument(doc.frontId!, 'REJECT', reason)
-                                      toast.success('Document rejected')
+                                      toast.success(t('admin_check_license_doc_rejected'))
                                       await updateStatus(selectedMember.id, 'cccd', 'front', 'REJECTED')
                                       close()
                                     }
@@ -1065,17 +1070,17 @@ export default function CheckLicense() {
                               className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CloseOutlined />
-                              Reject
+                              {t('admin_check_license_reject')}
                             </button>
                           </div>
                         )}
                         {selectedMember.cccd.frontInfo && (
                           <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
                             {selectedMember.cccd.frontInfo.documentNumber && (
-                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.cccd.frontInfo.documentNumber}</div>
+                              <div><span className='font-semibold'>{t('admin_check_license_doc_number')}:</span> {selectedMember.cccd.frontInfo.documentNumber}</div>
                             )}
                             {selectedMember.cccd.frontInfo.dateOfBirth && (
-                              <div><span className='font-semibold'>DOB:</span> {selectedMember.cccd.frontInfo.dateOfBirth}</div>
+                              <div><span className='font-semibold'>{t('admin_check_license_dob')}:</span> {selectedMember.cccd.frontInfo.dateOfBirth}</div>
                             )}
                           </div>
                         )}
@@ -1084,7 +1089,7 @@ export default function CheckLicense() {
                       {/* Back Side */}
                       <div className='space-y-3'>
                         <div className='flex items-center justify-between'>
-                          <h4 className='font-semibold text-gray-700'>Back Side</h4>
+                          <h4 className='font-semibold text-gray-700'>{t('admin_check_license_back_side')}</h4>
                           <StatusBadge status={selectedMember.cccd.backStatus} />
                         </div>
                         <div
@@ -1093,12 +1098,12 @@ export default function CheckLicense() {
                         >
                           <img
                             src={getDecryptedImageUrl(selectedMember.cccd.backImage)}
-                            alt='Back'
+                            alt={t('admin_check_license_back_side')}
                             className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
                           />
                           <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
                             <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
-                              Click to enlarge
+                              {t('admin_check_license_click_enlarge')}
                             </span>
                           </div>
                         </div>
@@ -1108,41 +1113,41 @@ export default function CheckLicense() {
                               onClick={async () => {
                                 const doc = selectedMember.cccd
                                 if (doc.backId) {
-                                  const confirmed = window.confirm('Approve back side of CCCD?')
+                                  const confirmed = window.confirm(t('admin_check_license_approve_back_cccd'))
                                   if (!confirmed) return
                                   await staffApi.reviewDocument(doc.backId, 'APPROVE')
-                                  toast.success('Back side approved')
+                                  toast.success(t('admin_check_license_back_approved'))
                                   await updateStatus(selectedMember.id, 'cccd', 'back', 'APPROVED')
                                 }
                               }}
                               className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CheckOutlined />
-                              Approve
+                              {t('admin_check_license_approve')}
                             </button>
                             <button
                               onClick={() => {
                                 const doc = selectedMember.cccd
                                 if (doc.backId) {
                                   Modal.confirm({
-                                    title: 'Reject Back Side',
+                                    title: t('admin_check_license_reject_back_title'),
                                     content: (
                                       <div className='mt-4'>
                                         <Input.TextArea
                                           id='reject-back-reason'
                                           rows={3}
-                                          placeholder='Enter rejection reason...'
+                                          placeholder={t('admin_check_license_reject_reason_placeholder')}
                                         />
                                       </div>
                                     ),
                                     onOk: async (close) => {
                                       const reason = (document.getElementById('reject-back-reason') as HTMLTextAreaElement)?.value?.trim()
                                       if (!reason) {
-                                        message.error('Rejection reason is required')
+                                        message.error(t('admin_check_license_reject_reason_required'))
                                         return Promise.reject()
                                       }
                                       await staffApi.reviewDocument(doc.backId!, 'REJECT', reason)
-                                      toast.success('Document rejected')
+                                      toast.success(t('admin_check_license_doc_rejected'))
                                       await updateStatus(selectedMember.id, 'cccd', 'back', 'REJECTED')
                                       close()
                                     }
@@ -1152,14 +1157,14 @@ export default function CheckLicense() {
                               className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CloseOutlined />
-                              Reject
+                              {t('admin_check_license_reject')}
                             </button>
                           </div>
                         )}
                         {selectedMember.cccd.backInfo && (
                           <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
                             {selectedMember.cccd.backInfo.documentNumber && (
-                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.cccd.backInfo.documentNumber}</div>
+                              <div><span className='font-semibold'>{t('admin_check_license_doc_number')}:</span> {selectedMember.cccd.backInfo.documentNumber}</div>
                             )}
                           </div>
                         )}
@@ -1172,7 +1177,7 @@ export default function CheckLicense() {
                     <div className='flex items-center justify-between mb-4'>
                       <h3 className='text-lg font-bold text-gray-900 flex items-center gap-2'>
                         <span className='w-2 h-2 rounded-full bg-green-500' />
-                        Driver License (DL)
+                        {t('admin_check_license_doc_gplx_title')}
                       </h3>
                       {selectedMember.gplx.frontStatus === 'PENDING' && selectedMember.gplx.backStatus === 'PENDING' && (
                         <div className='flex gap-2'>
@@ -1181,14 +1186,14 @@ export default function CheckLicense() {
                             className='px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CheckOutlined />
-                            Approve
+                            {t('admin_check_license_approve')}
                           </button>
                           <button
                             onClick={() => rejectBothSides(selectedMember.id, 'gplx')}
                             className='px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2'
                           >
                             <CloseOutlined />
-                            Reject
+                            {t('admin_check_license_reject')}
                           </button>
                         </div>
                       )}
@@ -1197,7 +1202,7 @@ export default function CheckLicense() {
                       {/* Front Side */}
                       <div className='space-y-3'>
                         <div className='flex items-center justify-between'>
-                          <h4 className='font-semibold text-gray-700'>Front Side</h4>
+                          <h4 className='font-semibold text-gray-700'>{t('admin_check_license_front_side')}</h4>
                           <StatusBadge status={selectedMember.gplx.frontStatus} />
                         </div>
                         <div
@@ -1206,12 +1211,12 @@ export default function CheckLicense() {
                         >
                           <img
                             src={getDecryptedImageUrl(selectedMember.gplx.frontImage)}
-                            alt='Front'
+                            alt={t('admin_check_license_front_side')}
                             className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
                           />
                           <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
                             <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
-                              Click to enlarge
+                              {t('admin_check_license_click_enlarge')}
                             </span>
                           </div>
                         </div>
@@ -1221,41 +1226,41 @@ export default function CheckLicense() {
                               onClick={async () => {
                                 const doc = selectedMember.gplx
                                 if (doc.frontId) {
-                                  const confirmed = window.confirm('Approve front side of Driver License?')
+                                  const confirmed = window.confirm(t('admin_check_license_approve_front_dl'))
                                   if (!confirmed) return
                                   await staffApi.reviewDocument(doc.frontId, 'APPROVE')
-                                  toast.success('Front side approved')
+                                  toast.success(t('admin_check_license_front_approved'))
                                   await updateStatus(selectedMember.id, 'gplx', 'front', 'APPROVED')
                                 }
                               }}
                               className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CheckOutlined />
-                              Approve
+                              {t('admin_check_license_approve')}
                             </button>
                             <button
                               onClick={() => {
                                 const doc = selectedMember.gplx
                                 if (doc.frontId) {
                                   Modal.confirm({
-                                    title: 'Reject Front Side',
+                                    title: t('admin_check_license_reject_front_title'),
                                     content: (
                                       <div className='mt-4'>
                                         <Input.TextArea
                                           id='reject-dl-front-reason'
                                           rows={3}
-                                          placeholder='Enter rejection reason...'
+                                          placeholder={t('admin_check_license_reject_reason_placeholder')}
                                         />
                                       </div>
                                     ),
                                     onOk: async (close) => {
                                       const reason = (document.getElementById('reject-dl-front-reason') as HTMLTextAreaElement)?.value?.trim()
                                       if (!reason) {
-                                        message.error('Rejection reason is required')
+                                        message.error(t('admin_check_license_reject_reason_required'))
                                         return Promise.reject()
                                       }
                                       await staffApi.reviewDocument(doc.frontId!, 'REJECT', reason)
-                                      toast.success('Document rejected')
+                                      toast.success(t('admin_check_license_doc_rejected'))
                                       await updateStatus(selectedMember.id, 'gplx', 'front', 'REJECTED')
                                       close()
                                     }
@@ -1265,20 +1270,20 @@ export default function CheckLicense() {
                               className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CloseOutlined />
-                              Reject
+                              {t('admin_check_license_reject')}
                             </button>
                           </div>
                         )}
                         {selectedMember.gplx.frontInfo && (
                           <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
                             {selectedMember.gplx.frontInfo.documentNumber && (
-                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.gplx.frontInfo.documentNumber}</div>
+                              <div><span className='font-semibold'>{t('admin_check_license_doc_number')}:</span> {selectedMember.gplx.frontInfo.documentNumber}</div>
                             )}
                             {selectedMember.gplx.frontInfo.issueDate && (
-                              <div><span className='font-semibold'>Issue:</span> {selectedMember.gplx.frontInfo.issueDate}</div>
+                              <div><span className='font-semibold'>{t('admin_check_license_issue')}:</span> {selectedMember.gplx.frontInfo.issueDate}</div>
                             )}
                             {selectedMember.gplx.frontInfo.expiryDate && (
-                              <div><span className='font-semibold'>Expiry:</span> {selectedMember.gplx.frontInfo.expiryDate}</div>
+                              <div><span className='font-semibold'>{t('admin_check_license_expiry')}:</span> {selectedMember.gplx.frontInfo.expiryDate}</div>
                             )}
                           </div>
                         )}
@@ -1287,7 +1292,7 @@ export default function CheckLicense() {
                       {/* Back Side */}
                       <div className='space-y-3'>
                         <div className='flex items-center justify-between'>
-                          <h4 className='font-semibold text-gray-700'>Back Side</h4>
+                          <h4 className='font-semibold text-gray-700'>{t('admin_check_license_back_side')}</h4>
                           <StatusBadge status={selectedMember.gplx.backStatus} />
                         </div>
                         <div
@@ -1296,12 +1301,12 @@ export default function CheckLicense() {
                         >
                           <img
                             src={getDecryptedImageUrl(selectedMember.gplx.backImage)}
-                            alt='Back'
+                            alt={t('admin_check_license_back_side')}
                             className='w-full h-64 object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300'
                           />
                           <div className='absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center'>
                             <span className='text-white opacity-0 group-hover:opacity-100 text-sm font-medium bg-black/50 px-3 py-1 rounded'>
-                              Click to enlarge
+                              {t('admin_check_license_click_enlarge')}
                             </span>
                           </div>
                         </div>
@@ -1311,41 +1316,41 @@ export default function CheckLicense() {
                               onClick={async () => {
                                 const doc = selectedMember.gplx
                                 if (doc.backId) {
-                                  const confirmed = window.confirm('Approve back side of Driver License?')
+                                  const confirmed = window.confirm(t('admin_check_license_approve_back_dl'))
                                   if (!confirmed) return
                                   await staffApi.reviewDocument(doc.backId, 'APPROVE')
-                                  toast.success('Back side approved')
+                                  toast.success(t('admin_check_license_back_approved'))
                                   await updateStatus(selectedMember.id, 'gplx', 'back', 'APPROVED')
                                 }
                               }}
                               className='flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CheckOutlined />
-                              Approve
+                              {t('admin_check_license_approve')}
                             </button>
                             <button
                               onClick={() => {
                                 const doc = selectedMember.gplx
                                 if (doc.backId) {
                                   Modal.confirm({
-                                    title: 'Reject Back Side',
+                                    title: t('admin_check_license_reject_back_title'),
                                     content: (
                                       <div className='mt-4'>
                                         <Input.TextArea
                                           id='reject-dl-back-reason'
                                           rows={3}
-                                          placeholder='Enter rejection reason...'
+                                          placeholder={t('admin_check_license_reject_reason_placeholder')}
                                         />
                                       </div>
                                     ),
                                     onOk: async (close) => {
                                       const reason = (document.getElementById('reject-dl-back-reason') as HTMLTextAreaElement)?.value?.trim()
                                       if (!reason) {
-                                        message.error('Rejection reason is required')
+                                        message.error(t('admin_check_license_reject_reason_required'))
                                         return Promise.reject()
                                       }
                                       await staffApi.reviewDocument(doc.backId!, 'REJECT', reason)
-                                      toast.success('Document rejected')
+                                      toast.success(t('admin_check_license_doc_rejected'))
                                       await updateStatus(selectedMember.id, 'gplx', 'back', 'REJECTED')
                                       close()
                                     }
@@ -1355,14 +1360,14 @@ export default function CheckLicense() {
                               className='flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2'
                             >
                               <CloseOutlined />
-                              Reject
+                              {t('admin_check_license_reject')}
                             </button>
                           </div>
                         )}
                         {selectedMember.gplx.backInfo && (
                           <div className='bg-gray-50 rounded-lg p-3 text-xs space-y-1'>
                             {selectedMember.gplx.backInfo.documentNumber && (
-                              <div><span className='font-semibold'>Doc #:</span> {selectedMember.gplx.backInfo.documentNumber}</div>
+                              <div><span className='font-semibold'>{t('admin_check_license_doc_number')}:</span> {selectedMember.gplx.backInfo.documentNumber}</div>
                             )}
                           </div>
                         )}
@@ -1376,7 +1381,7 @@ export default function CheckLicense() {
                 <svg className='w-16 h-16 mx-auto mb-4 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                 </svg>
-                <p className='text-lg font-medium text-gray-600'>Select a user to review documents</p>
+                <p className='text-lg font-medium text-gray-600'>{t('admin_check_license_select_user')}</p>
               </div>
             )}
           </div>
@@ -1401,7 +1406,7 @@ export default function CheckLicense() {
               {loadingDetail ? (
                 <div className='p-12 text-center'>
                   <div className='w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto'></div>
-                  <p className='mt-4 text-gray-600'>Loading...</p>
+                  <p className='mt-4 text-gray-600'>{t('admin_check_license_loading')}</p>
                 </div>
               ) : (
                 detailData && (
@@ -1414,17 +1419,17 @@ export default function CheckLicense() {
                     </div>
                     <div className='p-6 space-y-6'>
                       <div>
-                        <h3 className='text-lg font-bold mb-3'>Citizen ID</h3>
+                        <h3 className='text-lg font-bold mb-3'>{t('admin_check_license_citizen_id')}</h3>
                         <div className='grid md:grid-cols-2 gap-4'>
-                          <DocumentDetailCard doc={detailData.documents.citizenIdImages.front} title='Front side' />
-                          <DocumentDetailCard doc={detailData.documents.citizenIdImages.back} title='Back side' />
+                          <DocumentDetailCard doc={detailData.documents.citizenIdImages.front} title={t('admin_check_license_front_side')} />
+                          <DocumentDetailCard doc={detailData.documents.citizenIdImages.back} title={t('admin_check_license_back_side')} />
                         </div>
                       </div>
                       <div>
-                        <h3 className='text-lg font-bold mb-3'>Driver license</h3>
+                        <h3 className='text-lg font-bold mb-3'>{t('admin_check_license_driver_license')}</h3>
                         <div className='grid md:grid-cols-2 gap-4'>
-                          <DocumentDetailCard doc={detailData.documents.driverLicenseImages.front} title='Front side' />
-                          <DocumentDetailCard doc={detailData.documents.driverLicenseImages.back} title='Back side' />
+                          <DocumentDetailCard doc={detailData.documents.driverLicenseImages.front} title={t('admin_check_license_front_side')} />
+                          <DocumentDetailCard doc={detailData.documents.driverLicenseImages.back} title={t('admin_check_license_back_side')} />
                         </div>
                       </div>
                     </div>
@@ -1456,7 +1461,7 @@ export default function CheckLicense() {
           <form method='dialog'>
             <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
           </form>
-          <h3 className='font-bold text-2xl mb-4'>Document Review Guidelines</h3>
+          <h3 className='font-bold text-2xl mb-4'>{t('admin_check_license_guidelines_title')}</h3>
 
           <div className='space-y-6'>
             {/* Why Review Section */}
@@ -1465,22 +1470,20 @@ export default function CheckLicense() {
                 <span className='bg-blue-100 text-blue-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
                   1
                 </span>
-                Why Staff Review is Required?
+                {t('admin_check_license_guidelines_why_title')}
               </h4>
               <div className='ml-10 space-y-2 text-gray-700'>
                 <p>
-                  • <strong>Security & Compliance:</strong> Verify user identity before allowing participation in
-                  co-ownership groups
+                  • <strong>{t('admin_check_license_guidelines_security')}:</strong> {t('admin_check_license_guidelines_security_desc')}
                 </p>
                 <p>
-                  • <strong>Legal Protection:</strong> Ensure all participants have valid identification documents
+                  • <strong>{t('admin_check_license_guidelines_legal')}:</strong> {t('admin_check_license_guidelines_legal_desc')}
                 </p>
                 <p>
-                  • <strong>Quality Control:</strong> OCR may extract incorrect information - manual verification
-                  catches errors
+                  • <strong>{t('admin_check_license_guidelines_quality')}:</strong> {t('admin_check_license_guidelines_quality_desc')}
                 </p>
                 <p>
-                  • <strong>Fraud Prevention:</strong> Detect fake, expired, or tampered documents
+                  • <strong>{t('admin_check_license_guidelines_fraud')}:</strong> {t('admin_check_license_guidelines_fraud_desc')}
                 </p>
               </div>
             </div>
@@ -1491,34 +1494,34 @@ export default function CheckLicense() {
                 <span className='bg-green-100 text-green-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
                   2
                 </span>
-                What to Review?
+                {t('admin_check_license_guidelines_what_title')}
               </h4>
               <div className='ml-10 space-y-4'>
                 <div>
-                  <p className='font-semibold text-gray-900 mb-1'>Image Quality Checklist:</p>
+                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_image_quality')}:</p>
                   <ul className='list-disc list-inside space-y-1 text-gray-700 ml-4'>
-                    <li>Image is clear and not blurred</li>
-                    <li>All text is readable</li>
-                    <li>Document is fully visible (not cropped)</li>
-                    <li>No glare or shadows obscuring information</li>
-                    <li>Both front and back sides are provided</li>
+                    <li>{t('admin_check_license_guidelines_image_clear')}</li>
+                    <li>{t('admin_check_license_guidelines_text_readable')}</li>
+                    <li>{t('admin_check_license_guidelines_doc_visible')}</li>
+                    <li>{t('admin_check_license_guidelines_no_glare')}</li>
+                    <li>{t('admin_check_license_guidelines_both_sides')}</li>
                   </ul>
                 </div>
                 <div>
-                  <p className='font-semibold text-gray-900 mb-1'>OCR Information Verification:</p>
+                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_ocr_verification')}:</p>
                   <ul className='list-disc list-inside space-y-1 text-gray-700 ml-4'>
-                    <li>Document number matches the image</li>
-                    <li>Date of birth is correct</li>
-                    <li>Issue date and expiry date are valid</li>
-                    <li>Address information (if available) is accurate</li>
+                    <li>{t('admin_check_license_guidelines_doc_number_match')}</li>
+                    <li>{t('admin_check_license_guidelines_dob_correct')}</li>
+                    <li>{t('admin_check_license_guidelines_dates_valid')}</li>
+                    <li>{t('admin_check_license_guidelines_address_accurate')}</li>
                   </ul>
                 </div>
                 <div>
-                  <p className='font-semibold text-gray-900 mb-1'>Document Validity:</p>
+                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_doc_validity')}:</p>
                   <ul className='list-disc list-inside space-y-1 text-gray-700 ml-4'>
-                    <li>Document is not expired (check expiry date)</li>
-                    <li>Document format matches the type (CCCD or Driver License)</li>
-                    <li>Document appears authentic (not fake or tampered)</li>
+                    <li>{t('admin_check_license_guidelines_not_expired')}</li>
+                    <li>{t('admin_check_license_guidelines_format_match')}</li>
+                    <li>{t('admin_check_license_guidelines_authentic')}</li>
                   </ul>
                 </div>
               </div>
@@ -1530,26 +1533,26 @@ export default function CheckLicense() {
                 <span className='bg-yellow-100 text-yellow-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
                   3
                 </span>
-                Approval Criteria
+                {t('admin_check_license_guidelines_criteria_title')}
               </h4>
               <div className='ml-10 space-y-2'>
                 <div className='bg-green-50 border-l-4 border-green-500 p-3 rounded'>
-                  <p className='font-semibold text-green-900 mb-1'>✅ APPROVE if:</p>
+                  <p className='font-semibold text-green-900 mb-1'>{t('admin_check_license_guidelines_approve_if')}</p>
                   <ul className='list-disc list-inside space-y-1 text-green-800 ml-4 text-sm'>
-                    <li>All checklist items pass</li>
-                    <li>OCR information is accurate</li>
-                    <li>Document is valid and not expired</li>
-                    <li>Both sides are clear and complete</li>
+                    <li>{t('admin_check_license_guidelines_all_pass')}</li>
+                    <li>{t('admin_check_license_guidelines_ocr_accurate')}</li>
+                    <li>{t('admin_check_license_guidelines_doc_valid')}</li>
+                    <li>{t('admin_check_license_guidelines_sides_complete')}</li>
                   </ul>
                 </div>
                 <div className='bg-red-50 border-l-4 border-red-500 p-3 rounded'>
-                  <p className='font-semibold text-red-900 mb-1'>❌ REJECT if:</p>
+                  <p className='font-semibold text-red-900 mb-1'>{t('admin_check_license_guidelines_reject_if')}</p>
                   <ul className='list-disc list-inside space-y-1 text-red-800 ml-4 text-sm'>
-                    <li>Image is unclear, blurred, or cropped</li>
-                    <li>OCR information doesn't match the document</li>
-                    <li>Document is expired or invalid</li>
-                    <li>Document appears fake or tampered</li>
-                    <li>Missing required information</li>
+                    <li>{t('admin_check_license_guidelines_image_unclear')}</li>
+                    <li>{t('admin_check_license_guidelines_ocr_mismatch')}</li>
+                    <li>{t('admin_check_license_guidelines_doc_expired')}</li>
+                    <li>{t('admin_check_license_guidelines_doc_fake')}</li>
+                    <li>{t('admin_check_license_guidelines_missing_info')}</li>
                   </ul>
                 </div>
               </div>
@@ -1561,30 +1564,31 @@ export default function CheckLicense() {
                 <span className='bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center text-sm'>
                   4
                 </span>
-                Review Process
+                {t('admin_check_license_guidelines_process_title')}
               </h4>
               <div className='ml-10 space-y-2 text-gray-700'>
-                <p>1. Click on document image to view full size</p>
-                <p>2. Compare OCR extracted information with the document image</p>
-                <p>3. Verify all checklist items</p>
+                <p>1. {t('admin_check_license_guidelines_step1')}</p>
+                <p>2. {t('admin_check_license_guidelines_step2')}</p>
+                <p>3. {t('admin_check_license_guidelines_step3')}</p>
                 <p>
-                  4. Click{' '}
-                  <span className='bg-green-500 text-white px-2 py-0.5 rounded text-xs font-semibold'>Approve</span> or{' '}
-                  <span className='bg-red-500 text-white px-2 py-0.5 rounded text-xs font-semibold'>Reject</span>
+                  4. {t('admin_check_license_guidelines_step4', {
+                    approve: t('admin_check_license_approve'),
+                    reject: t('admin_check_license_reject')
+                  })}
                 </p>
-                <p>5. If rejecting, provide a clear reason for the user</p>
+                <p>5. {t('admin_check_license_guidelines_step5')}</p>
               </div>
             </div>
           </div>
 
           <div className='modal-action'>
             <form method='dialog'>
-              <button className='btn btn-primary'>Got it!</button>
+              <button className='btn btn-primary'>{t('admin_check_license_guidelines_got_it')}</button>
             </form>
           </div>
         </div>
         <form method='dialog' className='modal-backdrop'>
-          <button>close</button>
+          <button>{t('admin_check_license_close')}</button>
         </form>
       </dialog>
     </AdminPageContainer>

@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query'
 import groupApi from '../../../../apis/group.api'
 import Skeleton from '../../../../components/Skeleton'
 import type { OwnershipResponse } from '../../../../types/api/group.type'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export interface Member {
   id: number
@@ -21,6 +22,7 @@ export interface Member {
 export default function OwnershipRatio() {
   const { groupId } = useParams<{ groupId: string }>()
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   const handleViewContract = () => {
     navigate(`/dashboard/viewGroups/${groupId}/createContract`)
@@ -73,7 +75,7 @@ export default function OwnershipRatio() {
             {/* Button Content */}
             <div className='relative flex items-center gap-2' onClick={handleViewContract}>
               <span className='font-semibold text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)]'>
-                View contract
+                {t('gp_ownership_view_contract')}
               </span>
             </div>
           </motion.button>
@@ -108,15 +110,17 @@ export default function OwnershipRatio() {
             className='lg:col-span-2 space-y-3'
           >
             <div className='flex items-center justify-between mb-4'>
-              <h3 className='text-xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'>Members</h3>
+              <h3 className='text-xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'>
+                {t('gp_ownership_members_title')}
+              </h3>
               {/* Allocation Status Badge */}
               {responseData?.groupSummary?.fullyAllocated ? (
                 <span className='px-3 py-1 bg-green-400/20 text-green-100 text-xs font-bold rounded-full border border-green-300/40'>
-                  ✓ Fully allocated 100%
+                  {t('gp_ownership_fully_allocated')}
                 </span>
               ) : (
                 <span className='px-3 py-1 bg-yellow-400/20 text-yellow-100 text-xs font-bold rounded-full border border-yellow-300/40'>
-                  Remaining {responseData?.groupSummary?.remainingPercentage || 0}%
+                  {t('gp_ownership_remaining')} {responseData?.groupSummary?.remainingPercentage || 0}%
                 </span>
               )}
             </div>
@@ -155,9 +159,9 @@ export default function OwnershipRatio() {
                   </svg>
                 </div>
                 <p className='text-white font-semibold drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mb-2'>
-                  No members yet
+                  {t('gp_ownership_empty_title')}
                 </p>
-                <p className='text-white/70 text-sm'>Invite members to start allocating ownership</p>
+                <p className='text-white/70 text-sm'>{t('gp_ownership_empty_subtitle')}</p>
               </div>
             )}
           </motion.div>

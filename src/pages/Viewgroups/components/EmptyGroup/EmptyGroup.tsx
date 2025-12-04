@@ -2,8 +2,18 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import path from '../../../../constants/path'
 import logo from '../../../../assets/z7052214352472_9110bb340043f5ad4f507f5a29909fc3.png'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function EmptyGroup() {
+  const { t } = useI18n()
+
+  const features = [
+    { label: t('vg_empty_feature_track_charging'), color: 'bg-cyan-300' },
+    { label: t('vg_empty_feature_share_rights'), color: 'bg-sky-300' },
+    { label: t('vg_empty_feature_transparent_maintenance'), color: 'bg-indigo-300' },
+    { label: t('vg_empty_feature_clear_history'), color: 'bg-cyan-200' }
+  ]
+
   return (
     <div className='relative w-full min-h-[600px] flex items-center justify-center p-6'>
       {/* Card */}
@@ -33,7 +43,7 @@ export default function EmptyGroup() {
               transition={{ delay: 0.3, duration: 0.7 }}
               className='absolute bottom-4 text-xs text-white font-semibold px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30'
             >
-              EV Sharing – Green Future
+              {t('vg_empty_badge')}
             </motion.div>
           </div>
         </motion.div>
@@ -41,10 +51,10 @@ export default function EmptyGroup() {
         {/* Right content */}
         <div className='w-full md:w-1/2 text-center md:text-left'>
           <h3 className='text-3xl md:text-4xl font-bold text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] tracking-tight'>
-            No groups available
+            {t('vg_empty_title')}
           </h3>
           <p className='mt-4 text-base md:text-lg text-white/80 leading-relaxed font-medium'>
-            Create an electric vehicle co-ownership group to share charging costs, maintenance, and transparent usage rights.
+            {t('vg_empty_subtitle')}
           </p>
 
           {/* Buttons */}
@@ -55,7 +65,7 @@ export default function EmptyGroup() {
                 whileTap={{ scale: 0.95 }}
                 className='px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 to-sky-500 text-white font-bold shadow-[0_8px_25px_rgba(6,182,212,0.5)] hover:shadow-[0_10px_35px_rgba(6,182,212,0.7)] border-[2px] border-white/40 focus:outline-none focus:ring-4 focus:ring-cyan-300/50 transition-all duration-300'
               >
-                Create New Group
+                {t('vg_empty_btn_create')}
               </motion.button>
             </Link>
 
@@ -65,19 +75,14 @@ export default function EmptyGroup() {
                 whileTap={{ scale: 0.95 }}
                 className='px-6 py-3 rounded-full border-[2px] border-white/50 text-white font-bold bg-white/10 hover:bg-white/20 backdrop-blur-lg focus:outline-none transition-all duration-300'
               >
-                Return to Dashboard
+                {t('vg_empty_btn_dashboard')}
               </motion.button>
             </Link>
           </div>
 
           {/* Feature list */}
           <div className='mt-8 grid grid-cols-2 gap-3 text-sm text-white/80 font-medium'>
-            {[
-              { label: 'Track charging costs', color: 'bg-cyan-300' },
-              { label: 'Share usage rights', color: 'bg-sky-300' },
-              { label: 'Transparent maintenance', color: 'bg-indigo-300' },
-              { label: 'Clear usage history', color: 'bg-cyan-200' }
-            ].map((item, idx) => (
+            {features.map((item, idx) => (
               <div key={idx} className='flex items-center gap-2'>
                 <span className={`w-2 h-2 rounded-full ${item.color} shadow-[0_0_8px_currentColor]`} />
                 <span>{item.label}</span>

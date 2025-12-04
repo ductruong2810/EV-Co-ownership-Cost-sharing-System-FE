@@ -10,10 +10,12 @@ import GroupHeader from '../../components/GroupHeader'
 import Header from './components/HeaderMembers'
 import Memberlist from './components/MemberList/Memberlist'
 import Modalinvite from './components/ModalinviteMember'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function MemberGroup() {
   const { groupId } = useParams<{ groupId: string }>()
   const [showModal, setShowModal] = useState(false)
+  const { t } = useI18n()
 
   const {
     register,
@@ -51,10 +53,10 @@ export default function MemberGroup() {
         onSuccess: () => {
           setShowModal(false)
           reset()
-          toast.success('Đã gửi lời mời thành công!')
+          toast.success(t('mg_invite_success'))
         },
         onError: () => {
-          toast.error('Đã có lỗi xảy ra khi gửi lời mời. Vui lòng thử lại.')
+          toast.error(t('mg_invite_error'))
         }
       }
     )

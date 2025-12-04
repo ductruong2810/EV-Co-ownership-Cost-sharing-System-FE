@@ -8,11 +8,13 @@ import Legend from './components/Legend'
 import { formatDate } from '../../../../utils/formatTimeMyBooking'
 import EmptyBooking from './components/EmptyBooking'
 import type { MyBookingResponse } from '../../../../types/api/group.type'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const MyBooking = () => {
   const [bookings, setBookings] = useState<MyBookingResponse[]>([])
   const [loading, setLoading] = useState(true)
   const groupId = getGroupIdFromLS()
+  const { t } = useI18n()
 
   // Define maintenance slots
   const maintenanceSlotIndices = [1, 3, 5, 7, 9, 11] // 03-04, 07-08, 11-12, 15-16, 19-20, 23-24
@@ -159,13 +161,13 @@ const MyBooking = () => {
   const getStatusText = (status: string): string => {
     switch (status?.toUpperCase?.()) {
       case 'CONFIRMED':
-        return 'Confirmed'
+        return t('gp_mybooking_status_confirmed')
       case 'COMPLETED':
-        return 'Completed'
+        return t('gp_mybooking_status_completed')
       case 'CANCELLED':
-        return 'Cancelled'
+        return t('gp_mybooking_status_cancelled')
       default:
-        return status || 'Unknown'
+        return status || t('gp_mybooking_status_unknown')
     }
   }
 
@@ -187,10 +189,10 @@ const MyBooking = () => {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className='mb-8'>
           <div className='flex items-center gap-3 mb-2'>
             <div className='w-1 h-8 bg-gradient-to-b from-cyan-400 to-sky-500 rounded-full'></div>
-            <h1 className='text-4xl font-bold text-gray-900'>My Bookings</h1>
+            <h1 className='text-4xl font-bold text-gray-900'>{t('gp_mybooking_title')}</h1>
           </div>
           <p className='text-gray-500 text-sm font-medium ml-5'>
-            Week of {formatDate(weekDays[0])} - {formatDate(weekDays[6])}
+            {t('gp_mybooking_week_label')} {formatDate(weekDays[0])} - {formatDate(weekDays[6])}
           </p>
         </motion.div>
 
@@ -213,7 +215,7 @@ const MyBooking = () => {
                     d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
                   />
                 </svg>
-                <div className='text-white font-bold text-xs whitespace-nowrap'>TIME SLOT</div>
+                <div className='text-white font-bold text-xs whitespace-nowrap'>{t('gp_mybooking_time_slot')}</div>
               </div>
             </div>
             {weekDays.map((day, index) => (
@@ -305,7 +307,9 @@ const MyBooking = () => {
                           className='flex flex-col items-center justify-center gap-2'
                         >
                           <LockOutlined style={{ fontSize: '20px', color: '#D97706' }} />
-                          <span className='text-xs font-semibold text-amber-600 text-center'>Maintenance</span>
+                          <span className='text-xs font-semibold text-amber-600 text-center'>
+                            {t('gp_mybooking_maintenance')}
+                          </span>
                         </motion.div>
                       ) : null}
                     </div>

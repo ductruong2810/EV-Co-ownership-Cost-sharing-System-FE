@@ -7,6 +7,7 @@ import authApi from '../../apis/auth.api'
 import Skeleton from '../../components/Skeleton'
 import path from '../../constants/path'
 import { useOTPLogic } from '../../hooks/useOTPInput'
+import { useI18n } from '../../i18n/useI18n'
 
 // Props của component - hoàn toàn độc lập
 interface OTPInputProps {
@@ -24,6 +25,7 @@ function OTPInput({ length = 6 }: OTPInputProps) {
   const [type, setType] = useState<string>(initialType || '')
 
   const navigate = useNavigate()
+  const { t } = useI18n()
   const OTPMutation = useMutation({
     mutationFn: (otp: string) =>
       authApi.verifyOTP({
@@ -82,7 +84,7 @@ function OTPInput({ length = 6 }: OTPInputProps) {
 
   const handleResend = () => {
     if (!email) {
-      toast.error('Email không tồn tại, không thể gửi lại OTP', {
+      toast.error(t('otp_resend_error_email_missing'), {
         autoClose: 1000
       })
       return
@@ -90,7 +92,7 @@ function OTPInput({ length = 6 }: OTPInputProps) {
     resetOTP()
     resendOTPMutation.mutate(email, {
       onSuccess: (response) => {
-        toast.success('Mã OTP đã được gửi lại', {
+        toast.success(t('otp_resend_success'), {
           autoClose: 1000
         })
         if (response.data?.type) {
@@ -98,7 +100,7 @@ function OTPInput({ length = 6 }: OTPInputProps) {
         }
       },
       onError: () =>
-        toast.error('Gửi lại OTP thất bại, vui lòng thử lại', {
+        toast.error(t('otp_resend_failed'), {
           autoClose: 1000
         })
     })
@@ -119,7 +121,7 @@ function OTPInput({ length = 6 }: OTPInputProps) {
 
           {/* Tooltip chuẩn UX */}
           <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-slate-800/95 backdrop-blur-sm text-cyan-300 text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none border border-cyan-400/30 shadow-lg whitespace-nowrap'>
-            Quay lại
+            {t('otp_back_tooltip')}
             <div className='absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-800/95 border-l border-t border-cyan-400/30 rotate-45'></div>
           </div>
         </button>
@@ -130,7 +132,7 @@ function OTPInput({ length = 6 }: OTPInputProps) {
             <div className='w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-teal-500/20'>
               <CheckCircleOutlined className='text-4xl text-white' />
             </div>
-            <h1 className='text-2xl font-bold text-white mb-2'>Xác thực OTP</h1>
+            <h1 className='text-2xl font-bold text-white mb-2'>{t('otp_title')}</h1>
             <p className='text-teal-300 font-semibold text-base'>
               {message} : {email}
             </p>
@@ -197,10 +199,10 @@ function OTPInput({ length = 6 }: OTPInputProps) {
             {isVerifying && (
               <div className='absolute inset-0 flex items-center justify-center'>
                 <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2'></div>
-                Đang xác thực...
+                {t('otp_verifying')}
               </div>
             )}
-            {!isVerifying && 'Xác thực OTP'}
+            {!isVerifying && t('otp_verify_button')}
           </button>
 
           {/* Phần gửi lại */}
@@ -211,11 +213,12 @@ function OTPInput({ length = 6 }: OTPInputProps) {
                 className='text-cyan-400 hover:text-cyan-300 font-semibold text-sm flex items-center justify-center gap-2 mx-auto transition-colors'
               >
                 <ReloadOutlined />
-                Gửi lại mã OTP
+                {t('otp_resend_button')}
               </button>
             ) : (
               <p className='text-slate-400 text-sm'>
-                Gửi lại sau <span className='text-cyan-400 font-semibold'>{countdown}s</span>
+                {t('otp_resend_after')}{' '}
+                <span className='text-cyan-400 font-semibold'>{countdown}s</span>
               </p>
             )}
           </div>

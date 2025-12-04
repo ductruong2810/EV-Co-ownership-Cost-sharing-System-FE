@@ -8,6 +8,7 @@ import logger from '../../../../utils/logger'
 import { Input, Select, Tag, DatePicker, InputNumber, Button, Space, Checkbox, Modal, message } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
+import { useI18n } from '../../../../i18n/useI18n'
 
 // TYPES
 export interface MaintenanceReport {
@@ -64,30 +65,30 @@ type CreateMaintenanceInput = {
   estimatedDurationDays: number
 }
 
-const validateForm = (values: CreateForm): CreateFormErrors => {
+const validateForm = (values: CreateForm, t: (key: string) => string): CreateFormErrors => {
   const errors: CreateFormErrors = {}
   const description = values.description.trim()
   const costNumber = Number(values.cost)
   const durationNumber = Number(values.estimatedDurationDays)
 
   if (!description) {
-    errors.description = 'Description is required.'
+    errors.description = t('admin_maintenance_validation_description_required')
   } else if (description.length < 5) {
-    errors.description = 'Description must be at least 5 characters.'
+    errors.description = t('admin_maintenance_validation_description_min')
   }
 
   if (!values.cost) {
-    errors.cost = 'Estimated cost is required.'
+    errors.cost = t('admin_maintenance_validation_cost_required')
   } else if (!Number.isFinite(costNumber) || costNumber <= 0) {
-    errors.cost = 'Cost must be a positive number.'
+    errors.cost = t('admin_maintenance_validation_cost_positive')
   }
 
   if (!values.estimatedDurationDays) {
-    errors.estimatedDurationDays = 'Expected duration is required.'
+    errors.estimatedDurationDays = t('admin_maintenance_validation_duration_required')
   } else if (!Number.isFinite(durationNumber) || durationNumber <= 0) {
-    errors.estimatedDurationDays = 'Duration must be a positive number.'
+    errors.estimatedDurationDays = t('admin_maintenance_validation_duration_positive')
   } else if (!Number.isInteger(durationNumber)) {
-    errors.estimatedDurationDays = 'Duration must be an integer (days).'
+    errors.estimatedDurationDays = t('admin_maintenance_validation_duration_integer')
   }
 
   return errors
@@ -114,15 +115,16 @@ function CreateModal({ show, onClose, children }: { show: boolean; onClose: () =
   )
 }
 
-const statusOrder: { key: string; label: string }[] = [
-  { key: 'PENDING', label: 'Pending' },
-  { key: 'APPROVED', label: 'Approved' },
-  { key: 'FUNDED', label: 'Funded' },
-  { key: 'COMPLETED', label: 'Completed' },
-  { key: 'REJECTED', label: 'Rejected' }
+const getStatusOrder = (t: (key: string) => string): { key: string; label: string }[] => [
+  { key: 'PENDING', label: t('admin_maintenance_status_pending') },
+  { key: 'APPROVED', label: t('admin_maintenance_status_approved') },
+  { key: 'FUNDED', label: t('admin_maintenance_status_funded') },
+  { key: 'COMPLETED', label: t('admin_maintenance_status_completed') },
+  { key: 'REJECTED', label: t('admin_maintenance_status_rejected') }
 ]
 
-const formatStatusLabel = (status: string) => {
+const formatStatusLabel = (status: string, t: (key: string) => string) => {
+  const statusOrder = getStatusOrder(t)
   const found = statusOrder.find((item) => item.key === status)
   return found ? found.label : status
 }
@@ -148,6 +150,7 @@ const formatCurrency = (value?: number | null) => {
 }
 
 function MaintenanceList() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
 
   // Query user/vehicle list
@@ -192,7 +195,7 @@ function MaintenanceList() {
   const createMutation = useMutation<unknown, unknown, CreateMaintenanceInput>({
     mutationFn: (data) => technicianApi.createMantainance(data, data.vehicleId),
     onSuccess: () => {
-      toast.success('Maintenance request created successfully!')
+      toast.success(t('admin_maintenance_create_success'))
       setShowModal(false)
       setFormErrors({})
       setCreateErrorMessage(null)
@@ -216,7 +219,7 @@ function MaintenanceList() {
         .catch(() => undefined)
     },
     onError: () => {
-      setCreateErrorMessage('Failed to create maintenance request. Please try again.')
+      setCreateErrorMessage(t('admin_maintenance_create_error'))
     }
   })
 
@@ -224,7 +227,7 @@ function MaintenanceList() {
   const completeMutation = useMutation<unknown, unknown, { id: number }>({
     mutationFn: (data) => technicianApi.completeMantainance(String(data.id)),
     onSuccess: () => {
-      toast.success('Marked as completed!')
+      toast.success(t('admin_maintenance_complete_success'))
       queryClient.invalidateQueries({ queryKey: ['technician', 'myMaintenances'] })
       auditApi
         .logAction({
@@ -236,7 +239,7 @@ function MaintenanceList() {
         .catch(() => undefined)
     },
     onError: () => {
-      toast.error('Unable to update status. Please try again later.')
+      toast.error(t('admin_maintenance_complete_error'))
     }
   })
 
@@ -260,7 +263,7 @@ function MaintenanceList() {
       return Promise.all(promises)
     },
     onSuccess: () => {
-      toast.success(`Successfully completed ${selectedMaintenances.size} maintenance request(s)`)
+      toast.success(t('admin_maintenance_bulk_complete_success', { count: selectedMaintenances.size }))
       setSelectedMaintenances(new Set())
       setShowBulkActions(false)
       queryClient.invalidateQueries({ queryKey: ['technician', 'myMaintenances'] })
@@ -277,7 +280,7 @@ function MaintenanceList() {
       })
     },
     onError: () => {
-      toast.error('Failed to complete some maintenance requests. Please try again.')
+      toast.error(t('admin_maintenance_bulk_complete_error'))
     }
   })
 
@@ -314,12 +317,12 @@ function MaintenanceList() {
       .filter((m) => m.status === 'FUNDED' && selectedMaintenances.has(m.id))
       .map((m) => m.id)
     if (fundedIds.length === 0) {
-      message.warning('No funded maintenance requests selected')
+      message.warning(t('admin_maintenance_no_funded_selected'))
       return
     }
     Modal.confirm({
-      title: 'Complete Selected Maintenance Requests',
-      content: `Are you sure you want to mark ${fundedIds.length} maintenance request(s) as completed?`,
+      title: t('admin_maintenance_bulk_complete_title'),
+      content: t('admin_maintenance_bulk_complete_content', { count: fundedIds.length }),
       onOk: () => {
         bulkCompleteMutation.mutate(fundedIds)
       }
@@ -354,11 +357,11 @@ function MaintenanceList() {
     if (createMutation.isPending) return
 
     if (!form.userId || !form.vehicleId) {
-      setCreateErrorMessage('Missing vehicle or user information!')
+      setCreateErrorMessage(t('admin_maintenance_missing_info'))
       return
     }
 
-    const errors = validateForm(form)
+    const errors = validateForm(form, t)
     setFormErrors(errors)
     if (Object.keys(errors).length > 0) return
 
@@ -378,11 +381,11 @@ function MaintenanceList() {
       <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-6 flex items-center justify-center'>
         <div className='max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow'>
           <p className='mb-3 text-base font-semibold text-red-700'>
-            Failed to load vehicles needing maintenance
+            {t('admin_maintenance_error_load_vehicles')}
           </p>
-          <p className='mb-4 text-sm text-red-600'>{errorUserMsg?.message || 'Please try again later.'}</p>
+          <p className='mb-4 text-sm text-red-600'>{errorUserMsg?.message || t('admin_maintenance_error_try_later')}</p>
           <Button type='primary' danger onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'rejectedUsers'] })}>
-            Retry
+            {t('admin_dashboard_retry')}
           </Button>
         </div>
       </div>
@@ -394,11 +397,11 @@ function MaintenanceList() {
       <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-6 flex items-center justify-center'>
         <div className='max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow'>
           <p className='mb-3 text-base font-semibold text-red-700'>
-            Failed to load maintenance requests
+            {t('admin_maintenance_error_load_requests')}
           </p>
-          <p className='mb-4 text-sm text-red-600'>{errorMaintMsg?.message || 'Please try again later.'}</p>
+          <p className='mb-4 text-sm text-red-600'>{errorMaintMsg?.message || t('admin_maintenance_error_try_later')}</p>
           <Button type='primary' danger onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'myMaintenances'] })}>
-            Retry
+            {t('admin_dashboard_retry')}
           </Button>
         </div>
       </div>
@@ -455,27 +458,27 @@ function MaintenanceList() {
       return finish < Date.now()
     }).length
     return [
-      { label: 'Open tasks', value: open, accent: 'bg-blue-50 text-blue-600 border-blue-100' },
-      { label: 'Completed', value: completed, accent: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-      { label: 'Overdue', value: overdue, accent: 'bg-rose-50 text-rose-600 border-rose-100' },
-      { label: 'Total requests', value: total, accent: 'bg-slate-50 text-slate-600 border-slate-100' }
+      { label: t('admin_maintenance_summary_open'), value: open, accent: 'bg-blue-50 text-blue-600 border-blue-100' },
+      { label: t('admin_maintenance_summary_completed'), value: completed, accent: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+      { label: t('admin_maintenance_summary_overdue'), value: overdue, accent: 'bg-rose-50 text-rose-600 border-rose-100' },
+      { label: t('admin_maintenance_summary_total'), value: total, accent: 'bg-slate-50 text-slate-600 border-slate-100' }
     ]
-  }, [maintenances])
+  }, [maintenances, t])
 
   const boardColumns = useMemo(() => {
-    return statusOrder.map((column) => ({
+    return getStatusOrder(t).map((column) => ({
       ...column,
       items: filteredMaintenances.filter((item) => item.status === column.key)
     }))
-  }, [filteredMaintenances])
+  }, [filteredMaintenances, t])
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-4 sm:p-6'>
       <div className='max-w-7xl mx-auto'>
         <div className='mb-8 space-y-2'>
-          <p className='text-xs font-semibold uppercase tracking-widest text-indigo-400'>Technician panel</p>
-          <h1 className='text-3xl font-bold text-gray-900'>Maintenance management</h1>
-          <p className='text-gray-600'>Track open requests, create new maintenance tasks, and close funded jobs.</p>
+          <p className='text-xs font-semibold uppercase tracking-widest text-indigo-400'>{t('admin_check_vehicle_report_eyebrow')}</p>
+          <h1 className='text-3xl font-bold text-gray-900'>{t('admin_maintenance_title')}</h1>
+          <p className='text-gray-600'>{t('admin_maintenance_subtitle')}</p>
         </div>
 
         <div className='mb-6 grid grid-cols-2 gap-3 md:grid-cols-4'>
@@ -490,10 +493,10 @@ function MaintenanceList() {
         <div className='space-y-8'>
           {/* List of vehicles/users needing maintenance */}
           <div>
-            <h2 className='text-xl font-bold text-gray-800 mb-4'>List of Vehicles/Users Needing Maintenance</h2>
+            <h2 className='text-xl font-bold text-gray-800 mb-4'>{t('admin_maintenance_vehicles_needing_title')}</h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-6'>
               {userVehicleList.length === 0 && (
-                <div className='text-slate-500 col-span-full'>No vehicles require maintenance.</div>
+                <div className='text-slate-500 col-span-full'>{t('admin_maintenance_no_vehicles_require')}</div>
               )}
               {userVehicleList.map((vehicle, index) => (
                 <div
@@ -504,7 +507,7 @@ function MaintenanceList() {
                     <span className='block font-bold text-slate-900 text-base'>{vehicle.vehicleModel}</span>
                     <span className='block text-teal-600 text-sm mb-1'>{vehicle.licensePlate}</span>
                     <span className='text-slate-700 text-sm'>
-                      Owner: <span className='font-medium'>{vehicle.userName}</span>
+                      {t('admin_maintenance_owner')}: <span className='font-medium'>{vehicle.userName}</span>
                     </span>
                   </div>
                   <button
@@ -513,7 +516,7 @@ function MaintenanceList() {
                     onClick={() => handleOpenCreate(vehicle)}
                     disabled={createMutation.isPending}
                   >
-                    Create Maintenance Request
+                    {t('admin_maintenance_create_button')}
                   </button>
                 </div>
               ))}
@@ -523,10 +526,10 @@ function MaintenanceList() {
           {/* List of existing maintenance requests */}
           <div>
             <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-              <h2 className='text-xl font-bold text-gray-800'>Submitted Maintenance Requests</h2>
+              <h2 className='text-xl font-bold text-gray-800'>{t('admin_maintenance_submitted_title')}</h2>
               <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                 <Input
-                  placeholder='Search vehicle, owner, description...'
+                  placeholder={t('admin_maintenance_search_placeholder')}
                   prefix={<SearchOutlined className='text-gray-400' />}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -540,8 +543,8 @@ function MaintenanceList() {
                   className='w-full sm:w-48'
                   size='large'
                 >
-                  <Select.Option value='ALL'>All statuses</Select.Option>
-                  {statusOrder.map((status) => (
+                  <Select.Option value='ALL'>{t('admin_maintenance_status_all')}</Select.Option>
+                  {getStatusOrder(t).map((status) => (
                     <Select.Option key={status.key} value={status.key}>
                       {status.label}
                     </Select.Option>
@@ -553,8 +556,8 @@ function MaintenanceList() {
                   className={hasActiveAdvancedFilters ? 'border-blue-500 text-blue-600' : ''}
                   size='large'
                 >
-                  {hasActiveAdvancedFilters && <span className='mr-1'>(Active)</span>}
-                  Filters
+                  {hasActiveAdvancedFilters && <span className='mr-1'>({t('admin_check_group_filters_active')})</span>}
+                  {t('admin_check_group_filters')}
                 </Button>
               </div>
             </div>
@@ -565,34 +568,34 @@ function MaintenanceList() {
                 <Space direction='vertical' size='middle' className='w-full'>
                   <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>Request Date Range</label>
+                      <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_maintenance_filter_date_range')}</label>
                       <DatePicker.RangePicker
                         value={dateRange}
                         onChange={(dates) => setDateRange(dates as [Dayjs | null, Dayjs | null])}
                         format='DD/MM/YYYY'
                         className='w-full'
-                        placeholder={['From date', 'To date']}
+                        placeholder={[t('admin_dashboard_range_from_date_placeholder'), t('admin_dashboard_range_to_date_placeholder')]}
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>Min Cost (VND)</label>
+                      <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_maintenance_filter_min_cost')}</label>
                       <InputNumber
                         value={minCost}
                         onChange={(value) => setMinCost(value)}
                         min={0}
-                        placeholder='Minimum'
+                        placeholder={t('admin_check_group_filter_minimum')}
                         className='w-full'
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                         parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>Max Cost (VND)</label>
+                      <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_maintenance_filter_max_cost')}</label>
                       <InputNumber
                         value={maxCost}
                         onChange={(value) => setMaxCost(value)}
                         min={0}
-                        placeholder='Maximum'
+                        placeholder={t('admin_check_group_filter_maximum')}
                         className='w-full'
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                         parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
@@ -607,7 +610,7 @@ function MaintenanceList() {
                       type='text'
                       danger
                     >
-                      Clear all filters
+                      {t('admin_check_group_clear_filters')}
                     </Button>
                   )}
                 </Space>
@@ -620,11 +623,11 @@ function MaintenanceList() {
                 <div className='flex items-center justify-between'>
                   <div className='flex items-center gap-3'>
                     <span className='text-sm font-semibold text-blue-900'>
-                      {selectedMaintenances.size} maintenance request(s) selected
+                      {t('admin_maintenance_selected_count', { count: selectedMaintenances.size })}
                       {filteredMaintenances.filter((m) => m.status === 'FUNDED' && selectedMaintenances.has(m.id))
                         .length > 0 && (
                         <span className='ml-2 text-xs text-blue-700'>
-                          ({filteredMaintenances.filter((m) => m.status === 'FUNDED' && selectedMaintenances.has(m.id)).length} can be completed)
+                          ({t('admin_maintenance_can_be_completed', { count: filteredMaintenances.filter((m) => m.status === 'FUNDED' && selectedMaintenances.has(m.id)).length })})
                         </span>
                       )}
                     </span>
@@ -641,7 +644,7 @@ function MaintenanceList() {
                           .length === 0
                       }
                     >
-                      Complete Selected
+                      {t('admin_maintenance_bulk_complete_button')}
                     </Button>
                     <Button
                       onClick={() => {
@@ -649,7 +652,7 @@ function MaintenanceList() {
                         setShowBulkActions(false)
                       }}
                     >
-                      Clear Selection
+                      {t('admin_check_group_clear_selection')}
                     </Button>
                   </Space>
                 </div>
@@ -658,7 +661,7 @@ function MaintenanceList() {
 
             {filteredMaintenances.length === 0 ? (
               <div className='rounded-2xl border border-dashed border-gray-200 bg-white/70 px-6 py-12 text-center text-gray-500'>
-                No maintenance requests match your filters.
+                {t('admin_maintenance_no_match')}
               </div>
             ) : (
               <div className='overflow-x-auto pb-4'>
@@ -697,7 +700,7 @@ function MaintenanceList() {
                     <div className='space-y-3 px-3 py-3'>
                       {column.items.length === 0 ? (
                         <div className='rounded-xl border border-dashed border-gray-200 bg-gray-50 py-6 text-center text-xs text-gray-400'>
-                          Empty
+                          {t('admin_maintenance_empty_column')}
                         </div>
                       ) : (
                         column.items.map((item) => {
@@ -737,30 +740,30 @@ function MaintenanceList() {
                                 <span
                                   className={`text-[11px] font-semibold uppercase tracking-wide ${statusAccent(item.status)}`}
                                 >
-                                  {formatStatusLabel(item.status)}
+                                  {formatStatusLabel(item.status, t)}
                                 </span>
                               </div>
                               <p className='mt-2 text-gray-600 line-clamp-2'>{item.description}</p>
                               <div className='mt-3 space-y-2 rounded-xl border border-gray-100 bg-slate-50 p-3 text-xs text-gray-600'>
                                 <div className='flex justify-between'>
-                                  <span>Estimated cost</span>
+                                  <span>{t('admin_maintenance_estimated_cost')}</span>
                                   <strong>{formatCurrency(item.cost)}</strong>
                                 </div>
                                 <div className='flex justify-between'>
-                                  <span>Actual cost</span>
+                                  <span>{t('admin_maintenance_actual_cost')}</span>
                                   <strong className={hasActualCost ? 'text-emerald-600' : 'text-gray-400'}>
-                                    {hasActualCost ? formatCurrency(item.actualCost) : 'Pending'}
+                                    {hasActualCost ? formatCurrency(item.actualCost) : t('admin_maintenance_pending')}
                                   </strong>
                                 </div>
                                 <div className='flex justify-between'>
-                                  <span>Duration</span>
+                                  <span>{t('admin_maintenance_duration')}</span>
                                   <span>
-                                    {item.estimatedDurationDays || '?'} days
-                                    {actualFinish && ` • finished ${actualFinish}`}
+                                    {item.estimatedDurationDays || '?'} {t('admin_maintenance_days')}
+                                    {actualFinish && ` • ${t('admin_maintenance_finished', { date: actualFinish })}`}
                                   </span>
                                 </div>
                                 <div className='flex justify-between text-[11px] text-gray-500'>
-                                  <span>Expected finish</span>
+                                  <span>{t('admin_maintenance_expected_finish')}</span>
                                   <span>{expectedFinish || '—'}</span>
                                 </div>
                               </div>
@@ -771,7 +774,7 @@ function MaintenanceList() {
                                   disabled={completeMutation.isPending}
                                   onClick={() => completeMutation.mutate({ id: item.id })}
                                 >
-                                  {completeMutation.isPending ? 'Saving...' : 'Mark as completed'}
+                                  {completeMutation.isPending ? t('admin_maintenance_saving') : t('admin_maintenance_mark_completed')}
                                 </button>
                               )}
                                 </div>
@@ -790,13 +793,13 @@ function MaintenanceList() {
 
           {/* Modal for creating new requests */}
           <CreateModal show={showModal} onClose={() => setShowModal(false)}>
-            <h3 className='text-lg font-bold text-teal-700 mb-2'>Create Maintenance Request</h3>
+            <h3 className='text-lg font-bold text-teal-700 mb-2'>{t('admin_maintenance_modal_title')}</h3>
             {selectedVehicle && (
               <div className='mb-3 text-slate-600 text-sm'>
-                Vehicle: <span className='font-semibold text-black'>{selectedVehicle.vehicleModel}</span>
+                {t('admin_maintenance_vehicle')}: <span className='font-semibold text-black'>{selectedVehicle.vehicleModel}</span>
                 <span className='ml-2 text-teal-700'>{selectedVehicle.licensePlate}</span>
                 <br />
-                Owner: <span className='font-semibold text-black'>{selectedVehicle.userName}</span>
+                {t('admin_maintenance_owner')}: <span className='font-semibold text-black'>{selectedVehicle.userName}</span>
               </div>
             )}
             {createErrorMessage && (
@@ -806,7 +809,7 @@ function MaintenanceList() {
             )}
             <form onSubmit={handleCreate} className='space-y-3' autoComplete='off'>
               <div>
-                <label className='block text-xs font-medium text-teal-700 mb-1.5'>Maintenance Description</label>
+                <label className='block text-xs font-medium text-teal-700 mb-1.5'>{t('admin_maintenance_modal_description_label')}</label>
                 <textarea
                   name='description'
                   rows={2}
@@ -815,7 +818,7 @@ function MaintenanceList() {
                       ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500'
                       : 'border-slate-200 focus:border-teal-600 focus:ring-teal-600'
                   }`}
-                  placeholder='e.g., Oil change, brake inspection...'
+                  placeholder={t('admin_maintenance_modal_description_placeholder')}
                   value={form.description}
                   onChange={handleChange}
                 />
@@ -824,7 +827,7 @@ function MaintenanceList() {
                 )}
               </div>
               <div>
-                <label className='block text-xs font-medium text-teal-700 mb-1.5'>Estimated Cost</label>
+                <label className='block text-xs font-medium text-teal-700 mb-1.5'>{t('admin_maintenance_modal_cost_label')}</label>
                 <input
                   type='number'
                   name='cost'
@@ -833,14 +836,14 @@ function MaintenanceList() {
                       ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500'
                       : 'border-slate-200 focus:border-teal-600 focus:ring-teal-600'
                   }`}
-                  placeholder='e.g., 500000'
+                  placeholder={t('admin_maintenance_modal_cost_placeholder')}
                   value={form.cost}
                   onChange={handleChange}
                 />
                 {formErrors.cost && <div className='mt-1 text-[12px] text-rose-600'>{formErrors.cost}</div>}
               </div>
               <div>
-                <label className='block text-xs font-medium text-teal-700 mb-1.5'>Expected Duration (days)</label>
+                <label className='block text-xs font-medium text-teal-700 mb-1.5'>{t('admin_maintenance_modal_duration_label')}</label>
                 <input
                   type='number'
                   name='estimatedDurationDays'
@@ -849,7 +852,7 @@ function MaintenanceList() {
                       ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500'
                       : 'border-slate-200 focus:border-teal-600 focus:ring-teal-600'
                   }`}
-                  placeholder='e.g., 3'
+                  placeholder={t('admin_maintenance_modal_duration_placeholder')}
                   value={form.estimatedDurationDays}
                   onChange={handleChange}
                 />
@@ -864,14 +867,14 @@ function MaintenanceList() {
                   className='rounded-xl border border-teal-200 bg-white px-4 py-2 text-xs md:text-sm font-medium text-teal-700 hover:bg-teal-50'
                   disabled={createMutation.isPending}
                 >
-                  Cancel
+                  {t('admin_maintenance_modal_cancel')}
                 </button>
                 <button
                   type='submit'
                   disabled={createMutation.isPending || !form.userId || !form.vehicleId}
                   className='rounded-xl bg-teal-600 px-5 py-2 text-xs md:text-sm font-semibold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-1 focus:ring-offset-white disabled:opacity-60 disabled:cursor-not-allowed'
                 >
-                  {createMutation.isPending ? 'Creating...' : 'Create Request'}
+                  {createMutation.isPending ? t('admin_maintenance_modal_creating') : t('admin_maintenance_modal_create_button')}
                 </button>
               </div>
             </form>

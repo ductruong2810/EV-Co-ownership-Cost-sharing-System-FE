@@ -9,10 +9,12 @@ import Skeleton from '../../../../components/Skeleton'
 import logger from '../../../../utils/logger'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 
 export default function EditContract() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
@@ -65,13 +67,13 @@ export default function EditContract() {
     return (
       <AdminPageContainer>
         <AdminPageHeader
-          eyebrow='Contracts & Team'
-          title='Contract Editing'
-          subtitle='Review and manage contract feedback'
+          eyebrow={t('admin_nav_section_contracts_team')}
+          title={t('admin_edit_contract_title')}
+          subtitle={t('admin_edit_contract_subtitle')}
         />
         <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center'>
-          <h2 className='text-2xl font-semibold text-gray-700 mb-2'>No contracts available for editing</h2>
-          <p className='text-gray-500'>There are no contracts that require editing at this time.</p>
+          <h2 className='text-2xl font-semibold text-gray-700 mb-2'>{t('admin_edit_contract_empty_title')}</h2>
+          <p className='text-gray-500'>{t('admin_edit_contract_empty_desc')}</p>
         </div>
       </AdminPageContainer>
     )
@@ -79,15 +81,15 @@ export default function EditContract() {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        eyebrow='Contracts & Team'
-        title='Contract Editing'
-        subtitle='Review and manage contract feedback'
+        eyebrow={t('admin_nav_section_contracts_team')}
+        title={t('admin_edit_contract_title')}
+        subtitle={t('admin_edit_contract_subtitle')}
       />
 
       {/* Search and Filter Section */}
       <div className='mb-6 flex flex-col sm:flex-row gap-4'>
         <Input
-          placeholder='Search by contract ID, group ID, or group name...'
+          placeholder={t('admin_edit_contract_search_placeholder')}
           prefix={<SearchOutlined className='text-gray-400' />}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -96,9 +98,9 @@ export default function EditContract() {
           size='large'
         />
         <Select value={statusFilter} onChange={setStatusFilter} className='w-full sm:w-48' size='large'>
-          <Option value='ALL'>All Status</Option>
-          <Option value='SIGNED'>Signed</Option>
-          <Option value='PENDING'>Pending</Option>
+          <Option value='ALL'>{t('admin_edit_contract_status_all')}</Option>
+          <Option value='SIGNED'>{t('admin_edit_contract_status_signed')}</Option>
+          <Option value='PENDING'>{t('admin_edit_contract_status_pending')}</Option>
         </Select>
       </div>
 
@@ -106,16 +108,18 @@ export default function EditContract() {
       {contracts.length !==
         allContracts.filter((c: any) => c?.approvalStatus === 'SIGNED' || c?.approvalStatus === 'PENDING').length && (
         <div className='mb-4 text-sm text-gray-600'>
-          Showing {contracts.length} of{' '}
-          {allContracts.filter((c: any) => c?.approvalStatus === 'SIGNED' || c?.approvalStatus === 'PENDING').length} contracts
-          {searchTerm && ` matching "${searchTerm}"`}
-          {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
+          {t('admin_edit_contract_showing', {
+            showing: contracts.length,
+            total: allContracts.filter((c: any) => c?.approvalStatus === 'SIGNED' || c?.approvalStatus === 'PENDING').length,
+            searchTerm: searchTerm ? ` "${searchTerm}"` : '',
+            status: statusFilter !== 'ALL' ? ` "${statusFilter}"` : ''
+          })}
         </div>
       )}
 
       {contracts.length === 0 ? (
         <div className='bg-white rounded-xl shadow-lg p-8 text-center'>
-          <h2 className='text-xl font-semibold text-gray-700'>No contracts available for editing.</h2>
+          <h2 className='text-xl font-semibold text-gray-700'>{t('admin_edit_contract_no_available')}</h2>
         </div>
       ) : (
         <div className='bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'>
@@ -124,28 +128,28 @@ export default function EditContract() {
               <thead className='bg-gray-100'>
                 <tr>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    Contract ID
+                    {t('admin_edit_contract_table_id')}
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    Group Name
+                    {t('admin_edit_contract_table_group_name')}
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    Start Date
+                    {t('admin_edit_contract_table_start_date')}
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    End Date
+                    {t('admin_edit_contract_table_end_date')}
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    Duration
+                    {t('admin_edit_contract_table_duration')}
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    Status
+                    {t('admin_edit_contract_table_status')}
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    Created
+                    {t('admin_edit_contract_table_created')}
                   </th>
                   <th className='px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider'>
-                    Actions
+                    {t('admin_edit_contract_table_actions')}
                   </th>
                 </tr>
               </thead>
@@ -153,7 +157,7 @@ export default function EditContract() {
                 {contracts.length === 0 ? (
                   <tr>
                     <td colSpan={8} className='px-6 py-12 text-center text-gray-500'>
-                      {searchTerm || statusFilter !== 'ALL' ? 'No contracts match your filters' : 'No contracts found'}
+                      {searchTerm || statusFilter !== 'ALL' ? t('admin_edit_contract_no_match') : t('admin_edit_contract_no_contracts')}
                     </td>
                   </tr>
                 ) : (
@@ -180,7 +184,7 @@ export default function EditContract() {
                           (new Date(contract.endDate).getTime() - new Date(contract.startDate).getTime()) /
                             (1000 * 60 * 60 * 24)
                         )}{' '}
-                        days
+                        {t('admin_edit_contract_days')}
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap text-sm'>
                         <span
@@ -192,7 +196,7 @@ export default function EditContract() {
                                 : 'bg-red-100 text-red-800'
                           }`}
                         >
-                          {contract.approvalStatus}
+                          {contract.approvalStatus === 'APPROVED' ? t('admin_edit_contract_status_approved') : contract.approvalStatus === 'SIGNED' ? t('admin_edit_contract_status_signed') : t('admin_edit_contract_status_rejected')}
                         </span>
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
@@ -216,7 +220,7 @@ export default function EditContract() {
                               })
                             }
                           >
-                            View Feedback
+                            {t('admin_edit_contract_view_feedback')}
                           </button>
                         </div>
                       </td>

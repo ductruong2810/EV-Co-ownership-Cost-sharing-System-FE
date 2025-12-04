@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Skeleton from '../../../../components/Skeleton'
 import { FaCheckCircle } from 'react-icons/fa'
 import { ClockCircleOutlined, CloseOutlined, RightOutlined } from '@ant-design/icons'
+import { useI18n } from '../../../../i18n/useI18n'
 
 interface MaintenancePayment {
   id: number
@@ -33,6 +34,7 @@ export default function GroupExpense() {
   }
 
   const [selectedItem, setSelectedItem] = useState<MaintenancePayment | null>(null)
+  const { t } = useI18n()
 
   const formatVND = (amount: number) => {
     return amount.toLocaleString('vi-VN') + ' ₫'
@@ -41,9 +43,9 @@ export default function GroupExpense() {
   // Badge and UI now use blue as primary palette
   const getStatusBadge = (status: string) => {
     const statusConfig: { [key: string]: { bg: string; text: string; label: string } } = {
-      PENDING: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Pending' },
-      FUNDED: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Approved' },
-      COMPLETED: { bg: 'bg-blue-200', text: 'text-blue-900', label: 'Completed' }
+      PENDING: { bg: 'bg-blue-50', text: 'text-blue-700', label: t('ge_status_pending') },
+      FUNDED: { bg: 'bg-blue-100', text: 'text-blue-800', label: t('ge_status_funded') },
+      COMPLETED: { bg: 'bg-blue-200', text: 'text-blue-900', label: t('ge_status_completed') }
     }
     const config = statusConfig[status] || statusConfig.PENDING
     return (
@@ -62,7 +64,7 @@ export default function GroupExpense() {
           <FaCheckCircle className='w-8 h-8' />
         </div>
         <div className='flex-1 min-w-0'>
-          <p className='font-semibold text-gray-900'>No maintenance requests available</p>
+          <p className='font-semibold text-gray-900'>{t('ge_empty_title')}</p>
         </div>
       </div>
     )
@@ -73,15 +75,17 @@ export default function GroupExpense() {
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
         <div className='mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-6'>
-          <div>
-            <h2 className='text-3xl font-bold text-blue-900 mb-2'>Maintenance Requests</h2>
-            <p className='text-blue-600'>Total: {paymentMaintanceQuery?.data?.data.length || 0} requests</p>
-          </div>
+            <div>
+              <h2 className='text-3xl font-bold text-blue-900 mb-2'>{t('ge_header_title')}</h2>
+              <p className='text-blue-600'>
+                {t('ge_header_total')}: {paymentMaintanceQuery?.data?.data.length || 0}
+              </p>
+            </div>
           <div className='flex items-center gap-3'>
             <span className='inline-block w-12 h-12 rounded-2xl shadow-lg bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center text-white text-xl font-bold'>
               {paymentMaintanceQuery?.data?.data.length || 0}
             </span>
-            <span className='text-sm text-blue-800'>Active</span>
+            <span className='text-sm text-blue-800'>{t('ge_header_active')}</span>
           </div>
         </div>
 
@@ -123,7 +127,7 @@ export default function GroupExpense() {
                   <div className='text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-blue-400'>
                     {formatVND(item.actualCost)}
                   </div>
-                  <p className='text-xs text-blue-400 mt-1'>Cost</p>
+                  <p className='text-xs text-blue-400 mt-1'>{t('ge_card_cost_label')}</p>
                   <div className='opacity-0 group-hover:opacity-100 transition translate-x-2'>
                     <RightOutlined className='text-blue-600 text-xl' />
                   </div>
@@ -171,21 +175,21 @@ export default function GroupExpense() {
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='bg-blue-100 rounded-xl p-4'>
                     <label className='text-xs font-semibold text-blue-800 uppercase tracking-wide mb-2 block'>
-                      Cost
+                      {t('ge_card_cost_label')}
                     </label>
                     <p className='text-2xl font-bold text-blue-900'>{formatVND(selectedItem.actualCost)}</p>
                   </div>
                   <div className='bg-blue-200 rounded-xl p-4'>
                     <label className='text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 block'>
-                      Duration
+                      {t('ge_card_duration_label')}
                     </label>
                     <p className='text-2xl font-bold text-blue-900'>{selectedItem.estimatedDurationDays}</p>
-                    <p className='text-xs text-blue-700 mt-1'>days</p>
+                    <p className='text-xs text-blue-700 mt-1'>{t('ge_card_duration_unit')}</p>
                   </div>
                 </div>
                 <div className='bg-blue-50 rounded-xl p-4'>
                   <label className='text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2 block'>
-                    Status
+                    {t('ge_modal_status_label')}
                   </label>
                   <div className='flex items-center gap-2'>
                     {getStatusBadge(selectedItem.status)}
@@ -200,13 +204,13 @@ export default function GroupExpense() {
                   onClick={() => setSelectedItem(null)}
                   className='w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-900 transition-all duration-300 shadow-lg'
                 >
-                  Close
+                  {t('ge_modal_close_button')}
                 </button>
                 <button
                   onClick={() => handlePayment(selectedItem?.id.toString() || '')}
                   className='w-full bg-gradient-to-r from-blue-700 to-blue-400 text-white py-3 rounded-xl font-semibold hover:from-blue-900 hover:to-blue-600 transition-all shadow-lg'
                 >
-                  Pay Now
+                  {t('ge_modal_pay_button')}
                 </button>
               </div>
             </div>

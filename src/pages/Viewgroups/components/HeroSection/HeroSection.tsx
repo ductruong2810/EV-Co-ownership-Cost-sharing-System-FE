@@ -1,8 +1,10 @@
 import { Card } from 'antd'
 import { useContext } from 'react'
 import { GroupContext } from '../../../../hooks/useGroupList'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function HeroSection() {
+  const { t } = useI18n()
   const groupListData = useContext(GroupContext)
 
   const getTotalGroups = () => groupListData.length
@@ -13,7 +15,7 @@ export default function HeroSection() {
   const stats = [
     {
       value: getTotalGroups(),
-      label: 'Total Groups',
+      label: t('vg_hero_total_groups') ?? 'Total Groups',
       bg: 'bg-white/15',
       border: 'border-cyan-200/50',
       textColor: 'text-white',
@@ -22,7 +24,7 @@ export default function HeroSection() {
     },
     {
       value: getStatusGroup('active')(),
-      label: 'Active',
+      label: t('vg_hero_active_groups') ?? 'Active',
       bg: 'bg-green-400/20',
       border: 'border-green-300/50',
       textColor: 'text-green-100',
@@ -31,7 +33,7 @@ export default function HeroSection() {
     },
     {
       value: getStatusGroup('pending')(),
-      label: 'Pending',
+      label: t('vg_hero_pending_groups') ?? 'Pending',
       bg: 'bg-yellow-400/20',
       border: 'border-yellow-300/50',
       textColor: 'text-yellow-100',
@@ -40,7 +42,7 @@ export default function HeroSection() {
     },
     {
       value: getStatusGroup('inactive')(),
-      label: 'Rejected',
+      label: t('vg_hero_rejected_groups') ?? 'Rejected',
       bg: 'bg-red-400/20',
       border: 'border-red-300/50',
       textColor: 'text-red-100',
@@ -51,16 +53,14 @@ export default function HeroSection() {
 
   return (
     <Card className='mb-8 backdrop-blur-xl bg-white/10 border-[3px] border-white/40 shadow-[0_0_35px_rgba(6,182,212,0.4),inset_0_1px_20px_rgba(255,255,255,0.1)] rounded-xl overflow-hidden'>
-      {/* Top gradient bar */}
       <div className='absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-200 via-sky-100 to-indigo-200' />
 
       <div className='text-center py-8'>
         <h1 className='text-4xl font-bold mb-3 text-white drop-shadow-[0_0_20px_rgba(6,182,212,0.7)]'>
-          EV Groups Management
+          {t('vg_hero_title')}
         </h1>
-        <p className='text-white/80 mb-8 text-lg font-medium'>View all electric vehicle sharing groups</p>
+        <p className='text-white/80 mb-8 text-lg font-medium'>{t('vg_hero_subtitle')}</p>
 
-        {/* Stats Cards */}
         <div className='flex justify-center items-center gap-6 flex-wrap'>
           {stats.map((stat, idx) => (
             <div
@@ -76,7 +76,6 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Bottom gradient bar */}
       <div className='absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-200 via-sky-100 to-cyan-200' />
     </Card>
   )

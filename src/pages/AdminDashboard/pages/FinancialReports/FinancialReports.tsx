@@ -8,12 +8,14 @@ import Skeleton from '../../../../components/Skeleton'
 import { exportFinancialReportToPDF, type FinancialReportData } from '../../../../utils/pdfExport'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
 
 export default function FinancialReports() {
+  const { t } = useI18n()
   const [isExporting, setIsExporting] = useState(false)
   const [isExportingPDF, setIsExportingPDF] = useState(false)
   const [fundType, setFundType] = useState<string | undefined>(undefined)
@@ -57,7 +59,7 @@ export default function FinancialReports() {
       window.URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Export error:', err)
-      setError('Export failed. Please try again.')
+      setError(t('admin_financial_reports_export_error'))
     } finally {
       setIsExporting(false)
     }
@@ -104,7 +106,7 @@ export default function FinancialReports() {
       })
     } catch (err) {
       console.error('PDF Export error:', err)
-      setError('PDF export failed. Please try again.')
+      setError(t('admin_financial_reports_pdf_export_error'))
     } finally {
       setIsExportingPDF(false)
     }
@@ -143,15 +145,15 @@ export default function FinancialReports() {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        eyebrow='Finance'
-        title='Financial Reports'
-        subtitle='Export consolidated financial reports for all groups in the system'
+        eyebrow={t('admin_financial_reports_eyebrow')}
+        title={t('admin_financial_reports_title')}
+        subtitle={t('admin_financial_reports_subtitle')}
         rightSlot={<DollarOutlined className='text-2xl text-green-600' />}
       />
 
         {error && (
           <Alert
-            message='Error'
+            message={t('admin_financial_reports_error_title')}
             description={error}
             type='error'
             showIcon
@@ -165,7 +167,7 @@ export default function FinancialReports() {
           <Space direction='vertical' size='large' className='w-full'>
             <div>
               <Text strong className='block mb-2'>
-                Fund Type (Optional)
+                {t('admin_financial_reports_fund_type_label')}
               </Text>
               <Select
                 value={fundType || 'ALL'}
@@ -173,15 +175,15 @@ export default function FinancialReports() {
                 className='w-full'
                 size='large'
               >
-                <Option value='ALL'>All</Option>
-                <Option value='OPERATING'>Operating Fund</Option>
-                <Option value='DEPOSIT_RESERVE'>Deposit Reserve Fund</Option>
+                <Option value='ALL'>{t('admin_financial_reports_fund_type_all')}</Option>
+                <Option value='OPERATING'>{t('admin_financial_reports_fund_type_operating')}</Option>
+                <Option value='DEPOSIT_RESERVE'>{t('admin_financial_reports_fund_type_deposit_reserve')}</Option>
               </Select>
             </div>
 
             <div>
               <Text strong className='block mb-2'>
-                Date Range (Optional)
+                {t('admin_financial_reports_date_range_label')}
               </Text>
               <RangePicker
                 value={dateRange}
@@ -189,10 +191,10 @@ export default function FinancialReports() {
                 className='w-full'
                 size='large'
                 format='DD/MM/YYYY'
-                placeholder={['From Date', 'To Date']}
+                placeholder={[t('admin_dashboard_range_from_date_placeholder'), t('admin_dashboard_range_to_date_placeholder')]}
               />
               <Text type='secondary' className='block mt-2 text-xs'>
-                Leave empty to export all data
+                {t('admin_financial_reports_date_range_hint')}
               </Text>
             </div>
 
@@ -207,7 +209,7 @@ export default function FinancialReports() {
                   className='w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
                   block
                 >
-                  {isExporting ? 'Exporting...' : 'Export CSV Report'}
+                  {isExporting ? t('admin_financial_reports_exporting') : t('admin_financial_reports_export_csv')}
                 </Button>
                 <Button
                   type='default'
@@ -218,7 +220,7 @@ export default function FinancialReports() {
                   className='w-full border-2 border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600'
                   block
                 >
-                  {isExportingPDF ? 'Generating PDF...' : 'Export PDF Report'}
+                  {isExportingPDF ? t('admin_financial_reports_generating_pdf') : t('admin_financial_reports_export_pdf')}
                 </Button>
               </Space>
             </div>
@@ -227,30 +229,30 @@ export default function FinancialReports() {
 
       <Card className='mt-6 rounded-xl shadow-lg border border-gray-200'>
           <Title level={4} className='mb-3'>
-            Report Information
+            {t('admin_financial_reports_info_title')}
           </Title>
           <Space direction='vertical' size='small' className='text-sm text-gray-600'>
             <div>
-              <Text strong>• Report includes:</Text>
+              <Text strong>{t('admin_financial_reports_info_includes')}</Text>
               <ul className='ml-6 mt-1 space-y-1'>
-                <li>Total income/expense for each group</li>
-                <li>Operating and Deposit Reserve balances</li>
-                <li>Consolidated summary of all groups</li>
+                <li>{t('admin_financial_reports_info_income_expense')}</li>
+                <li>{t('admin_financial_reports_info_balances')}</li>
+                <li>{t('admin_financial_reports_info_summary')}</li>
               </ul>
             </div>
             <div>
-              <Text strong>• Formats available:</Text>
+              <Text strong>{t('admin_financial_reports_info_formats')}</Text>
               <ul className='ml-6 mt-1 space-y-1'>
-                <li>CSV - Comma Separated Values (Excel, Google Sheets)</li>
-                <li>PDF - Portable Document Format (Professional report)</li>
+                <li>{t('admin_financial_reports_info_csv')}</li>
+                <li>{t('admin_financial_reports_info_pdf')}</li>
               </ul>
             </div>
             <div>
-              <Text strong>• PDF includes:</Text>
+              <Text strong>{t('admin_financial_reports_info_pdf_includes')}</Text>
               <ul className='ml-6 mt-1 space-y-1'>
-                <li>Formatted table with all financial data</li>
-                <li>Summary totals and statistics</li>
-                <li>Professional layout suitable for printing</li>
+                <li>{t('admin_financial_reports_info_pdf_table')}</li>
+                <li>{t('admin_financial_reports_info_pdf_totals')}</li>
+                <li>{t('admin_financial_reports_info_pdf_layout')}</li>
               </ul>
             </div>
           </Space>

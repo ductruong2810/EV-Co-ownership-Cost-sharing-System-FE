@@ -11,11 +11,13 @@ import GroupStatus from './Components/GroupStatus'
 import Icon from './Components/Icon'
 import Username from './Components/Username'
 import { toast } from 'react-toastify'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function MyAccount() {
   const queryClient = useQueryClient()
   const [editingField, setEditingField] = useState<'phone' | 'name' | null>(null)
   const [editValue, setEditValue] = useState('')
+  const { t } = useI18n()
 
   // Fetch user profile
   const {
@@ -35,7 +37,7 @@ export default function MyAccount() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-profile'] })
       setEditingField(null)
-      toast.success('Update phone successfully!', {
+      toast.success(t('my_account_update_phone_success'), {
         autoClose: 2500,
         position: 'top-right'
       })
@@ -48,7 +50,7 @@ export default function MyAccount() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-profile'] })
       setEditingField(null)
-      toast.success('Update full name successfully!', {
+      toast.success(t('my_account_update_name_success'), {
         autoClose: 2500,
         position: 'top-right'
       })
@@ -87,9 +89,9 @@ export default function MyAccount() {
             </svg>
           </div>
           <p className='text-white font-bold text-xl drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mb-2'>
-            Cannot load information
+            {t('my_account_error_title')}
           </p>
-          <p className='text-white/70'>Please try again later</p>
+          <p className='text-white/70'>{t('my_account_error_subtitle')}</p>
         </div>
       </div>
     )
@@ -135,14 +137,20 @@ export default function MyAccount() {
               className='bg-white/95 backdrop-blur-xl rounded-2xl p-8 max-w-md w-full border-[3px] border-white shadow-[0_20px_60px_rgba(0,0,0,0.3)]'
             >
               <h3 className='text-2xl font-bold text-gray-800 mb-6'>
-                {editingField === 'phone' ? 'Edit phone number' : 'Edit name'}
+                {editingField === 'phone'
+                  ? t('my_account_modal_edit_phone_title')
+                  : t('my_account_modal_edit_name_title')}
               </h3>
               <input
                 type='text'
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 className='w-full px-4 py-3 bg-white border-2 border-blue-200 rounded-xl text-gray-800 focus:outline-none focus:border-blue-400 transition-colors mb-6'
-                placeholder={editingField === 'phone' ? 'Enter new phone number' : 'Enter new name'}
+                placeholder={
+                  editingField === 'phone'
+                    ? t('my_account_modal_phone_placeholder')
+                    : t('my_account_modal_name_placeholder')
+                }
                 autoFocus
               />
               <div className='flex gap-3'>
@@ -151,13 +159,15 @@ export default function MyAccount() {
                   disabled={phonemutation.isPending || nameMutation.isPending}
                   className='flex-1 bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-semibold py-3 rounded-xl hover:from-cyan-500 hover:to-blue-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed'
                 >
-                  {phonemutation.isPending || nameMutation.isPending ? 'Saving...' : 'Save'}
+                  {phonemutation.isPending || nameMutation.isPending
+                    ? t('my_account_modal_saving')
+                    : t('my_account_modal_save')}
                 </button>
                 <button
                   onClick={handleCancel}
                   className='flex-1 bg-gray-200 text-gray-800 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors'
                 >
-                  Cancel
+                  {t('my_account_modal_cancel')}
                 </button>
               </div>
             </motion.div>
@@ -221,7 +231,7 @@ export default function MyAccount() {
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
             >
-              <Icon title='Personal Information'>
+              <Icon title={t('my_account_section_personal_info')}>
                 <svg
                   width='20'
                   height='20'
@@ -251,7 +261,7 @@ export default function MyAccount() {
                   variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}
                   transition={{ duration: 0.4 }}
                 >
-                  <Field label='Email' value={user?.email as string} glow={true} />
+                  <Field label={t('my_account_field_email')} value={user?.email as string} glow={true} />
                 </motion.div>
 
                 {/* Phone Field - Editable */}
@@ -260,7 +270,7 @@ export default function MyAccount() {
                   transition={{ duration: 0.4 }}
                   className='relative group'
                 >
-                  <Field label='Phone' value={user?.phoneNumber as string} glow={true} />
+                  <Field label={t('my_account_field_phone')} value={user?.phoneNumber as string} glow={true} />
                   <button
                     onClick={() => handleEdit('phone', user?.phoneNumber as string)}
                     className='absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 p-2 rounded-lg shadow-lg hover:bg-white'
@@ -285,7 +295,7 @@ export default function MyAccount() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.6 }}
             >
-              <Icon title='License'>
+              <Icon title={t('my_account_section_license')}>
                 <svg
                   width='20'
                   height='20'
@@ -312,14 +322,14 @@ export default function MyAccount() {
 
               <div className='grid md:grid-cols-2 gap-4'>
                 <DocCard
-                  title='Citizen ID'
+                  title={t('my_account_doc_citizen')}
                   imageFront={user?.documents.citizenIdImages?.front?.imageUrl || ''}
                   imageBack={user?.documents.citizenIdImages?.back?.imageUrl || ''}
                   statusFront={user?.documents.citizenIdImages?.front?.status || ''}
                   statusBack={user?.documents.citizenIdImages?.back?.status || ''}
                 />
                 <DocCard
-                  title='Driver License'
+                  title={t('my_account_doc_driver')}
                   imageFront={user?.documents.driverLicenseImages?.front?.imageUrl || ''}
                   imageBack={user?.documents.driverLicenseImages?.back?.imageUrl || ''}
                   statusFront={user?.documents.driverLicenseImages?.front?.status || ''}

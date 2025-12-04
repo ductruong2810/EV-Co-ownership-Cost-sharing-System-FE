@@ -4,9 +4,11 @@ import userApi from '../../apis/user.api'
 import { getUserIdFromLS } from '../../utils/auth'
 import type { PaymentItem } from '../../types/api/user.type'
 import { formatToVND } from '../../utils/formatPrice'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function PaymentHistory() {
   const userId = getUserIdFromLS()
+  const { t } = useI18n()
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['paymentHistory', userId],
     queryFn: async () => {
@@ -34,7 +36,7 @@ export default function PaymentHistory() {
               />
             </svg>
           </div>
-          <h2 className='text-xl font-bold text-gray-900 mb-2'>An error occurred</h2>
+          <h2 className='text-xl font-bold text-gray-900 mb-2'>{t('payment_error_title')}</h2>
           <p className='text-gray-600 mb-6 text-sm'>
             {error instanceof Error ? error.message : 'Unable to load payment history. Please try again.'}
           </p>
@@ -42,7 +44,7 @@ export default function PaymentHistory() {
             onClick={() => window.location.reload()}
             className='rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm'
           >
-            Retry
+            {t('payment_error_retry')}
           </button>
         </div>
       </div>
@@ -66,21 +68,21 @@ export default function PaymentHistory() {
                   />
                 </svg>
               </div>
-              <h1 className='text-2xl md:text-3xl font-bold text-white'>Payment history</h1>
+              <h1 className='text-2xl md:text-3xl font-bold text-white'>{t('payment_header_title')}</h1>
             </div>
-            <p className='text-blue-100 text-sm'>Track all of your transactions</p>
+            <p className='text-blue-100 text-sm'>{t('payment_header_subtitle')}</p>
           </div>
           {data && (
             <div className='px-6 md:px-8 pb-8'>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-4'>
-                  <div className='text-blue-100 text-xs font-medium mb-1'>Total paid</div>
+                  <div className='text-blue-100 text-xs font-medium mb-1'>{t('payment_total_paid')}</div>
                   <div className='text-white text-xl md:text-2xl font-bold'>
                     {formatToVND(data.totalCompletedAmount)}
                   </div>
                 </div>
                 <div className='rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-4'>
-                  <div className='text-blue-100 text-xs font-medium mb-1'>Total transactions</div>
+                  <div className='text-blue-100 text-xs font-medium mb-1'>{t('payment_total_transactions')}</div>
                   <div className='text-white text-xl md:text-2xl font-bold'>{data.items.length}</div>
                 </div>
               </div>
@@ -91,7 +93,7 @@ export default function PaymentHistory() {
         {/* Transaction List with Scroll */}
         <div className='rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden'>
           <div className='px-6 md:px-8 py-4 bg-gray-50 border-b border-gray-100 sticky top-0 z-10'>
-            <h2 className='text-sm font-semibold text-gray-700'>Transaction list</h2>
+            <h2 className='text-sm font-semibold text-gray-700'>{t('payment_list_title')}</h2>
           </div>
           <div
             className='p-4 md:p-6'
@@ -130,8 +132,8 @@ export default function PaymentHistory() {
                     />
                   </svg>
                 </div>
-                <p className='text-gray-500 font-medium'>No transactions yet</p>
-                <p className='text-gray-400 text-sm mt-1'>Your transactions will appear here</p>
+                <p className='text-gray-500 font-medium'>{t('payment_empty_title')}</p>
+                <p className='text-gray-400 text-sm mt-1'>{t('payment_empty_subtitle')}</p>
               </div>
             )}
 
@@ -233,10 +235,11 @@ function StatusBadge({ status }: { status: PaymentItem['status'] }) {
     PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
     FAILED: 'bg-red-50 text-red-700 border-red-200'
   }
+  const { t } = useI18n()
   const labels = {
-    COMPLETED: 'Completed',
-    PENDING: 'Processing',
-    FAILED: 'Failed'
+    COMPLETED: t('payment_status_completed'),
+    PENDING: t('payment_status_pending'),
+    FAILED: t('payment_status_failed')
   }
   const icons = {
     COMPLETED: (
@@ -279,6 +282,7 @@ function StatusBadge({ status }: { status: PaymentItem['status'] }) {
 }
 
 function TypeBadge({ type }: { type: PaymentItem['paymentType'] }) {
+  const { t } = useI18n()
   return (
     <span
       className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${
@@ -287,7 +291,7 @@ function TypeBadge({ type }: { type: PaymentItem['paymentType'] }) {
           : 'bg-purple-50 text-purple-700 border-purple-200'
       }`}
     >
-      {type === 'DEPOSIT' ? 'Deposit' : 'Contribution'}
+      {type === 'DEPOSIT' ? t('payment_type_deposit') : t('payment_type_contribution')}
     </span>
   )
 }
@@ -298,10 +302,11 @@ function MethodBadge({ method }: { method: PaymentItem['paymentMethod'] }) {
     BANK_TRANSFER: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     CASH: 'bg-gray-50 text-gray-700 border-gray-200'
   }
+  const { t } = useI18n()
   const labels = {
-    VNPAY: 'VNPay',
-    BANK_TRANSFER: 'Bank transfer',
-    CASH: 'Cash'
+    VNPAY: t('payment_method_vnpay'),
+    BANK_TRANSFER: t('payment_method_bank_transfer'),
+    CASH: t('payment_method_cash')
   }
 
   return (

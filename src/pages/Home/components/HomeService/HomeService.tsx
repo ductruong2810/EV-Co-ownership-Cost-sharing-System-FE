@@ -1,35 +1,39 @@
 import { CarOutlined, DollarOutlined, IssuesCloseOutlined, UserOutlined } from '@ant-design/icons'
 import { motion } from 'framer-motion'
-
-const services = [
-  {
-    icon: <UserOutlined className='text-[50px]' />,
-    title: 'User & Ownership Management',
-    description: 'Manage accounts, verify identity, create groups, and handle co-ownership contracts.'
-  },
-  {
-    icon: <CarOutlined className='text-[50px]' />,
-    title: 'Vehicle Booking & Usage',
-    description: 'Fair scheduling, easy check-in/out, and transparent vehicle usage.'
-  },
-  {
-    icon: <DollarOutlined className='text-[50px]' />,
-    title: 'Cost Sharing & Payments',
-    description: 'Auto-split costs, manage group funds, and pay securely online.'
-  },
-  {
-    icon: <IssuesCloseOutlined className='text-[50px]' />,
-    title: 'Issue & Dispute Handling',
-    description: 'Report damages, assign responsibility, and resolve conflicts clearly.'
-  }
-]
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function HomeService() {
+  const { t } = useI18n()
+
+  const services = [
+    {
+      icon: <UserOutlined className='text-[50px]' />,
+      title: t('hs_item1_title'),
+      description: t('hs_item1_desc')
+    },
+    {
+      icon: <CarOutlined className='text-[50px]' />,
+      title: t('hs_item2_title'),
+      description: t('hs_item2_desc')
+    },
+    {
+      icon: <DollarOutlined className='text-[50px]' />,
+      title: t('hs_item3_title'),
+      description: t('hs_item3_desc')
+    },
+    {
+      icon: <IssuesCloseOutlined className='text-[50px]' />,
+      title: t('hs_item4_title'),
+      description: t('hs_item4_desc')
+    }
+  ]
+
   return (
     <section className='pb-60 pt-32 bg-gradient-to-b from-teal-50 via-white to-emerald-50'>
       <div className='container mx-auto text-center'>
         <h2 className='text-3xl md:text-4xl font-extrabold text-emerald-900 mb-12'>
-          Our <span className='text-emerald-600'>Services</span>
+          {t('hs_section_title_prefix')}{' '}
+          <span className='text-emerald-600'>{t('hs_section_title_highlight')}</span>
         </h2>
 
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8'>
@@ -49,7 +53,6 @@ export default function HomeService() {
                               rounded-full bg-gradient-to-tr from-teal-400 to-cyan-300 shadow-md'
               >
                 {service.icon}
-                {/* <img src={service.icon} alt={service.title} className='w-10 h-10' /> */}
               </div>
               <h3 className='text-xl font-semibold text-teal-800 mb-2'>{service.title}</h3>
               <p className='text-gray-600 text-sm'>{service.description}</p>
@@ -60,3 +63,4 @@ export default function HomeService() {
     </section>
   )
 }
+

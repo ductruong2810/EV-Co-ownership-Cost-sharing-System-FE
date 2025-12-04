@@ -1,22 +1,27 @@
 import { Button, Card, Descriptions, Form, Select, Space, Tag } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import disputeApi from '../../../../apis/dispute.api'
-
-const statusOptions = [
-  { label: 'Open', value: 'OPEN' },
-  { label: 'In review', value: 'IN_REVIEW' },
-  { label: 'Resolved', value: 'RESOLVED' },
-  { label: 'Rejected', value: 'REJECTED' }
-]
+import { useI18n } from '../../../../i18n/useI18n'
 
 
 const DisputeDetail = () => {
+  const { t } = useI18n()
   const { disputeId } = useParams<{ disputeId: string }>()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [statusForm] = Form.useForm()
+
+  const statusOptions = useMemo(
+    () => [
+      { label: t('admin_disputes_status_open'), value: 'OPEN' },
+      { label: t('admin_disputes_status_in_review'), value: 'IN_REVIEW' },
+      { label: t('admin_disputes_status_resolved'), value: 'RESOLVED' },
+      { label: t('admin_disputes_status_rejected'), value: 'REJECTED' }
+    ],
+    [t]
+  )
 
   const { data, isLoading, error, isError } = useQuery({
     queryKey: ['dispute-detail', disputeId],
@@ -47,9 +52,9 @@ const DisputeDetail = () => {
     return (
       <div className='p-6'>
         <div className='rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
-          <p className='text-lg font-semibold text-red-700'>Invalid dispute ID</p>
+          <p className='text-lg font-semibold text-red-700'>{t('admin_dispute_detail_invalid_id')}</p>
           <Button type='link' onClick={() => navigate(-1)} className='mt-4'>
-            ← Back to Disputes
+            ← {t('admin_dispute_detail_back_to_disputes')}
           </Button>
         </div>
       </div>
@@ -60,12 +65,12 @@ const DisputeDetail = () => {
     return (
       <div className='p-6'>
         <div className='rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
-          <p className='text-lg font-semibold text-red-700'>Dispute Not Found</p>
+          <p className='text-lg font-semibold text-red-700'>{t('admin_dispute_detail_not_found')}</p>
           <p className='mt-2 text-sm text-red-600'>
-            The dispute with ID {disputeId} could not be found.
+            {t('admin_dispute_detail_not_found_desc', { disputeId })}
           </p>
           <Button type='link' onClick={() => navigate(-1)} className='mt-4'>
-            ← Back to Disputes
+            ← {t('admin_dispute_detail_back_to_disputes')}
           </Button>
         </div>
       </div>
@@ -85,33 +90,37 @@ const DisputeDetail = () => {
   return (
     <div className='p-6 space-y-4'>
       <Button type='link' onClick={() => navigate(-1)}>
-        ← Back
+        ← {t('admin_dispute_detail_back')}
       </Button>
 
-      <Card loading={isLoading} title={`Dispute #${disputeId}`} className='rounded-2xl shadow-lg'>
+      <Card loading={isLoading} title={t('admin_dispute_detail_title', { disputeId })} className='rounded-2xl shadow-lg'>
         {detail && (
           <Descriptions column={2} bordered>
-            <Descriptions.Item label='Title' span={2}>
+            <Descriptions.Item label={t('admin_dispute_detail_label_title')} span={2}>
               {detail.title}
             </Descriptions.Item>
-            <Descriptions.Item label='Status'>
-              <Tag color='cyan'>{detail.status}</Tag>
+            <Descriptions.Item label={t('admin_dispute_detail_label_status')}>
+              <Tag color='cyan'>{t(`admin_disputes_status_${detail.status.toLowerCase()}`)}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label='Type'>{detail.type}</Descriptions.Item>
-            <Descriptions.Item label='Group'>{detail.groupName}</Descriptions.Item>
-            <Descriptions.Item label='Reporter'>{detail.reporter?.fullName || '—'}</Descriptions.Item>
-            <Descriptions.Item label='Resolved by'>{detail.assignedStaff?.fullName || 'Unassigned'}</Descriptions.Item>
-            <Descriptions.Item label='Description' span={2}>
+            <Descriptions.Item label={t('admin_dispute_detail_label_type')}>{detail.type}</Descriptions.Item>
+            <Descriptions.Item label={t('admin_dispute_detail_label_group')}>{detail.groupName}</Descriptions.Item>
+            <Descriptions.Item label={t('admin_dispute_detail_label_reporter')}>
+              {detail.reporter?.fullName || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('admin_dispute_detail_label_resolved_by')}>
+              {detail.assignedStaff?.fullName || t('admin_dispute_detail_unassigned')}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('admin_dispute_detail_label_description')} span={2}>
               {detail.description || '—'}
             </Descriptions.Item>
-            <Descriptions.Item label='Resolution note' span={2}>
+            <Descriptions.Item label={t('admin_dispute_detail_label_resolution_note')} span={2}>
               {detail.resolutionNote || '—'}
             </Descriptions.Item>
           </Descriptions>
         )}
       </Card>
 
-      <Card title='Update status' className='rounded-2xl shadow-lg'>
+      <Card title={t('admin_dispute_detail_update_status_title')} className='rounded-2xl shadow-lg'>
         <Form
           layout='vertical'
           form={statusForm}
@@ -122,18 +131,22 @@ const DisputeDetail = () => {
           }}
           initialValues={{ status: detail?.status }}
         >
-          <Form.Item label='Status' name='status' rules={[{ required: true, message: 'Please select a status' }]}>
+          <Form.Item
+            label={t('admin_dispute_detail_label_status')}
+            name='status'
+            rules={[{ required: true, message: t('admin_dispute_detail_status_required') }]}
+          >
             <Select options={statusOptions} />
           </Form.Item>
           <Space>
             <Button type='primary' htmlType='submit' loading={updateStatusMutation.isPending}>
-              Update Status
+              {t('admin_dispute_detail_update_status_button')}
             </Button>
           </Space>
         </Form>
         <div className='mt-4 p-3 bg-blue-50 rounded-lg'>
           <p className='text-sm text-blue-700'>
-            <strong>Note:</strong> To add a resolution note, use the "Resolve" action instead of updating status.
+            <strong>{t('admin_dispute_detail_note')}:</strong> {t('admin_dispute_detail_note_text')}
           </p>
         </div>
       </Card>

@@ -4,6 +4,7 @@ import groupApi from '../../../../apis/group.api'
 import { formatToVND } from '../../../../utils/formatPrice'
 import { useEffect } from 'react'
 import logger from '../../../../utils/logger'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function PaymentStatus() {
   const [searchParams] = useSearchParams()
@@ -13,6 +14,7 @@ export default function PaymentStatus() {
   logger.debug('Payment status params:', { status, type, txnRef })
 
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   const txnQuery = useQuery({
     queryKey: ['deposit-history', txnRef],
@@ -60,30 +62,31 @@ export default function PaymentStatus() {
           <div className='flex justify-center mb-4'>
             <div className='bg-green-100 text-green-600 rounded-full p-4 text-5xl'>✔</div>
           </div>
-          <h1 className='text-2xl font-bold text-gray-800 mb-2'>Payment Successful</h1>
+          <h1 className='text-2xl font-bold text-gray-800 mb-2'>{t('gp_payment_success_title')}</h1>
           <p className='text-gray-600 mb-6'>
-            Thank you for your payment via <span className='font-semibold'>{txnData?.paymentMethod}</span>.
+            {t('gp_payment_success_desc')}{' '}
+            <span className='font-semibold'>{txnData?.paymentMethod}</span>.
           </p>
 
           <div className='text-left text-gray-700 space-y-2 border-t border-gray-200 pt-4'>
             <p>
-              <strong>Amount:</strong> {formattedAmount}
+              <strong>{t('gp_payment_amount')}:</strong> {formattedAmount}
             </p>
             <p>
-              <strong>Payment Method:</strong> {txnData?.paymentMethod}
+              <strong>{t('gp_payment_method')}:</strong> {txnData?.paymentMethod}
             </p>
             <p>
-              <strong>Transaction Code:</strong> {txnData?.transactionCode}
+              <strong>{t('gp_payment_txn_code')}:</strong> {txnData?.transactionCode}
             </p>
             <p>
-              <strong>Payment Date:</strong> {formattedDate}
+              <strong>{t('gp_payment_date')}:</strong> {formattedDate}
             </p>
             <p>
-              <strong>Group:</strong> #{txnData?.groupId}
+              <strong>{t('gp_payment_group')}:</strong> #{txnData?.groupId}
             </p>
 
             <p>
-              <strong>Notes:</strong> Your payment has been successfully recorded.
+              <strong>{t('gp_payment_notes')}:</strong> {t('gp_payment_notes_text')}
             </p>
           </div>
 
@@ -92,7 +95,7 @@ export default function PaymentStatus() {
               onClick={handleNavigate}
               className='bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition'
             >
-              close
+              {t('gp_payment_close_button')}
             </button>
           </div>
         </>

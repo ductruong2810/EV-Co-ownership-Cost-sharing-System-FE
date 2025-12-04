@@ -13,12 +13,14 @@ import dayjs, { Dayjs } from 'dayjs'
 import ActivityTimeline, { type ActivityItem } from '../../../../components/ActivityTimeline'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
 const { Panel } = Collapse
 
 export default function CheckGroup() {
+  const { t } = useI18n()
   const [currentPage, setCurrentPage] = useState(0)
   const pageSize = 10 // fixed page size
   const [searchTerm, setSearchTerm] = useState('')
@@ -50,13 +52,13 @@ export default function CheckGroup() {
       return Promise.all(promises)
     },
     onSuccess: () => {
-      message.success(`Successfully approved ${selectedGroupIds.size} group(s)`)
+      message.success(t('admin_check_group_bulk_approve_success', { count: selectedGroupIds.size }))
       setSelectedGroupIds(new Set())
       setShowBulkActions(false)
       queryClient.invalidateQueries({ queryKey: ['groupList'] })
     },
     onError: () => {
-      message.error('Failed to approve some groups. Please try again.')
+      message.error(t('admin_check_group_bulk_approve_error'))
     }
   })
 
@@ -67,13 +69,13 @@ export default function CheckGroup() {
       return Promise.all(promises)
     },
     onSuccess: () => {
-      message.success(`Successfully rejected ${selectedGroupIds.size} group(s)`)
+      message.success(t('admin_check_group_bulk_reject_success', { count: selectedGroupIds.size }))
       setSelectedGroupIds(new Set())
       setShowBulkActions(false)
       queryClient.invalidateQueries({ queryKey: ['groupList'] })
     },
     onError: () => {
-      message.error('Failed to reject some groups. Please try again.')
+      message.error(t('admin_check_group_bulk_reject_error'))
     }
   })
 
@@ -101,8 +103,8 @@ export default function CheckGroup() {
 
   const handleBulkApprove = () => {
     Modal.confirm({
-      title: 'Approve Selected Groups',
-      content: `Are you sure you want to approve ${selectedGroupIds.size} group(s)?`,
+      title: t('admin_check_group_bulk_approve_title'),
+      content: t('admin_check_group_bulk_approve_content', { count: selectedGroupIds.size }),
       onOk: () => {
         bulkApproveMutation.mutate(Array.from(selectedGroupIds))
       }
@@ -111,25 +113,25 @@ export default function CheckGroup() {
 
   const handleBulkReject = () => {
     Modal.confirm({
-      title: 'Reject Selected Groups',
+      title: t('admin_check_group_bulk_reject_title'),
       content: (
         <div className='mt-4'>
-          <p className='mb-2'>Please provide a reason for rejecting {selectedGroupIds.size} group(s):</p>
+          <p className='mb-2'>{t('admin_check_group_bulk_reject_content', { count: selectedGroupIds.size })}</p>
           <Input.TextArea
             id='rejection-reason'
             rows={3}
-            placeholder='Enter rejection reason...'
+            placeholder={t('admin_check_group_rejection_reason_placeholder')}
             required
           />
         </div>
       ),
-      okText: 'Reject',
+      okText: t('admin_check_group_reject_button'),
       okButtonProps: { danger: true },
       onOk: (close) => {
         const reasonInput = document.getElementById('rejection-reason') as HTMLTextAreaElement
         const reason = reasonInput?.value?.trim()
         if (!reason) {
-          message.error('Rejection reason is required')
+          message.error(t('admin_check_group_rejection_reason_required'))
           return Promise.reject()
         }
         bulkRejectMutation.mutate({ groupIds: Array.from(selectedGroupIds), reason })
@@ -239,22 +241,22 @@ export default function CheckGroup() {
 
   const summaryMetrics = [
     {
-      label: 'Pending review',
+      label: t('admin_check_group_summary_pending'),
       value: statusCounts.PENDING || 0,
       accent: 'bg-amber-50 text-amber-600 border-amber-100'
     },
     {
-      label: 'Active groups',
+      label: t('admin_check_group_summary_active'),
       value: statusCounts.ACTIVE || 0,
       accent: 'bg-emerald-50 text-emerald-600 border-emerald-100'
     },
     {
-      label: 'Inactive / Closed',
+      label: t('admin_check_group_summary_inactive'),
       value: (statusCounts.INACTIVE || 0) + (statusCounts.CLOSED || 0),
       accent: 'bg-slate-50 text-slate-600 border-slate-100'
     },
     {
-      label: 'Total listed',
+      label: t('admin_check_group_summary_total'),
       value: totalFiltered,
       accent: 'bg-blue-50 text-blue-600 border-blue-100'
     }
@@ -275,8 +277,8 @@ export default function CheckGroup() {
       activities.push({
         id: 'create',
         type: 'CREATE',
-        title: 'Group Created',
-        description: `Group "${selectedGroup.groupName}" was created`,
+        title: t('admin_check_group_activity_created_title'),
+        description: t('admin_check_group_activity_created_desc', { groupName: selectedGroup.groupName }),
         timestamp: selectedGroup.createdAt,
         metadata: {
           groupId: selectedGroup.groupId,
@@ -288,8 +290,8 @@ export default function CheckGroup() {
       activities.push({
         id: 'update',
         type: 'UPDATE',
-        title: 'Group Updated',
-        description: 'Group information was updated',
+        title: t('admin_check_group_activity_updated_title'),
+        description: t('admin_check_group_activity_updated_desc'),
         timestamp: selectedGroup.updatedAt
       })
     }
@@ -297,15 +299,15 @@ export default function CheckGroup() {
       activities.push({
         id: 'approve',
         type: 'APPROVE',
-        title: 'Group Approved',
-        description: 'Group was approved and activated',
+        title: t('admin_check_group_activity_approved_title'),
+        description: t('admin_check_group_activity_approved_desc'),
         timestamp: selectedGroup.updatedAt || selectedGroup.createdAt || new Date().toISOString()
       })
     } else if (selectedGroup.status === 'INACTIVE' && selectedGroup.rejectionReason) {
       activities.push({
         id: 'reject',
         type: 'REJECT',
-        title: 'Group Rejected',
+        title: t('admin_check_group_activity_rejected_title'),
         description: selectedGroup.rejectionReason,
         timestamp: selectedGroup.updatedAt || selectedGroup.createdAt || new Date().toISOString(),
         metadata: {
@@ -333,13 +335,13 @@ export default function CheckGroup() {
       <AdminPageContainer>
         <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
           <p className='mb-3 text-base font-semibold text-red-700'>
-            Failed to load groups
+            {t('admin_check_group_error_load')}
           </p>
           <p className='mb-4 text-sm text-red-600'>
-            {error instanceof Error ? error.message : 'Please check your connection and try again.'}
+            {error instanceof Error ? error.message : t('admin_check_group_error_check_connection')}
           </p>
           <Button type='primary' danger onClick={() => refetch()}>
-            Retry
+            {t('admin_dashboard_retry')}
           </Button>
         </div>
       </AdminPageContainer>
@@ -357,9 +359,9 @@ export default function CheckGroup() {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        eyebrow='Staff workspace'
-        title='Group approvals'
-        subtitle='Review and approve new co-ownership groups. Use the filters to prioritise pending submissions.'
+        eyebrow={t('admin_check_group_eyebrow')}
+        title={t('admin_check_group_title')}
+        subtitle={t('admin_check_group_subtitle')}
       />
 
         {/* Summary */}
@@ -376,7 +378,7 @@ export default function CheckGroup() {
         <div className='rounded-2xl bg-white p-5 shadow-sm'>
           <div className='flex flex-col gap-3 md:flex-row'>
             <Input
-              placeholder='Search by group name, description, or ID...'
+              placeholder={t('admin_check_group_search_placeholder')}
               prefix={<SearchOutlined className='text-gray-400' />}
               value={searchTerm}
               onChange={(e) => {
@@ -396,10 +398,10 @@ export default function CheckGroup() {
               className='w-full md:w-52'
               size='large'
             >
-              <Option value='ALL'>All Status</Option>
-              <Option value='PENDING'>Pending</Option>
-              <Option value='ACTIVE'>Active</Option>
-              <Option value='INACTIVE'>Inactive</Option>
+              <Option value='ALL'>{t('admin_check_group_status_all')}</Option>
+              <Option value='PENDING'>{t('admin_check_group_status_pending')}</Option>
+              <Option value='ACTIVE'>{t('admin_check_group_status_active')}</Option>
+              <Option value='INACTIVE'>{t('admin_check_group_status_inactive')}</Option>
             </Select>
             <Button
               icon={<FilterOutlined />}
@@ -407,8 +409,8 @@ export default function CheckGroup() {
               className={hasActiveAdvancedFilters ? 'border-blue-500 text-blue-600' : ''}
               size='large'
             >
-              {hasActiveAdvancedFilters && <span className='mr-1'>(Active)</span>}
-              Filters
+              {hasActiveAdvancedFilters && <span className='mr-1'>({t('admin_check_group_filters_active')})</span>}
+              {t('admin_check_group_filters')}
             </Button>
           </div>
 
@@ -418,7 +420,7 @@ export default function CheckGroup() {
               <Space direction='vertical' size='middle' className='w-full'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-1'>Created Date Range</label>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_check_group_filter_date_range')}</label>
                     <RangePicker
                       value={dateRange}
                       onChange={(dates) => {
@@ -427,11 +429,11 @@ export default function CheckGroup() {
                       }}
                       format='DD/MM/YYYY'
                       className='w-full'
-                      placeholder={['From date', 'To date']}
+                      placeholder={[t('admin_dashboard_range_from_date_placeholder'), t('admin_dashboard_range_to_date_placeholder')]}
                     />
                   </div>
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-1'>Min Members</label>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_check_group_filter_min_members')}</label>
                     <InputNumber
                       value={minMembers}
                       onChange={(value) => {
@@ -440,12 +442,12 @@ export default function CheckGroup() {
                       }}
                       min={1}
                       max={100}
-                      placeholder='Minimum'
+                      placeholder={t('admin_check_group_filter_minimum')}
                       className='w-full'
                     />
                   </div>
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-1'>Max Members</label>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_check_group_filter_max_members')}</label>
                     <InputNumber
                       value={maxMembers}
                       onChange={(value) => {
@@ -454,7 +456,7 @@ export default function CheckGroup() {
                       }}
                       min={1}
                       max={100}
-                      placeholder='Maximum'
+                      placeholder={t('admin_check_group_filter_maximum')}
                       className='w-full'
                     />
                   </div>
@@ -467,7 +469,7 @@ export default function CheckGroup() {
                     type='text'
                     danger
                   >
-                    Clear all filters
+                    {t('admin_check_group_clear_filters')}
                   </Button>
                 )}
               </Space>
@@ -475,9 +477,12 @@ export default function CheckGroup() {
           )}
 
           <p className='mt-3 text-sm text-gray-500'>
-            Showing {groupData.length} of {totalFiltered} groups
-            {searchTerm && ` matching "${searchTerm}"`}
-            {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
+            {t('admin_check_group_showing_results', {
+              showing: groupData.length,
+              total: totalFiltered,
+              searchTerm: searchTerm ? ` "${searchTerm}"` : '',
+              status: statusFilter !== 'ALL' ? ` "${statusFilter}"` : ''
+            })}
           </p>
         </div>
 
@@ -487,7 +492,7 @@ export default function CheckGroup() {
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 <span className='text-sm font-semibold text-blue-900'>
-                  {selectedGroupIds.size} group(s) selected
+                  {t('admin_check_group_selected_count', { count: selectedGroupIds.size })}
                 </span>
               </div>
               <Space>
@@ -498,7 +503,7 @@ export default function CheckGroup() {
                   loading={bulkApproveMutation.isPending}
                   className='bg-emerald-600 hover:bg-emerald-700'
                 >
-                  Approve Selected
+                  {t('admin_check_group_bulk_approve_button')}
                 </Button>
                 <Button
                   icon={<CloseOutlined />}
@@ -506,13 +511,13 @@ export default function CheckGroup() {
                   onClick={handleBulkReject}
                   loading={bulkRejectMutation.isPending}
                 >
-                  Reject Selected
+                  {t('admin_check_group_bulk_reject_button')}
                 </Button>
                 <Button onClick={() => {
                   setSelectedGroupIds(new Set())
                   setShowBulkActions(false)
                 }}>
-                  Clear Selection
+                  {t('admin_check_group_clear_selection')}
                 </Button>
               </Space>
             </div>
@@ -532,14 +537,14 @@ export default function CheckGroup() {
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
                 <h2 className='text-lg font-semibold text-gray-800'>
-                  {statusFilter === 'ALL' ? 'All groups' : `${statusFilter} groups`}
+                  {statusFilter === 'ALL' ? t('admin_check_group_all_groups') : t('admin_check_group_status_groups', { status: statusFilter })}
                 </h2>
               </div>
-              <Tag color='blue'>{totalFiltered} records</Tag>
+              <Tag color='blue'>{t('admin_check_group_records_count', { count: totalFiltered })}</Tag>
             </div>
             {groupData.length === 0 ? (
               <div className='py-16 text-center text-gray-500'>
-                {searchTerm || statusFilter !== 'ALL' ? 'No groups match your filters' : 'No groups found'}
+                {searchTerm || statusFilter !== 'ALL' ? t('admin_check_group_no_match') : t('admin_check_group_no_groups')}
               </div>
             ) : (
               <div className='divide-y'>
@@ -580,11 +585,11 @@ export default function CheckGroup() {
                         <div className='flex flex-wrap items-center gap-3 text-sm text-gray-600'>
                           <span className='flex items-center gap-1'>
                             <InfoCircleOutlined className='text-gray-400' />
-                            {group.description || 'No description'}
+                            {group.description || t('admin_check_group_no_description')}
                           </span>
                           <span className='flex items-center gap-1'>
                             <TeamOutlined className='text-indigo-500' />
-                            {group.memberCapacity} seats
+                            {group.memberCapacity} {t('admin_check_group_seats')}
                           </span>
                           {group.createdAt && (
                             <span className='flex items-center gap-1 text-gray-500'>
@@ -622,27 +627,27 @@ export default function CheckGroup() {
               <div className='space-y-5'>
                 <div className='flex items-start justify-between'>
                   <div>
-                    <p className='text-sm font-semibold uppercase tracking-wide text-gray-400'>Selected group</p>
+                    <p className='text-sm font-semibold uppercase tracking-wide text-gray-400'>{t('admin_check_group_selected_group')}</p>
                     <h3 className='mt-1 text-2xl font-bold text-gray-900'>{selectedGroup.groupName}</h3>
-                    <p className='text-sm text-gray-500'>ID #{selectedGroup.groupId}</p>
+                    <p className='text-sm text-gray-500'>{t('admin_check_group_id', { id: selectedGroup.groupId })}</p>
                   </div>
                   <StatusBadge status={selectedGroup.status} />
                 </div>
 
                 <div className='rounded-xl bg-slate-50 p-4'>
-                  <p className='text-sm font-semibold text-gray-600'>Description</p>
+                  <p className='text-sm font-semibold text-gray-600'>{t('admin_check_group_label_description')}</p>
                   <p className='mt-1 text-gray-700'>
-                    {selectedGroup.description || 'This group has not provided additional context.'}
+                    {selectedGroup.description || t('admin_check_group_no_context')}
                   </p>
                 </div>
 
                 <div className='grid grid-cols-2 gap-4 text-sm text-gray-600'>
                   <div className='rounded-xl border border-gray-100 p-3'>
-                    <p className='text-xs uppercase text-gray-400'>Capacity</p>
-                    <p className='text-lg font-semibold text-indigo-600'>{selectedGroup.memberCapacity} members</p>
+                    <p className='text-xs uppercase text-gray-400'>{t('admin_check_group_label_capacity')}</p>
+                    <p className='text-lg font-semibold text-indigo-600'>{selectedGroup.memberCapacity} {t('admin_check_group_members')}</p>
                   </div>
                   <div className='rounded-xl border border-gray-100 p-3'>
-                    <p className='text-xs uppercase text-gray-400'>Created</p>
+                    <p className='text-xs uppercase text-gray-400'>{t('admin_check_group_label_created')}</p>
                     <p className='text-lg font-semibold text-gray-800'>
                       {selectedGroup.createdAt
                         ? new Date(selectedGroup.createdAt).toLocaleDateString('en-US', {
@@ -656,23 +661,22 @@ export default function CheckGroup() {
                 </div>
 
                 <div className='flex flex-col gap-3 rounded-xl border border-dashed border-gray-200 p-4'>
-                  <p className='text-sm font-semibold text-gray-700'>Next actions</p>
+                  <p className='text-sm font-semibold text-gray-700'>{t('admin_check_group_next_actions')}</p>
                   <div className='flex flex-wrap gap-3'>
                     <button className='flex-1 rounded-lg bg-emerald-500 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-600'>
-                      Approve group
+                      {t('admin_check_group_approve_button')}
                     </button>
                     <button className='flex-1 rounded-lg border border-gray-300 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50'>
-                      Request details
+                      {t('admin_check_group_request_details')}
                     </button>
                   </div>
                   <button className='rounded-lg border border-red-200 py-2 text-sm font-semibold text-red-600 hover:bg-red-50'>
-                    Reject application
+                    {t('admin_check_group_reject_application')}
                   </button>
                 </div>
 
                 <div className='text-xs text-gray-400'>
-                  Tip: when you approve the group we will notify all members via email + in-app notifications
-                  automatically.
+                  {t('admin_check_group_tip')}
                 </div>
 
                 {/* Activity Timeline */}
@@ -687,7 +691,7 @@ export default function CheckGroup() {
               </div>
             ) : (
               <div className='flex h-full flex-col items-center justify-center text-center text-gray-400'>
-                <p className='text-sm'>Select a group from the left to see more details.</p>
+                <p className='text-sm'>{t('admin_check_group_select_to_view')}</p>
               </div>
             )}
           </div>

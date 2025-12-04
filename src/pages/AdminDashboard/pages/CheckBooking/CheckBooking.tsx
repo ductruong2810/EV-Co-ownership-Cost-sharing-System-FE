@@ -11,12 +11,14 @@ import EmptyState from '../EmptyState'
 import dayjs, { Dayjs } from 'dayjs'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
 const ITEMS_PER_PAGE = 10
 
 export default function CheckBooking() {
+  const { t } = useI18n()
   const [page, setPage] = useState(1)
   const [groups, setGroups] = useState<Record<number, GetGroupById[]>>({})
   const [searchTerm, setSearchTerm] = useState('')
@@ -145,13 +147,13 @@ export default function CheckBooking() {
       <AdminPageContainer>
         <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
           <p className='mb-3 text-base font-semibold text-red-700'>
-            Failed to load users
+            {t('admin_check_booking_error_load')}
           </p>
           <p className='mb-4 text-sm text-red-600'>
-            {error instanceof Error ? error.message : 'Please check your connection and try again.'}
+            {error instanceof Error ? error.message : t('admin_check_booking_error_check_connection')}
           </p>
           <Button type='primary' danger onClick={() => refetch()}>
-            Retry
+            {t('admin_dashboard_retry')}
           </Button>
         </div>
       </AdminPageContainer>
@@ -168,30 +170,35 @@ export default function CheckBooking() {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        title='Booking Management'
-        subtitle={`Manage bookings by co-owners • Total ${filteredUsers.length} of ${data.length} users • Page ${page}/${total}`}
+        title={t('admin_check_booking_title')}
+        subtitle={t('admin_check_booking_subtitle', {
+          filtered: filteredUsers.length,
+          total: data.length,
+          page,
+          totalPages: total
+        })}
       />
 
         <div className='mb-6 grid gap-3 md:grid-cols-4'>
           <SummaryCard
-            label='Total co-owners'
+            label={t('admin_check_booking_summary_total')}
             value={summary.total}
             accent='bg-blue-50 text-blue-700 border-blue-100'
           />
           <SummaryCard
-            label='Active'
+            label={t('admin_check_booking_summary_active')}
             value={summary.active}
             accent='bg-emerald-50 text-emerald-700 border-emerald-100'
           />
-          <SummaryCard label='Inactive' value={summary.inactive} accent='bg-amber-50 text-amber-700 border-amber-100' />
-          <SummaryCard label='Banned' value={summary.banned} accent='bg-rose-50 text-rose-700 border-rose-100' />
+          <SummaryCard label={t('admin_check_booking_summary_inactive')} value={summary.inactive} accent='bg-amber-50 text-amber-700 border-amber-100' />
+          <SummaryCard label={t('admin_check_booking_summary_banned')} value={summary.banned} accent='bg-rose-50 text-rose-700 border-rose-100' />
         </div>
 
         {/* Search and Filter Section */}
         <div className='mb-6 space-y-4'>
           <div className='flex flex-col sm:flex-row gap-4'>
             <Input
-              placeholder='Search by name, email, or phone...'
+              placeholder={t('admin_check_booking_search_placeholder')}
               prefix={<SearchOutlined className='text-gray-400' />}
               value={searchTerm}
               onChange={(e) => {
@@ -211,10 +218,10 @@ export default function CheckBooking() {
               className='w-full sm:w-40'
               size='large'
             >
-              <Option value='ALL'>All Status</Option>
-              <Option value='ACTIVE'>Active</Option>
-              <Option value='INACTIVE'>Inactive</Option>
-              <Option value='BANNED'>Banned</Option>
+              <Option value='ALL'>{t('admin_check_booking_status_all')}</Option>
+              <Option value='ACTIVE'>{t('admin_check_booking_status_active')}</Option>
+              <Option value='INACTIVE'>{t('admin_check_booking_status_inactive')}</Option>
+              <Option value='BANNED'>{t('admin_check_booking_status_banned')}</Option>
             </Select>
             <Button
               icon={<FilterOutlined />}
@@ -222,8 +229,8 @@ export default function CheckBooking() {
               className={hasActiveAdvancedFilters ? 'border-blue-500 text-blue-600' : ''}
               size='large'
             >
-              {hasActiveAdvancedFilters && <span className='mr-1'>(Active)</span>}
-              Filters
+              {hasActiveAdvancedFilters && <span className='mr-1'>({t('admin_check_group_filters_active')})</span>}
+              {t('admin_check_group_filters')}
             </Button>
           </div>
 
@@ -232,7 +239,7 @@ export default function CheckBooking() {
             <div className='rounded-2xl bg-white border border-gray-200 p-4'>
               <Space direction='vertical' size='middle' className='w-full'>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>Account Created Date Range</label>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_check_booking_filter_date_range')}</label>
                   <RangePicker
                     value={dateRange}
                     onChange={(dates) => {
@@ -241,7 +248,7 @@ export default function CheckBooking() {
                     }}
                     format='DD/MM/YYYY'
                     className='w-full'
-                    placeholder={['From date', 'To date']}
+                    placeholder={[t('admin_dashboard_range_from_date_placeholder'), t('admin_dashboard_range_to_date_placeholder')]}
                   />
                 </div>
                 {hasActiveAdvancedFilters && (
@@ -252,7 +259,7 @@ export default function CheckBooking() {
                     type='text'
                     danger
                   >
-                    Clear all filters
+                    {t('admin_check_group_clear_filters')}
                   </Button>
                 )}
               </Space>
@@ -263,17 +270,19 @@ export default function CheckBooking() {
         {/* Results count */}
         {filteredUsers.length !== data.filter((u: UserOfStaff) => u.roleName === 'CO_OWNER').length && (
           <div className='mb-4 text-sm text-gray-600'>
-            Showing {filteredUsers.length} of {data.filter((u: UserOfStaff) => u.roleName === 'CO_OWNER').length}{' '}
-            co-owners
-            {searchTerm && ` matching "${searchTerm}"`}
-            {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
+            {t('admin_check_booking_showing_results', {
+              showing: filteredUsers.length,
+              total: data.filter((u: UserOfStaff) => u.roleName === 'CO_OWNER').length,
+              searchTerm: searchTerm ? ` "${searchTerm}"` : '',
+              status: statusFilter !== 'ALL' ? ` "${statusFilter}"` : ''
+            })}
           </div>
         )}
 
         {/* Users + detail */}
         {users.length === 0 ? (
           <div className='text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200'>
-            {searchTerm || statusFilter !== 'ALL' ? 'No co-owners match your filters' : 'No co-owners found'}
+            {searchTerm || statusFilter !== 'ALL' ? t('admin_check_booking_no_match') : t('admin_check_booking_no_co_owners')}
           </div>
         ) : (
           <div className='grid gap-4 lg:grid-cols-[1.1fr,1.9fr]'>
@@ -332,12 +341,12 @@ export default function CheckBooking() {
                 <>
                   <div className='flex flex-wrap items-center justify-between gap-3 border-b pb-4'>
                     <div>
-                      <p className='text-xs uppercase tracking-wide text-gray-400'>Selected co-owner</p>
+                      <p className='text-xs uppercase tracking-wide text-gray-400'>{t('admin_check_booking_selected_co_owner')}</p>
                       <h2 className='text-2xl font-bold text-gray-900'>{selectedUser.fullName}</h2>
                       <p className='text-sm text-gray-500'>{selectedUser.email}</p>
                     </div>
                     <div className='text-right text-sm text-gray-500'>
-                      Joined{' '}
+                      {t('admin_check_booking_joined')}{' '}
                       {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-US') : '—'}
                     </div>
                   </div>
@@ -345,8 +354,8 @@ export default function CheckBooking() {
                     {(groups[selectedUser.userId || 0] || []).length === 0 ? (
                       <div className='rounded-xl border border-dashed border-gray-200 py-10 text-center text-gray-400'>
                         {groups[selectedUser.userId || 0]
-                          ? 'No groups or bookings found for this user.'
-                          : 'Fetching groups...'}
+                          ? t('admin_check_booking_no_groups_bookings')
+                          : t('admin_check_booking_fetching_groups')}
                       </div>
                     ) : (
                       groups[selectedUser.userId || 0].map((group) => (
@@ -365,17 +374,17 @@ export default function CheckBooking() {
                               }
                               className='rounded-lg border border-indigo-200 px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50'
                             >
-                              Review bookings
+                              {t('admin_check_booking_review_bookings')}
                             </button>
                           </div>
                           <div className='mt-3 space-y-2'>
                             {(group.bookings || []).length === 0 ? (
-                              <p className='text-xs text-gray-400'>No bookings yet.</p>
+                              <p className='text-xs text-gray-400'>{t('admin_check_booking_no_bookings_yet')}</p>
                             ) : (
                               group.bookings?.map((booking) => (
                                 <div key={booking.bookingId} className='rounded-xl bg-white p-3 text-sm shadow-sm'>
                                   <div className='flex flex-wrap items-center justify-between gap-2'>
-                                    <p className='font-semibold text-gray-900'>Booking #{booking.bookingId}</p>
+                                    <p className='font-semibold text-gray-900'>{t('admin_check_booking_booking_id', { id: booking.bookingId })}</p>
                                     <Tag color={booking.status === 'CONFIRMED' ? 'green' : 'orange'}>
                                       {booking.status}
                                     </Tag>
@@ -395,7 +404,7 @@ export default function CheckBooking() {
                 </>
               ) : (
                 <div className='flex h-full items-center justify-center text-gray-400'>
-                  Select a co-owner to view bookings.
+                  {t('admin_check_booking_select_to_view')}
                 </div>
               )}
             </div>

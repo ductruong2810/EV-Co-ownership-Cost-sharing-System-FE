@@ -9,12 +9,14 @@ import { toast } from 'react-toastify'
 import adminApi from '../../../../../apis/admin.api'
 import groupApi from '../../../../../apis/group.api'
 import Skeleton from '../../../../../components/Skeleton'
+import { useI18n } from '../../../../../i18n/useI18n'
 type Term = {
   title: string
   content: string
 }
 
 export default function ModalEditContract() {
+  const { t } = useI18n()
   const { groupId, contractId } = useParams()
   const navigate = useNavigate()
   const showContractData = useQuery({
@@ -63,7 +65,7 @@ export default function ModalEditContract() {
       terms: string
     }) => adminApi.updateContract({ contractId, startDate, endDate, terms }),
     onSuccess: () => {
-      toast.success('UPDATE CONTRACT SUCCESS')
+      toast.success(t('admin_modal_edit_contract_success'))
       navigate(-1)
       setIsEditModalOpen(false)
       setEditingTerms([])
@@ -81,7 +83,7 @@ export default function ModalEditContract() {
   }
 
   const handleAddTerm = () => {
-    const updated = [...editingTerms, { title: `New Term`, content: 'New term content...' }]
+    const updated = [...editingTerms, { title: t('admin_modal_edit_contract_new_term'), content: t('admin_modal_edit_contract_new_term_content') }]
     setEditingTerms(reindexTerms(updated))
   }
 
@@ -146,9 +148,12 @@ export default function ModalEditContract() {
               <EditOutlined className='text-blue-500 text-lg' />
             </div>
             <div className='flex-1'>
-              <h3 className='text-lg font-bold text-gray-800 m-0'>Edit Contract</h3>
+              <h3 className='text-lg font-bold text-gray-800 m-0'>{t('admin_modal_edit_contract_title')}</h3>
               <p className='text-sm text-gray-500 m-0'>
-                {`Contract #${showContractData.data?.data.contractId} - Group: ${showContractData.data?.data.group?.name}`}
+                {t('admin_modal_edit_contract_subtitle', {
+                  contractId: showContractData.data?.data.contractId,
+                  groupName: showContractData.data?.data.group?.name
+                })}
               </p>
             </div>
             <span className='bg-yellow-100 text-yellow-700 text-xs px-3 py-1 rounded-lg font-semibold'>
@@ -161,25 +166,25 @@ export default function ModalEditContract() {
             {/* THÔNG TIN HỢP ĐỒNG - CHỈ XEM */}
             <div className='mb-6 p-4 bg-gray-50 rounded-xl'>
               <h4 className='font-bold mb-3 text-gray-700 flex items-center gap-2'>
-                Contract Information <span className='text-xs font-normal text-gray-500'>(View Only)</span>
+                {t('admin_modal_edit_contract_info_title')} <span className='text-xs font-normal text-gray-500'>({t('admin_modal_edit_contract_info_view_only')})</span>
               </h4>
 
               {/* Vehicle Info Grid */}
               <div className='grid grid-cols-2 gap-4 mb-4'>
                 <div className='bg-white p-3 rounded-lg border border-gray-200'>
-                  <div className='text-xs text-gray-500 mb-1'>Vehicle</div>
+                  <div className='text-xs text-gray-500 mb-1'>{t('admin_modal_edit_contract_vehicle')}</div>
                   {showContractData?.data?.data?.vehicle?.model}
                 </div>
                 <div className='bg-white p-3 rounded-lg border border-gray-200'>
-                  <div className='text-xs text-gray-500 mb-1'>License Plate</div>
+                  <div className='text-xs text-gray-500 mb-1'>{t('admin_modal_edit_contract_license_plate')}</div>
                   {showContractData?.data?.data?.vehicle?.plate}
                 </div>
                 <div className='bg-white p-3 rounded-lg border border-gray-200'>
-                  <div className='text-xs text-gray-500 mb-1'>VIN Number</div>
+                  <div className='text-xs text-gray-500 mb-1'>{t('admin_modal_edit_contract_vin')}</div>
                   {showContractData?.data?.data?.vehicle?.vin}
                 </div>
                 <div className='bg-white p-3 rounded-lg border border-gray-200'>
-                  <div className='text-xs text-gray-500 mb-1'>Vehicle Price</div>
+                  <div className='text-xs text-gray-500 mb-1'>{t('admin_modal_edit_contract_vehicle_price')}</div>
                   <div className='font-bold text-emerald-600'>
                     {showContractData?.data?.data?.finance?.vehiclePrice?.toLocaleString('vi-VN')} đ
                   </div>
@@ -190,7 +195,7 @@ export default function ModalEditContract() {
               <div className='bg-gradient-to-r from-emerald-50 to-cyan-50 p-3 rounded-lg mb-4 border border-emerald-200'>
                 <div className='grid grid-cols-2 gap-4 text-sm'>
                   <div>
-                    <span className='text-gray-600'>Deposit security:</span>
+                    <span className='text-gray-600'>{t('admin_modal_edit_contract_deposit_security')}</span>
                     <span className='font-bold text-emerald-700 ml-2'>
                       {showContractData?.data?.data?.finance?.depositAmount?.toLocaleString('vi-VN')} đ
                     </span>
@@ -200,7 +205,7 @@ export default function ModalEditContract() {
 
               {/* Owners List */}
               <div className='mt-4'>
-                <div className='text-sm text-gray-600 mb-2 font-semibold'>Co-owners</div>
+                <div className='text-sm text-gray-600 mb-2 font-semibold'>{t('admin_modal_edit_contract_co_owners')}</div>
                 {showContractData?.data?.data?.owners?.map((owner) => (
                   <div
                     key={owner?.userId}
@@ -228,7 +233,7 @@ export default function ModalEditContract() {
                   </div>
                 ))}
                 <div className='text-right text-sm mt-2 font-semibold text-gray-700'>
-                  Tổng tỷ lệ: <span className='text-blue-600'>100%</span>
+                  {t('admin_modal_edit_contract_total_ratio')} <span className='text-blue-600'>100%</span>
                 </div>
               </div>
             </div>
@@ -236,28 +241,28 @@ export default function ModalEditContract() {
             {/* THỜI HẠN HỢP ĐỒNG - CÓ THỂ EDIT */}
             <div className='mb-6 p-4 bg-emerald-50 rounded-xl border-2 border-emerald-500'>
               <h4 className='font-bold mb-3 text-emerald-700 flex items-center gap-2'>
-                <ClockCircleOutlined /> Duration{' '}
-                <span className='text-xs font-normal text-emerald-600'>(can edit)</span>
+                <ClockCircleOutlined /> {t('admin_modal_edit_contract_duration_title')}{' '}
+                <span className='text-xs font-normal text-emerald-600'>({t('admin_modal_edit_contract_duration_can_edit')})</span>
               </h4>
               <div className='grid grid-cols-2 gap-4'>
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-2'>Start Date</label>
+                  <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('admin_modal_edit_contract_start_date_label')}</label>
                   <DatePicker
                     value={startDate}
                     onChange={(date) => setStartDate(date!)}
                     format='DD/MM/YYYY'
                     className='w-full h-10 rounded-lg'
-                    placeholder='Select start date'
+                    placeholder={t('admin_modal_edit_contract_start_date_placeholder')}
                   />
                 </div>
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-2'>End Date</label>
+                  <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('admin_modal_edit_contract_end_date_label')}</label>
                   <DatePicker
                     value={endDate}
                     onChange={(date) => setEndDate(date!)}
                     format='DD/MM/YYYY'
                     className='w-full h-10 rounded-lg'
-                    placeholder='Select end date'
+                    placeholder={t('admin_modal_edit_contract_end_date_placeholder')}
                   />
                 </div>
               </div>
@@ -267,11 +272,11 @@ export default function ModalEditContract() {
             <div className='mb-4 p-4 bg-amber-50 rounded-xl border-2 border-amber-500'>
               <div className='flex justify-between items-center mb-3'>
                 <h4 className='font-bold text-amber-700 m-0 flex items-center gap-2'>
-                  <FileTextOutlined /> Contract Terms{' '}
-                  <span className='text-xs font-normal text-amber-600'>(Can edit)</span>
+                  <FileTextOutlined /> {t('admin_modal_edit_contract_terms_title')}{' '}
+                  <span className='text-xs font-normal text-amber-600'>({t('admin_modal_edit_contract_terms_can_edit')})</span>
                 </h4>
                 <Button type='primary' size='small' onClick={handleAddTerm} className='rounded-lg'>
-                  + Add Term
+                  {t('admin_modal_edit_contract_add_term')}
                 </Button>
               </div>
 
@@ -296,7 +301,7 @@ export default function ModalEditContract() {
                               handleDeleteTerm(index)
                             }}
                           >
-                            Delete
+                            {t('admin_modal_edit_contract_delete')}
                           </Button>
                           <span
                             className='transition-transform duration-200 text-amber-700'
@@ -352,10 +357,10 @@ export default function ModalEditContract() {
                 }}
                 className='px-6'
               >
-                Cancel
+                {t('admin_modal_edit_contract_cancel')}
               </Button>
               <Button type='primary' size='large' onClick={handleSave} className='px-6 font-semibold'>
-                Save Changes
+                {t('admin_modal_edit_contract_save')}
               </Button>
             </div>
           </div>

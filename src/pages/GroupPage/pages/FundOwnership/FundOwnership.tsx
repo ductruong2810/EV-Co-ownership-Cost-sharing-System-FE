@@ -18,16 +18,18 @@ import type { Dayjs } from 'dayjs'
 import { toast } from 'react-toastify'
 import { getGroupIdFromLS, getUserIdFromLS } from '../../../../utils/auth'
 import Skeleton from '../../../../components/Skeleton'
+import { useI18n } from '../../../../i18n/useI18n'
 
 // ============ HEADER COMPONENT ============
 const FundHeader: React.FC = () => {
+  const { t } = useI18n()
   return (
     <header className='bg-gradient-to-r from-blue-500 via-cyan-500 to-sky-500 shadow-2xl rounded-2xl overflow-hidden'>
       <div className='px-6 py-4'>
         <div className='flex items-center justify-between'>
           <div>
-            <h1 className='text-2xl font-bold text-white mb-1'>Group Shared Fund & Security Deposit</h1>
-            <p className='text-green-50 text-xs'>Manage group finances effectively</p>
+            <h1 className='text-2xl font-bold text-white mb-1'>{t('gp_fund_header_title')}</h1>
+            <p className='text-green-50 text-xs'>{t('gp_fund_header_subtitle')}</p>
           </div>
         </div>
       </div>
@@ -51,18 +53,15 @@ const FundSummaryCard: React.FC<FundSummaryCardProps> = ({
   depositAmount,
   onContribute
 }) => {
+  const { t } = useI18n()
   return (
     <div className='space-y-4'>
       {/* Business Rule Description */}
       <div className='bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-l-4 border-blue-500'>
         <div className='flex items-start gap-3'>
           <div>
-            <h3 className='font-bold text-blue-700 text-sm mb-1'>About the Group Shared Fund and Security Deposit</h3>
-            <p className='text-gray-700 text-xs leading-relaxed'>
-              The shared fund is used to pay regular expenses such as upgrade the car and other but except maintenance
-              and checkout fail operational costs. When an expense occurs, the amount will automatically be deducted
-              from the shared fund and and deposit
-            </p>
+            <h3 className='font-bold text-blue-700 text-sm mb-1'>{t('gp_fund_about_title')}</h3>
+            <p className='text-gray-700 text-xs leading-relaxed'>{t('gp_fund_about_body')}</p>
           </div>
         </div>
       </div>
@@ -71,7 +70,7 @@ const FundSummaryCard: React.FC<FundSummaryCardProps> = ({
         {/* Card Total Fund */}
         <div className='bg-gradient-to-br from-blue-50 to-sky-50 shadow-lg p-5 border border-blue-100 rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1'>
           <div className='flex items-center justify-between mb-3'>
-            <h2 className='text-sm text-gray-700 font-semibold'>Current Total Fund</h2>
+            <h2 className='text-sm text-gray-700 font-semibold'>{t('gp_fund_card_total_title')}</h2>
           </div>
           <p className='text-3xl font-bold mb-4 bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500 bg-clip-text text-transparent'>
             {totalFund.toLocaleString('vi-VN')}đ
@@ -80,45 +79,45 @@ const FundSummaryCard: React.FC<FundSummaryCardProps> = ({
             onClick={onContribute}
             className='w-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 py-3 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-xl transform hover:scale-105'
           >
-            Contribute
+            {t('gp_fund_card_total_button')}
           </button>
         </div>
 
         {/* Security Deposit Card */}
         <div className='bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500 hover:shadow-xl rounded-xl shadow-lg p-5 transition-all duration-300'>
           <div className='flex items-center justify-between mb-3'>
-            <h2 className='text-sm text-white font-semibold'>Security Deposit</h2>
+            <h2 className='text-sm text-white font-semibold'>{t('gp_fund_card_deposit_title')}</h2>
           </div>
           <p className='text-3xl font-bold bg-gradient-to-r from-blue-500 via-sky-500 to-cyan-400 bg-clip-text text-white'>
             {depositAmount.toLocaleString('vi-VN')}đ
           </p>
-          <p className='text-xl text-white mt-2'>Initial deposited amount</p>
+          <p className='text-xl text-white mt-2'>{t('gp_fund_card_deposit_subtitle')}</p>
         </div>
 
         {/* Total Income Card */}
         <div className='bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-lg p-5 border border-blue-100 hover:shadow-xl transition-all duration-300'>
           <div className='flex items-center justify-between mb-3'>
             <h2 className='text-sm text-gray-700 font-semibold flex items-center gap-1'>
-              <span className='text-sm'>↑</span> Total Income from Fund & Deposit
+              <span className='text-sm'>↑</span> {t('gp_fund_card_income_title')}
             </h2>
           </div>
           <p className='text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent'>
             +{totalIncome.toLocaleString('vi-VN')}đ
           </p>
-          <p className='text-xl text-gray-600 mt-2'>From member contributions</p>
+          <p className='text-xl text-gray-600 mt-2'>{t('gp_fund_card_income_subtitle')}</p>
         </div>
 
         {/* Total Expense Card */}
         <div className='bg-gradient-to-br from-red-50 to-orange-50 rounded-xl shadow-lg p-5 border border-red-100 hover:shadow-xl transition-all duration-300'>
           <div className='flex items-center justify-between mb-3'>
             <h2 className='text-sm text-gray-700 font-semibold flex items-center gap-1'>
-              <span className='text-xl'>↓</span> Total Expenses from Fund & Deposit
+              <span className='text-xl'>↓</span> {t('gp_fund_card_expense_title')}
             </h2>
           </div>
           <p className='text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent'>
             -{totalExpense.toLocaleString('vi-VN')}đ
           </p>
-          <p className='text-xl text-gray-600 mt-2'>Maintenance & other expenses</p>
+          <p className='text-xl text-gray-600 mt-2'>{t('gp_fund_card_expense_subtitle')}</p>
         </div>
       </div>
     </div>
@@ -126,13 +125,14 @@ const FundSummaryCard: React.FC<FundSummaryCardProps> = ({
 }
 
 function TransactionHistory({ transactions }: { transactions: FundDepositHistoryRow[] }) {
+  const { t } = useI18n()
   return (
     <div className='bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200'>
       {/* Header */}
       <div className='px-6 py-4 bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500'>
         <h2 className='text-2xl font-bold text-white flex items-center gap-3'>
           <UnorderedListOutlined className='text-white' style={{ fontSize: '24px' }} />
-          Transaction History
+          {t('gp_fund_txn_title')}
         </h2>
       </div>
 
@@ -143,24 +143,26 @@ function TransactionHistory({ transactions }: { transactions: FundDepositHistory
             <tr className='bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200'>
               <th className='px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider'>
                 <ArrowUpOutlined className='mr-2' />
-                Type
+                {t('gp_fund_txn_type')}
               </th>
               <th className='px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider'>
                 <FundOutlined className='mr-2' />
-                Fund Type
+                {t('gp_fund_txn_fund_type')}
               </th>
               <th className='px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider'>
                 <UserOutlined className='mr-2' />
-                User
+                {t('gp_fund_txn_user')}
               </th>
-              <th className='px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider'>Role</th>
+              <th className='px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider'>
+                {t('gp_fund_txn_role')}
+              </th>
               <th className='pr-10 text-right text-xs font-bold text-gray-700 uppercase tracking-wider'>
                 <DollarOutlined className='mr-2' />
-                Amount
+                {t('gp_fund_txn_amount')}
               </th>
               <th className='px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider'>
                 <CalendarOutlined className='mr-2' />
-                Date
+                {t('gp_fund_txn_date')}
               </th>
             </tr>
           </thead>
@@ -184,7 +186,7 @@ function TransactionHistory({ transactions }: { transactions: FundDepositHistory
                     ) : (
                       <ArrowDownOutlined style={{ fontSize: '14px' }} />
                     )}
-                    {trans.direction === 'IN' ? 'Income' : 'Expense'}
+                    {trans.direction === 'IN' ? t('gp_fund_txn_direction_in') : t('gp_fund_txn_direction_out')}
                   </span>
                 </td>
 
@@ -192,7 +194,9 @@ function TransactionHistory({ transactions }: { transactions: FundDepositHistory
                 <td className='px-6 py-4 whitespace-nowrap'>
                   <span className='inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 ring-1 ring-blue-200'>
                     <FundOutlined style={{ fontSize: '12px' }} />
-                    {trans.fundType == 'DEPOSIT_RESERVE' ? 'Security Deposit' : 'Fund Contribution'}
+                    {trans.fundType == 'DEPOSIT_RESERVE'
+                      ? t('gp_fund_txn_fund_deposit')
+                      : t('gp_fund_txn_fund_contribution')}
                   </span>
                 </td>
 
@@ -253,7 +257,8 @@ function TransactionHistory({ transactions }: { transactions: FundDepositHistory
         <div className='flex items-center justify-between'>
           <span className='text-sm text-gray-600 flex items-center gap-2'>
             <UnorderedListOutlined className='text-gray-500' />
-            Total: <span className='font-semibold'>{transactions.length}</span> transactions
+            {t('gp_fund_txn_total_label')}: <span className='font-semibold'>{transactions.length}</span>{' '}
+            {t('gp_fund_txn_total_suffix')}
           </span>
         </div>
       </div>
@@ -271,6 +276,7 @@ interface ContributeModalProps {
 const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) => {
   const [amount, setAmount] = useState<string>('')
   const [note, setNote] = useState<string>('')
+  const { t } = useI18n()
   const paymentFundMutation = useMutation({
     mutationFn: (data: { userId: string; groupId: string; amount: number; note: string }) => groupApi.paymentFund(data),
     onSuccess: (response) => {
@@ -280,7 +286,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
       window.open(`${response?.data?.vnpayUrl}`, '_blank')
     },
     onError: () => {
-      toast.error('Contribution failed, please try again!')
+      toast.error(t('gp_fund_toast_contribute_failed'))
     }
   })
 
@@ -329,7 +335,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
         <form onSubmit={handleSubmit} className='p-6 space-y-5'>
           <div>
             <label className='block text-sm font-bold text-gray-700 mb-2'>
-              Amount (VND) <span className='text-red-500'>*</span>
+              {t('gp_fund_modal_amount_label')} <span className='text-red-500'>*</span>
             </label>
             <input
               type='text'
@@ -337,21 +343,21 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
               value={amount}
               onChange={handleAmountChange}
               className='w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all text-lg font-semibold'
-              placeholder='Enter amount'
+              placeholder={t('gp_fund_modal_amount_placeholder')}
               required
             />
           </div>
 
           <div>
             <label className='block text-sm font-bold text-gray-700 mb-2'>
-              Note <span className='text-red-500'>*</span>
+              {t('gp_fund_modal_note_label')} <span className='text-red-500'>*</span>
             </label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className='w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all resize-none'
               rows={3}
-              placeholder='Add a note...'
+              placeholder={t('gp_fund_modal_note_placeholder')}
             />
           </div>
 
@@ -361,13 +367,13 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
               onClick={onClose}
               className='flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all'
             >
-              Cancel
+              {t('gp_fund_modal_cancel')}
             </button>
             <button
               type='submit'
               className='flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-xl transform hover:scale-105'
             >
-              Confirm
+              {t('gp_fund_modal_confirm')}
             </button>
           </div>
         </form>
@@ -386,6 +392,7 @@ export default function FundOwnership() {
   const [preset, setPreset] = useState<'MONTH' | 'QUARTER' | 'CUSTOM'>('MONTH')
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null])
   const [isExporting, setIsExporting] = useState(false)
+  const { t } = useI18n()
 
   const fundSummaryQuery = useQuery({
     queryKey: ['fundSummary', groupId, preset, dateRange],
@@ -430,9 +437,9 @@ export default function FundOwnership() {
                   }
                 }}
                 options={[
-                  { label: 'Tháng hiện tại', value: 'MONTH' },
-                  { label: 'Quý hiện tại', value: 'QUARTER' },
-                  { label: 'Tuỳ chỉnh', value: 'CUSTOM' }
+                  { label: t('gp_fund_filter_month'), value: 'MONTH' },
+                  { label: t('gp_fund_filter_quarter'), value: 'QUARTER' },
+                  { label: t('gp_fund_filter_custom'), value: 'CUSTOM' }
                 ]}
               />
               {preset === 'CUSTOM' && (
@@ -466,7 +473,7 @@ export default function FundOwnership() {
                 }
               }}
             >
-              Export CSV
+              {t('gp_fund_export_csv')}
             </Button>
           </div>
 

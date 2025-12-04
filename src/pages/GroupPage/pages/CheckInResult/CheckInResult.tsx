@@ -8,8 +8,10 @@ import { toast } from 'react-toastify'
 import path from '../../../../constants/path'
 import groupApi from '../../../../apis/group.api'
 import SignaturePad from '../../../../components/SignaturePad/SignaturePad'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const CheckInResult: React.FC = () => {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const { status, brand, licensePlate, startTime, endTime } = useParams()
   const [signature, setSignature] = useState<string | null>(null)
@@ -18,7 +20,6 @@ const CheckInResult: React.FC = () => {
   const [isConfirmed, setIsConfirmed] = useState(false)
 
   useEffect(() => {
-    // Get QR code from localStorage
     const storedQr = localStorage.getItem('pendingCheckInQr')
     if (storedQr && status === 'success' && !isConfirmed) {
       setQrCode(storedQr)
@@ -35,25 +36,25 @@ const CheckInResult: React.FC = () => {
       setIsConfirmed(true)
       setShowSignatureModal(false)
       localStorage.removeItem('pendingCheckInQr')
-      toast.success('Check-in confirmed with digital signature!')
+      toast.success(t('gp_checkin_signature_modal_toast_success'))
     },
     onError: (error) => {
       const axiosError = error as AxiosError<{ message?: string }>
-      const message = axiosError.response?.data?.message || 'Check-in confirmation failed'
+      const message = axiosError.response?.data?.message || t('gp_checkin_signature_modal_toast_fail')
       toast.error(message)
     }
   })
 
   const handleConfirmWithSignature = () => {
     if (!signature) {
-      toast.warning('Please sign to confirm check-in')
+      toast.warning(t('gp_checkin_signature_modal_toast_warning'))
       return
     }
     confirmCheckInMutation.mutate(signature)
   }
 
   const handleSkipSignature = () => {
-    if (window.confirm('Are you sure you want to skip digital signature? Signature helps protect your rights.')) {
+    if (window.confirm(t('gp_checkin_signature_modal_description'))) {
       if (qrCode) {
         confirmCheckInMutation.mutate('')
       }
@@ -74,46 +75,39 @@ const CheckInResult: React.FC = () => {
     <>
       {status === 'fail' ? (
         <div className='max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center'>
-          {/* Error Icon */}
           <div className='flex justify-center mb-6'>
             <div className='w-24 h-24 bg-red-100 rounded-full flex items-center justify-center'>
               <CloseCircleOutlined className='text-6xl text-red-500' />
             </div>
           </div>
 
-          {/* Error Title */}
-          <h1 className='text-2xl font-bold text-gray-800 mb-3'>Check-in Failed</h1>
+          <h1 className='text-2xl font-bold text-gray-800 mb-3'>{t('gp_checkin_fail_title')}</h1>
+          <p className='text-gray-600 mb-2'>{t('gp_checkin_fail_message')}</p>
 
-          {/* Error Message */}
-          <p className='text-gray-600 mb-2'>Invalid QR code format</p>
-
-          {/* Error Status */}
           <div className='inline-block bg-red-50 border border-red-200 rounded-lg px-4 py-2 mb-6'>
             <span className='text-sm text-red-700'>
-              Error Code: <span className='font-semibold'>FAIL</span>
+              {t('gp_checkin_fail_error_code')} <span className='font-semibold'>FAIL</span>
             </span>
           </div>
 
-          {/* Suggested Solutions */}
           <div className='bg-gray-50 rounded-lg p-4 mb-6 text-left'>
-            <h3 className='font-semibold text-gray-800 mb-3 text-sm'>Please try:</h3>
+            <h3 className='font-semibold text-gray-800 mb-3 text-sm'>{t('gp_checkin_fail_try_again')}</h3>
             <ul className='space-y-2 text-sm text-gray-600'>
               <li className='flex items-start'>
                 <span className='mr-2'>•</span>
-                <span>Ensure the QR code is not blurry or damaged</span>
+                <span>{t('gp_checkin_fail_solution1')}</span>
               </li>
               <li className='flex items-start'>
                 <span className='mr-2'>•</span>
-                <span>Check if the QR code has the correct format</span>
+                <span>{t('gp_checkin_fail_solution2')}</span>
               </li>
               <li className='flex items-start'>
                 <span className='mr-2'>•</span>
-                <span>Request a new QR code from administrator</span>
+                <span>{t('gp_checkin_fail_solution3')}</span>
               </li>
             </ul>
           </div>
 
-          {/* Action Buttons */}
           <div className='flex flex-col gap-3'>
             <Button
               type='primary'
@@ -122,11 +116,11 @@ const CheckInResult: React.FC = () => {
               onClick={handleRetry}
               className='w-full bg-blue-600 hover:bg-blue-700'
             >
-              Scan QR Code Again
+              {t('gp_checkin_fail_scan_button')}
             </Button>
 
             <Button size='large' icon={<HomeOutlined />} onClick={handleGoHome} className='w-full'>
-              Về Trang Chủ
+              {t('gp_checkin_fail_go_home_button')}
             </Button>
           </div>
         </div>
@@ -138,39 +132,36 @@ const CheckInResult: React.FC = () => {
             </div>
           </div>
 
-          <h1 className='text-3xl font-bold text-green-600 mb-2'>Check-in Successful!</h1>
-          <p className='text-gray-600 mb-6'>Your vehicle is ready to use.</p>
+          <h1 className='text-3xl font-bold text-green-600 mb-2'>{t('gp_checkin_success_title')}</h1>
+          <p className='text-gray-600 mb-6'>{t('gp_checkin_success_message')}</p>
 
-          {/* Thông tin chuyến đi */}
           <Card
-            title={<span className='font-semibold text-gray-700'>Trip Information</span>}
+            title={<span className='font-semibold text-gray-700'>{t('gp_checkin_trip_info_title')}</span>}
             className='rounded-2xl shadow-md text-left mb-4 border-none bg-white/90 backdrop-blur-sm'
           >
             <p>
-              <b>Status:</b> <span className='text-green-600'>Success</span>
+              <b>{t('gp_checkin_status_label')}</b> <span className='text-green-600'>{t('gp_checkin_status_success')}</span>
             </p>
             <p>
               <b>
-                Time: {new Date(startTime as string).toLocaleTimeString('en-US')}
+                {t('gp_checkin_time_label')} {new Date(startTime as string).toLocaleTimeString('en-US')}
                 {'    '} - {new Date(endTime as string).toLocaleTimeString('en-US')}
               </b>
             </p>
           </Card>
 
-          {/* Vehicle Information */}
           <Card
-            title={<span className='font-semibold text-gray-700'>Vehicle Information</span>}
+            title={<span className='font-semibold text-gray-700'>{t('gp_checkin_vehicle_info_title')}</span>}
             className='rounded-2xl shadow-md text-left border-none bg-white/90 backdrop-blur-sm mb-6'
           >
             <p>
-              <b>License Plate:</b> {licensePlate}
+              <b>{t('gp_checkin_license_plate_label')}</b> {licensePlate}
             </p>
             <p>
-              <b>Brand:</b> {brand}
+              <b>{t('gp_checkin_brand_label')}</b> {brand}
             </p>
           </Card>
 
-          {/* Navigation Buttons */}
           <div className='flex flex-col sm:flex-row gap-3'>
             <Button
               type='primary'
@@ -179,7 +170,7 @@ const CheckInResult: React.FC = () => {
               onClick={handleGoHome}
               className='flex-1 bg-green-500 hover:bg-green-600 border-none text-white font-semibold rounded-xl shadow'
             >
-              Go to Home
+              {t('gp_checkin_go_home_button')}
             </Button>
             <Button
               size='large'
@@ -187,20 +178,19 @@ const CheckInResult: React.FC = () => {
               onClick={handleRetry}
               className='flex-1 border-green-400 text-green-600 hover:bg-green-50 rounded-xl'
             >
-              Scan Again
+              {t('gp_checkin_scan_again_button')}
             </Button>
           </div>
         </div>
       )}
 
-      {/* Signature Modal */}
       <Modal
-        title='Confirm Check-in with Digital Signature'
+        title={t('gp_checkin_signature_modal_title')}
         open={showSignatureModal}
         onCancel={handleSkipSignature}
         footer={[
           <Button key='skip' onClick={handleSkipSignature}>
-            Skip
+            {t('gp_checkin_signature_modal_skip')}
           </Button>,
           <Button
             key='confirm'
@@ -209,7 +199,7 @@ const CheckInResult: React.FC = () => {
             loading={confirmCheckInMutation.isPending}
             disabled={!signature}
           >
-            Confirm
+            {t('gp_checkin_signature_modal_confirm')}
           </Button>
         ]}
         width={600}
@@ -217,9 +207,7 @@ const CheckInResult: React.FC = () => {
         maskClosable={false}
       >
         <div className='space-y-4'>
-          <p className='text-gray-600'>
-            Please sign to confirm check-in. Digital signature helps protect your rights and increases legal validity.
-          </p>
+          <p className='text-gray-600'>{t('gp_checkin_signature_modal_description')}</p>
           <SignaturePad onSignatureChange={setSignature} width={550} height={200} required={false} />
         </div>
       </Modal>
@@ -228,3 +216,4 @@ const CheckInResult: React.FC = () => {
 }
 
 export default CheckInResult
+

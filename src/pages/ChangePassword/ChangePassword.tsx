@@ -8,9 +8,10 @@ import authApi from '../../apis/auth.api'
 import { changePasswordSchema, type ChangePasswordSchema } from '../../utils/rule'
 import Button from './components/Button/Button'
 import FieldInput from './components/FieldInput'
-import HeaderSection from './components/HeaderSection'
+import HeaderSection from './components/HeaderSection/HeaderSection'
 import { toast } from 'react-toastify'
 import path from '../../constants/path'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function ChangePassword() {
   const {
@@ -20,6 +21,8 @@ export default function ChangePassword() {
   } = useForm<ChangePasswordSchema>({
     resolver: yupResolver<FieldValues>(changePasswordSchema)
   })
+
+  const { t } = useI18n()
 
   const [show, setShow] = useState({
     oldPassword: false,
@@ -43,14 +46,14 @@ export default function ChangePassword() {
     changePasswordMutation.mutate(data, {
       onSuccess: (response) => {
         console.log('Change password success:', response)
-        toast.success('Change password successful', {
+        toast.success(t('change_password_success'), {
           autoClose: 1000
         })
         navigate(path.dashBoard)
       },
       onError: (error) => {
         console.log('Change password failed:', error)
-        toast.error('Change password failed', {
+        toast.error(t('change_password_failed'), {
           autoClose: 1000
         })
       }
@@ -111,7 +114,7 @@ export default function ChangePassword() {
           >
             <motion.div variants={{ hidden: { x: -30, opacity: 0 }, visible: { x: 0, opacity: 1 } }}>
               <FieldInput
-                label='Old Password'
+                label={t('change_password_old_label')}
                 name='oldPassword'
                 type='oldPassword'
                 register={register}
@@ -132,7 +135,7 @@ export default function ChangePassword() {
 
             <motion.div variants={{ hidden: { x: -30, opacity: 0 }, visible: { x: 0, opacity: 1 } }}>
               <FieldInput
-                label='New Password'
+                label={t('change_password_new_label')}
                 name='newPassword'
                 type='newPassword'
                 register={register}
@@ -144,7 +147,7 @@ export default function ChangePassword() {
 
             <motion.div variants={{ hidden: { x: -30, opacity: 0 }, visible: { x: 0, opacity: 1 } }}>
               <FieldInput
-                label='Confirm Password'
+                label={t('change_password_confirm_label')}
                 name='confirmPassword'
                 type='confirmPassword'
                 register={register}

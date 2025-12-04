@@ -1,72 +1,75 @@
 import type { Category, FagSection } from '../../../types/page/learnmore.types'
+import { useI18n } from '../../../i18n/useI18n'
 
-const categories: Category[] = [
-  { id: 1, name: 'Understanding EV-Share', key: 'Understanding-EV-Share' },
-  { id: 2, name: 'Pricing', key: 'Pricing' },
-  { id: 3, name: 'Car Delivery', key: 'Car-Delivery' },
-  { id: 4, name: 'Car Usage Policy', key: 'Car-Usage-Policy' }
-]
+export const createFaqContent = () => {
+  const { t } = useI18n()
 
-const faqs: FagSection = {
-  'Understanding-EV-Share': [
-    {
-      question: 'What is EV-Share?',
-      answer:
-        'EV-Share is a platform that allows multiple owners to co-own an electric vehicle and manage usage, bookings, and costs transparently.'
-    },
-    {
-      question: 'How does EV-Share work?',
-      answer:
-        'Users can create a group and invite members to enter ownership percentages to form a contract. Once the contract is set up and vehicles can be booked, a technician will inspect the vehicle at checkout. They can also create a voting fund to make decisions on how to use that fund'
-    },
-    {
-      question: 'Can I add or remove co-owners later?',
-      answer: 'Yes, new co-owners can be added with approval, and ownership can be transferred according to agreement.'
-    }
-  ],
-  Pricing: [
-    {
-      question: 'How much does EV-Share cost to use?',
-      answer: 'EV-Share cost based on duration of usage and owner ship percentage.'
-    },
-    {
-      question: 'How much does EV-Share cost to use',
-      answer:
-        'The cost of EV-Share depends on the duration of usage and ownership percentage. Users also need to pay a security deposit to cover cases where a co-owner fails to pay for damages. The use of the fund is decided by co-owners through voting without system intervention. When checking out a damaged vehicle, a technician will inspect it and provide a revised cost estimate.'
-    },
-    {
-      question: 'Are there any hidden charges?',
-      answer: 'No. All costs are transparent and listed clearly before joining.'
-    }
-  ],
-  'Car-Delivery': [
-    {
-      question: 'When will I get the car?',
-      answer: 'You will receive the car only after your booking is confirmed and you successfully check in.'
-    },
-    {
-      question: 'How is the EV delivered to co-owners?',
-      answer: 'The EV will be kept at the operator’s location for easier management.'
-    },
-    {
-      question: 'Is the EV inspected before handover?',
-      answer: 'Yes, each EV undergoes a full inspection before being handed over to co-owners'
-    }
-  ],
-  'Car-Usage-Policy': [
-    {
-      question: 'How is driving time scheduled among co-owners?',
-      answer: 'A digital booking system allows co-owners to reserve the car in advance, ensuring fair access.'
-    },
-    {
-      question: 'Are there mileage or usage limits?',
-      answer:
-        'Each co-ownership plan may include limits, which can be adjusted based on  quota have been caculate by percentage ownership.'
-    },
-    {
-      question: 'Can I track my usage history?',
-      answer: 'Yes, each co-owner can view their driving time, mileage, and associated costs in the platform dashboard.'
-    }
+  const categories: Category[] = [
+    { id: 1, name: t('faq_cat_understanding'), key: 'Understanding-EV-Share' },
+    { id: 2, name: t('faq_cat_pricing'), key: 'Pricing' },
+    { id: 3, name: t('faq_cat_delivery'), key: 'Car-Delivery' },
+    { id: 4, name: t('faq_cat_usage_policy'), key: 'Car-Usage-Policy' }
   ]
+
+  const faqs: FagSection = {
+    'Understanding-EV-Share': [
+      {
+        question: t('faq_q_what_is'),
+        answer: t('faq_a_what_is')
+      },
+      {
+        question: t('faq_q_how_it_works'),
+        answer: t('faq_a_how_it_works')
+      },
+      {
+        question: t('faq_q_add_remove'),
+        answer: t('faq_a_add_remove')
+      }
+    ],
+    Pricing: [
+      {
+        question: t('faq_q_cost_general'),
+        answer: t('faq_a_cost_general')
+      },
+      {
+        question: t('faq_q_cost_detail'),
+        answer: t('faq_a_cost_detail')
+      },
+      {
+        question: t('faq_q_hidden_fees'),
+        answer: t('faq_a_hidden_fees')
+      }
+    ],
+    'Car-Delivery': [
+      {
+        question: t('faq_q_when_get_car'),
+        answer: t('faq_a_when_get_car')
+      },
+      {
+        question: t('faq_q_delivery_how'),
+        answer: t('faq_a_delivery_how')
+      },
+      {
+        question: t('faq_q_inspection'),
+        answer: t('faq_a_inspection')
+      }
+    ],
+    'Car-Usage-Policy': [
+      {
+        question: t('faq_q_schedule'),
+        answer: t('faq_a_schedule')
+      },
+      {
+        question: t('faq_q_limits'),
+        answer: t('faq_a_limits')
+      },
+      {
+        question: t('faq_q_tracking'),
+        answer: t('faq_a_tracking')
+      }
+    ]
+  }
+
+  return { categories, faqs }
 }
-export { categories, faqs }
+

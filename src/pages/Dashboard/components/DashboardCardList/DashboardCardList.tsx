@@ -4,10 +4,12 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import groupApi from '../../../../apis/group.api'
 import path from '../../../../constants/path'
+import { useI18n } from '../../../../i18n/useI18n'
 import DashboardCardElement from './DashboardCardElement'
 
 export default function DashboardCardList({ allowAccess }: { allowAccess: boolean }) {
   const otp = useRef<HTMLInputElement>(null)
+  const { t } = useI18n()
 
   const inviteMutation = useMutation({
     mutationFn: (otp: string) => groupApi.verifyMember(otp)
@@ -57,9 +59,9 @@ export default function DashboardCardList({ allowAccess }: { allowAccess: boolea
         }}
         moveLink={path.createGroups}
         content={{
-          title: 'Create Group',
-          body: 'Create a new group to manage and share information about your EV.',
-          button: 'Create'
+          title: t('dashboard_card_create_title'),
+          body: t('dashboard_card_create_body'),
+          button: t('dashboard_card_create_button')
         }}
       />
 
@@ -75,9 +77,9 @@ export default function DashboardCardList({ allowAccess }: { allowAccess: boolea
         }}
         moveLink={path.viewGroups}
         content={{
-          title: 'View Groups',
-          body: 'View the list of EV groups you have joined.',
-          button: 'View'
+          title: t('dashboard_card_view_title'),
+          body: t('dashboard_card_view_body'),
+          button: t('dashboard_card_view_button')
         }}
       />
 
@@ -94,16 +96,16 @@ export default function DashboardCardList({ allowAccess }: { allowAccess: boolea
         }}
         moveLink=''
         content={{
-          title: 'Invite Code',
-          body: 'Use your invite code to join your EV community.',
-          button: 'Join'
+          title: t('dashboard_card_invite_title'),
+          body: t('dashboard_card_invite_body'),
+          button: t('dashboard_card_invite_button')
         }}
       >
         <div className='relative mb-4'>
           <input
             ref={otp}
             type='text'
-            placeholder='Enter invite code'
+            placeholder={t('dashboard_card_invite_placeholder')}
             className='w-full px-5 py-3.5 rounded-2xl border-3 border-indigo-200/70 bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/60 focus:border-white/80 focus:shadow-[0_0_25px_rgba(99,102,241,0.5)] transition-all duration-400 backdrop-blur-xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]'
           />
         </div>

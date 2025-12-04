@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useI18n } from '../../i18n/useI18n'
 
 interface Issue {
   id: string
@@ -14,6 +15,7 @@ interface Issue {
 }
 
 export default function IssueReport() {
+  const { t } = useI18n()
   const [showForm, setShowForm] = useState(false)
   const [selectedMember, setSelectedMember] = useState('')
   const [category, setCategory] = useState('0')
@@ -61,7 +63,7 @@ export default function IssueReport() {
   ])
 
   const handleSubmit = () => {
-    if (!selectedMember || !title || !description) return alert('Please fill in all information!')
+    if (!selectedMember || !title || !description) return alert(t('ir_form_validation_error'))
 
     setIssues([
       {
@@ -120,9 +122,9 @@ export default function IssueReport() {
               </div>
               <div>
                 <h1 className='text-4xl font-black bg-gradient-to-r from-cyan-300 via-teal-300 to-cyan-400 bg-clip-text text-transparent mb-1'>
-                  Issue Report
+                  {t('ir_header_title')}
                 </h1>
-                <p className='text-cyan-400/70'>Manage and resolve issues in the group</p>
+                <p className='text-cyan-400/70'>{t('ir_header_subtitle')}</p>
               </div>
             </div>
             <motion.button
@@ -136,7 +138,7 @@ export default function IssueReport() {
                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none'>
                   <path d='M12 5v14M5 12h14' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' />
                 </svg>
-                New Report
+                {t('ir_button_new_report')}
               </div>
             </motion.button>
           </div>
@@ -153,7 +155,7 @@ export default function IssueReport() {
             >
               <div className='bg-gradient-to-br from-[#1a4d4d]/70 to-[#0f4545]/70 backdrop-blur-2xl rounded-2xl border border-cyan-500/30 p-6 shadow-2xl'>
                 <div className='flex items-center justify-between mb-5'>
-                  <h2 className='text-xl font-bold text-cyan-300'>Create New Report</h2>
+                  <h2 className='text-xl font-bold text-cyan-300'>{t('ir_form_title')}</h2>
                   <button
                     onClick={() => setShowForm(false)}
                     className='w-8 h-8 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition-all group'
@@ -177,7 +179,7 @@ export default function IssueReport() {
                       onChange={(e) => setSelectedMember(e.target.value)}
                       className='px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none transition-all'
                     >
-                      <option value=''>Select Member</option>
+                      <option value=''>{t('ir_form_member_placeholder')}</option>
                       {members.map((m, i) => (
                         <option key={i} value={m}>
                           {m}
@@ -203,9 +205,9 @@ export default function IssueReport() {
                       onChange={(e) => setSeverity(e.target.value as any)}
                       className='px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none transition-all'
                     >
-                      <option value='low'>Low</option>
-                      <option value='medium'>Medium</option>
-                      <option value='high'>High</option>
+                      <option value='low'>{t('ir_form_severity_low')}</option>
+                      <option value='medium'>{t('ir_form_severity_medium')}</option>
+                      <option value='high'>{t('ir_form_severity_high')}</option>
                     </select>
                   </div>
 
@@ -213,14 +215,14 @@ export default function IssueReport() {
                     type='text'
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder='Issue title...'
+                    placeholder={t('ir_form_issue_title_placeholder')}
                     className='w-full px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium placeholder-cyan-600 focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none transition-all'
                   />
 
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder='Detailed issue description...'
+                    placeholder={t('ir_form_issue_description_placeholder')}
                     rows={4}
                     className='w-full px-4 py-3 bg-[#0a3d3d]/80 border border-cyan-500/30 rounded-xl text-cyan-300 text-sm font-medium placeholder-cyan-600 focus:border-cyan-400 focus:bg-[#0a3d3d] focus:outline-none resize-none transition-all'
                   />
@@ -230,13 +232,13 @@ export default function IssueReport() {
                       onClick={() => setShowForm(false)}
                       className='px-5 py-3 bg-cyan-500/10 text-cyan-400 rounded-xl font-semibold hover:bg-cyan-500/20 transition-all border border-cyan-500/30'
                     >
-                      Cancel
+                      {t('ir_form_cancel')}
                     </button>
                     <button
                       onClick={handleSubmit}
                       className='flex-1 py-3 bg-gradient-to-r from-teal-400 to-cyan-400 text-[#0a3d3d] rounded-xl font-bold hover:from-teal-500 hover:to-cyan-500 transition-all shadow-lg'
                     >
-                      Submit Report
+                      {t('ir_form_submit')}
                     </button>
                   </div>
                 </div>
@@ -255,7 +257,7 @@ export default function IssueReport() {
                   <path d='M3 10h18' stroke='currentColor' strokeWidth='2' />
                 </svg>
               </div>
-              <p className='text-cyan-400/60 font-medium'>No reports yet</p>
+              <p className='text-cyan-400/60 font-medium'>{t('ir_empty_state')}</p>
             </div>
           ) : (
             issues.map((issue, i) => (
@@ -286,17 +288,17 @@ export default function IssueReport() {
                       </span>
                       <span className={`px-3 py-1 text-xs font-bold rounded-full ${getSeverityStyle(issue.severity)}`}>
                         {issue.severity === 'high'
-                          ? 'High'
+                          ? t('ir_severity_label_high')
                           : issue.severity === 'medium'
-                            ? 'Medium'
-                            : 'Low'}
+                            ? t('ir_severity_label_medium')
+                            : t('ir_severity_label_low')}
                       </span>
                       {issue.status === 'resolved' && (
                         <span className='px-3 py-1 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-400/40 flex items-center gap-1'>
                           <svg width='12' height='12' viewBox='0 0 24 24' fill='none'>
                             <path d='M5 13l4 4L19 7' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' />
                           </svg>
-                          Resolved
+                          {t('ir_status_resolved')}
                         </span>
                       )}
                     </div>
@@ -333,7 +335,7 @@ export default function IssueReport() {
                         <svg width='16' height='16' viewBox='0 0 24 24' fill='none'>
                           <path d='M5 13l4 4L19 7' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' />
                         </svg>
-                        Mark as Resolved
+                        {t('ir_action_mark_resolved')}
                       </motion.button>
                     )}
                   </div>

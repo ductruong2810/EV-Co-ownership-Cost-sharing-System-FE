@@ -14,6 +14,7 @@ import { registerSchema, type RegisterSchema } from '../../utils/rule'
 import classNames from 'classnames'
 import { REGISTER_IMG_URL } from '../../constants/images'
 import type { AxiosError } from 'axios'
+import { useI18n } from '../../i18n/useI18n'
 
 type RegisterErrorResponse = {
   errors?: { message?: string; field?: string }[]
@@ -25,6 +26,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const { t } = useI18n()
 
   const {
     register,
@@ -66,7 +68,8 @@ export default function Register() {
         
         // Server validation errors
         const res = axiosError.response?.data
-        const errorMessage = res?.errors?.[0]?.message || res?.message || res?.error || 'Registration failed. Please check your information.'
+        const errorMessage =
+          res?.errors?.[0]?.message || res?.message || res?.error || t('register_failed_default')
         setServerError(errorMessage)
       }
     })
@@ -91,13 +94,15 @@ export default function Register() {
               className='w-full max-w-xl space-y-6'
             >
               <h2 className='text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-indigo-400 drop-shadow-lg'>
-                Create Account
+                {t('register_title')}
               </h2>
-              <p className='text-center text-gray-300'>Register a new account</p>
+              <p className='text-center text-gray-300'>{t('register_subtitle')}</p>
 
               {/* Full Name */}
               <div>
-                <label className='block mb-2 text-sm font-medium text-gray-300'>Full Name</label>
+                <label className='block mb-2 text-sm font-medium text-gray-300'>
+                  {t('register_full_name_label')}
+                </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                     <HiUser className='h-5 w-5 text-gray-400' />
@@ -106,7 +111,7 @@ export default function Register() {
                     {...register('fullName')}
                     type='text'
                     className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
-                    placeholder='Enter your full name'
+                    placeholder={t('register_full_name_placeholder')}
                   />
                 </div>
                 {errors.fullName && <p className='text-red-400 text-sm mt-1'>{errors.fullName.message}</p>}
@@ -114,7 +119,9 @@ export default function Register() {
 
               {/* Email */}
               <div>
-                <label className='block mb-2 text-sm font-medium text-gray-300'>Email</label>
+                <label className='block mb-2 text-sm font-medium text-gray-300'>
+                  {t('register_email_label')}
+                </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                     <HiMail className='h-5 w-5 text-gray-400' />
@@ -123,7 +130,7 @@ export default function Register() {
                     {...register('email')}
                     type='email'
                     className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition'
-                    placeholder='Enter your email'
+                    placeholder={t('register_email_placeholder')}
                   />
                 </div>
                 {errors.email && <p className='text-red-400 text-sm mt-1'>{errors.email.message}</p>}
@@ -131,7 +138,9 @@ export default function Register() {
 
               {/* Phone */}
               <div>
-                <label className='block mb-2 text-sm font-medium text-gray-300'>Phone</label>
+                <label className='block mb-2 text-sm font-medium text-gray-300'>
+                  {t('register_phone_label')}
+                </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                     <HiPhone className='h-5 w-5 text-gray-400' />
@@ -140,7 +149,7 @@ export default function Register() {
                     {...register('phone')}
                     type='tel'
                     className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
-                    placeholder='Enter your phone (e.g., 0123456789)'
+                    placeholder={t('register_phone_placeholder')}
                   />
                 </div>
                 {errors.phone && <p className='text-red-400 text-sm mt-1'>{errors.phone.message}</p>}
@@ -148,7 +157,9 @@ export default function Register() {
 
               {/* Password */}
               <div>
-                <label className='block mb-2 text-sm font-medium text-gray-300'>Password</label>
+                <label className='block mb-2 text-sm font-medium text-gray-300'>
+                  {t('register_password_label')}
+                </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                     <HiLockClosed className='h-5 w-5 text-gray-400' />
@@ -157,7 +168,7 @@ export default function Register() {
                     {...register('password')}
                     type={showPassword ? 'text' : 'password'}
                     className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition'
-                    placeholder='Enter your password'
+                    placeholder={t('register_password_placeholder')}
                   />
                   <button
                     type='button'
@@ -172,7 +183,9 @@ export default function Register() {
 
               {/* Confirm Password */}
               <div>
-                <label className='block mb-2 text-sm font-medium text-gray-300'>Confirm Password</label>
+                <label className='block mb-2 text-sm font-medium text-gray-300'>
+                  {t('register_confirm_password_label')}
+                </label>
                 <div className='relative'>
                   <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                     <HiLockClosed className='h-5 w-5 text-gray-400' />
@@ -181,7 +194,7 @@ export default function Register() {
                     {...register('confirmPassword')}
                     type={showConfirmPassword ? 'text' : 'password'}
                     className='w-full rounded-lg border border-gray-600 bg-slate-800/50 pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition'
-                    placeholder='Enter the same password'
+                    placeholder={t('register_confirm_password_placeholder')}
                   />
                   <button
                     type='button'
@@ -224,20 +237,20 @@ export default function Register() {
                 {registerMutation.isPending ? (
                   <>
                     <AiOutlineLoading3Quarters className='h-5 w-5 animate-spin' />
-                    <span>Registering...</span>
+                    <span>{t('register_button_loading')}</span>
                   </>
                 ) : (
                   <>
-                    <span>Register</span>
+                    <span>{t('register_button')}</span>
                     <HiArrowRight className='h-5 w-5' />
                   </>
                 )}
               </motion.button>
 
               <p className='text-center text-sm text-gray-400'>
-                Already have an account?{' '}
+                {t('register_have_account')}{' '}
                 <Link to={path.login} className='text-cyan-300 hover:underline'>
-                  Sign in
+                  {t('register_sign_in')}
                 </Link>
               </p>
             </motion.form>

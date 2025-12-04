@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useI18n } from '../../../../i18n/useI18n'
+
 export default function HomeAbout() {
+  const { t } = useI18n()
   //Trên đường dẫn lấy sau dấu #
   const { hash } = useLocation()
 
@@ -27,7 +30,7 @@ export default function HomeAbout() {
           transition={{ duration: 0.7 }}
           viewport={{ once: true, amount: 0.6 }}
         >
-          About Us
+          {t('lm_header_about')}
         </motion.h2>
         <motion.p
           className='text-gray-600 text-base md:text-lg font-light  max-w-3xl mx-auto text-center mb-4 text-start leading-relaxed'
@@ -36,19 +39,7 @@ export default function HomeAbout() {
           transition={{ delay: 0.1, duration: 0.7 }}
           viewport={{ once: true, amount: 0.6 }}
         >
-          <span className='font-sans font-bold text-emerald-800'>EVShare</span> is a platform for{' '}
-          <span className='font-sans font-bold text-emerald-700'>
-            co-ownership management and electric vehicle cost sharing.
-          </span>
-          We help owners{' '}
-          <span className='font-sans text-emerald-700 font-bold'>
-            easily track expenses, distribute costs transparently,
-          </span>{' '}
-          and optimize the use of electric vehicles within the community. EVShare is a platform for co-ownership
-          management and electric vehicle cost sharing. We help owners easily track expenses, distribute costs
-          transparently, and optimize the use of electric vehicles within the community. With EVShare, you can manage
-          finances, usage history, and payments quickly and fairly, ensuring convenience and transparency for all
-          members.
+          {t('home_about_content')}
         </motion.p>
       </div>
     </section>

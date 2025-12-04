@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function DashboardTitle() {
+  const { t } = useI18n()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -25 }}
@@ -27,7 +30,7 @@ export default function DashboardTitle() {
         className='relative text-4xl sm:text-5xl font-extrabold text-center tracking-wide drop-shadow-[0_2px_5px_rgba(0,0,0,0.2)]'
       >
         <span className='relative inline-block bg-gradient-to-r from-white via-sky-50 to-white bg-clip-text text-transparent'>
-          EV Tech Dashboard
+          {t('dashboard_title')}
           {/* Elegant Shimmer */}
           <motion.span
             animate={{

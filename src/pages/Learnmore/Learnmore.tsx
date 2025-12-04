@@ -1,17 +1,16 @@
-import { categories, faqs } from './data/FAQData'
-import { Fragment, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import FAQTitle from './components/FAQTitle'
 import FAQAside from './components/FAQAside'
 import FAQMainContext from './components/FAQMainContext'
 import FAQWrapper from './components/FAQWrapper'
-// import FAQMainContext from './components/FAQMainContext'
+import { createFaqContent } from './data/FAQData'
 
 export default function Learnmore() {
-  // state lưu id hiển thị arrow cho chuẩn
+  const { categories, faqs } = useMemo(() => createFaqContent(), [])
+
   const [selectedCategory, setSelectedCategory] = useState<number>(categories[0].id)
-  // lưu state hiển main context đúng phần categories
   const [activeFaq, setActiveFaq] = useState<string>(categories[0].key)
-  // gom các thành phần thành một object để truyền đi xuống component con
+
   const propChild = {
     categories,
     selectedCategory,

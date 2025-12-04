@@ -6,19 +6,22 @@ import HomeLine from './components/HomeLine'
 import HomeAbout from './components/HomeAbout'
 import HomeImage from './components/HomeImage'
 import { BACKGROUNDFIXED_IMG_URL } from '../../constants/images'
+import { useI18n } from '../../i18n/useI18n'
 
 function Home() {
+  const { t } = useI18n()
+
   return (
     <Fragment>
       <HomeAnimation />
       <HomeImage
         image={BACKGROUNDFIXED_IMG_URL.first} //
-        content='A smart platform that simplifies electric vehicle co-ownership — manage usage, share costs, and stay transparent together.'
+        content={t('home_hero_first')}
       />
       <HomeService />
       <HomeImage
         image={BACKGROUNDFIXED_IMG_URL.second} //
-        content='Own, share, and save — the smarter way to manage electric vehicles together.'
+        content={t('home_hero_second')}
       />
       <HomeAbout />
       <HomeLine />

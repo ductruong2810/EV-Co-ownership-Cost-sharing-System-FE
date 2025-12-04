@@ -6,10 +6,12 @@ import groupApi from '../../../../../../apis/group.api'
 import { GroupContext } from '../../../../../../hooks/useGroupList'
 import type { GroupItem } from '../../../../../../types/api/group.type'
 import { getStatusStyle } from './utils/getStatusStyle'
+import { useI18n } from '../../../../../../i18n/useI18n'
 
 export default function TableBody() {
   const navigate = useNavigate()
   const groupListData = useContext(GroupContext)
+  const { t } = useI18n()
 
   const handleRowClick = async (group: GroupItem) => {
     if (group?.status !== 'ACTIVE' || !group.groupId) return
@@ -62,7 +64,9 @@ export default function TableBody() {
                   <div className='font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]'>
                     {group.groupName}
                   </div>
-                  <div className='text-sm text-white/70 font-medium'>EV Sharing Group</div>
+              <div className='text-sm text-white/70 font-medium'>
+                {t('vg_table_badge_group_suffix')}
+              </div>
                 </div>
               </div>
             </td>

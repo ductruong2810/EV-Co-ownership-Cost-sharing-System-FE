@@ -11,27 +11,28 @@ import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { useI18n } from '../../../../i18n/useI18n'
 
-// Validation schema
-const createStaffSchema = yup.object({
+// Validation schema factory
+const createStaffSchemaFactory = (t: (key: string) => string) => yup.object({
   fullName: yup
     .string()
-    .required('Full name is required')
-    .matches(/^[\p{L}\s]+$/u, 'Full name must not contain special characters or numbers')
-    .max(100, 'Full name must not exceed 100 characters'),
-  email: yup.string().required('Email is required').email('Invalid email format'),
+    .required(t('admin_create_staff_validation_fullname_required'))
+    .matches(/^[\p{L}\s]+$/u, t('admin_create_staff_validation_fullname_invalid'))
+    .max(100, t('admin_create_staff_validation_fullname_max')),
+  email: yup.string().required(t('admin_create_staff_validation_email_required')).email(t('admin_create_staff_validation_email_invalid')),
   phoneNumber: yup
     .string()
-    .required('Phone number is required')
-    .matches(/^0\d{9}$/, 'Invalid phone number format (must start with 0 and have 10 digits)'),
+    .required(t('admin_create_staff_validation_phone_required'))
+    .matches(/^0\d{9}$/, t('admin_create_staff_validation_phone_invalid')),
   password: yup
     .string()
-    .required('Password is required')
-    .min(8, 'Password must be at least 8 characters')
-    .max(50, 'Password must not exceed 50 characters')
+    .required(t('admin_create_staff_validation_password_required'))
+    .min(8, t('admin_create_staff_validation_password_min'))
+    .max(50, t('admin_create_staff_validation_password_max'))
     .matches(
       /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,./?~`])/,
-      'Password must have at least 1 uppercase letter and 1 special character'
+      t('admin_create_staff_validation_password_pattern')
     )
 })
 
@@ -43,6 +44,7 @@ interface CreateStaffForm {
 }
 
 export default function CreateStaff() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const [showPassword, setShowPassword] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -53,7 +55,7 @@ export default function CreateStaff() {
     formState: { errors },
     reset
   } = useForm({
-    resolver: yupResolver(createStaffSchema)
+    resolver: yupResolver(createStaffSchemaFactory(t))
   })
 
   // Query to get all staff
@@ -79,12 +81,12 @@ export default function CreateStaff() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mutationFn: (data: any) => adminApi.createStaff(data as CreateStaffForm),
     onSuccess: () => {
-      toast.success('Staff account created successfully!')
+      toast.success(t('admin_create_staff_success'))
       reset()
       queryClient.invalidateQueries({ queryKey: ['admin', 'staff'] })
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to create staff account'
+      const message = error.response?.data?.message || t('admin_create_staff_error')
       toast.error(message)
       logger.error('Create staff error:', error)
     }
@@ -99,44 +101,44 @@ export default function CreateStaff() {
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        eyebrow='Contracts & Team'
-        title='Create Staff Account'
-        subtitle='Create a new staff account for system administration'
+        eyebrow={t('admin_nav_section_contracts_team')}
+        title={t('admin_create_staff_title')}
+        subtitle={t('admin_create_staff_subtitle')}
       />
 
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           {/* Create Form */}
           <div className='lg:col-span-1'>
             <div className='bg-white rounded-xl shadow-lg p-6'>
-              <h2 className='text-xl font-semibold text-gray-800 mb-4'>New Staff Account</h2>
+              <h2 className='text-xl font-semibold text-gray-800 mb-4'>{t('admin_create_staff_form_title')}</h2>
               <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                 {/* Full Name */}
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>Full Name</label>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_create_staff_fullname_label')}</label>
                   <input
                     {...register('fullName')}
                     type='text'
                     className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                    placeholder='Enter full name'
+                    placeholder={t('admin_create_staff_fullname_placeholder')}
                   />
                   {errors.fullName && <p className='text-red-500 text-sm mt-1'>{errors.fullName.message}</p>}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>Email</label>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_create_staff_email_label')}</label>
                   <input
                     {...register('email')}
                     type='email'
                     className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                    placeholder='Enter email address'
+                    placeholder={t('admin_create_staff_email_placeholder')}
                   />
                   {errors.email && <p className='text-red-500 text-sm mt-1'>{errors.email.message}</p>}
                 </div>
 
                 {/* Phone Number */}
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>Phone Number</label>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_create_staff_phone_label')}</label>
                   <input
                     {...register('phoneNumber')}
                     type='tel'
@@ -148,13 +150,13 @@ export default function CreateStaff() {
 
                 {/* Password */}
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>Password</label>
+                  <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_create_staff_password_label')}</label>
                   <div className='relative'>
                     <input
                       {...register('password')}
                       type={showPassword ? 'text' : 'password'}
                       className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                      placeholder='Enter password'
+                      placeholder={t('admin_create_staff_password_placeholder')}
                     />
                     <button
                       type='button'
@@ -166,7 +168,7 @@ export default function CreateStaff() {
                   </div>
                   {errors.password && <p className='text-red-500 text-sm mt-1'>{errors.password.message}</p>}
                   <p className='text-xs text-gray-500 mt-1'>
-                    Must have 8-50 characters, at least 1 uppercase and 1 special character
+                    {t('admin_create_staff_password_hint')}
                   </p>
                 </div>
 
@@ -176,7 +178,7 @@ export default function CreateStaff() {
                   disabled={createStaffMutation.isPending}
                   className='w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium'
                 >
-                  {createStaffMutation.isPending ? 'Creating...' : 'Create Staff Account'}
+                  {createStaffMutation.isPending ? t('admin_create_staff_creating') : t('admin_create_staff_submit')}
                 </button>
               </form>
             </div>
@@ -187,11 +189,14 @@ export default function CreateStaff() {
             <div className='bg-white rounded-xl shadow-lg p-6'>
               <div className='mb-4 flex items-center justify-between'>
                 <h2 className='text-xl font-semibold text-gray-800'>
-                  Staff Accounts ({staffList?.length || 0} {allStaffList && allStaffList.length !== staffList.length && `of ${allStaffList.length}`})
+                  {t('admin_create_staff_list_title', {
+                    count: staffList?.length || 0,
+                    total: allStaffList && allStaffList.length !== staffList.length ? ` of ${allStaffList.length}` : ''
+                  })}
                 </h2>
               </div>
               <Input
-                placeholder='Search by name, email, or phone...'
+                placeholder={t('admin_create_staff_search_placeholder')}
                 prefix={<SearchOutlined className='text-gray-400' />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -204,11 +209,11 @@ export default function CreateStaff() {
                   <table className='w-full'>
                     <thead className='bg-gray-50'>
                       <tr>
-                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>Name</th>
-                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>Email</th>
-                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>Phone</th>
-                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>Status</th>
-                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>Created</th>
+                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>{t('admin_create_staff_table_name')}</th>
+                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>{t('admin_create_staff_table_email')}</th>
+                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>{t('admin_create_staff_table_phone')}</th>
+                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>{t('admin_create_staff_table_status')}</th>
+                        <th className='text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider'>{t('admin_create_staff_table_created')}</th>
                       </tr>
                     </thead>
                     <tbody className='bg-white divide-y divide-gray-200'>
@@ -225,7 +230,7 @@ export default function CreateStaff() {
                                   : 'bg-red-100 text-red-800'
                               }`}
                             >
-                              {staff.status}
+                              {staff.status === 'ACTIVE' ? t('admin_create_staff_status_active') : t('admin_create_staff_status_inactive')}
                             </span>
                           </td>
                           <td className='py-3 px-4 text-sm text-gray-500'>
@@ -238,7 +243,7 @@ export default function CreateStaff() {
                 </div>
               ) : (
                 <div className='text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-gray-200'>
-                  {searchTerm ? 'No staff accounts match your search' : 'No staff accounts found'}
+                  {searchTerm ? t('admin_create_staff_no_match') : t('admin_create_staff_no_staff')}
                 </div>
               )}
             </div>

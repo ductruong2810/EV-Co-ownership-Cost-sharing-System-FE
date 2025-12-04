@@ -7,29 +7,27 @@ import { getGroupIdFromLS } from '../../../../utils/auth'
 import type { Voting, CreateVotingPayload, VotingSubmitPayload } from '../../../../types/api/user.type'
 import Skeleton from '../../../../components/Skeleton'
 import EmptyVoting from './components/EmptyVoting'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function Voting() {
-  // State for opening/closing create voting modal
+  const { t } = useI18n()
   const [showModal, setShowModal] = useState(false)
-  // Get groupId from localstorage
   const groupId = getGroupIdFromLS()
   const queryClient = useQueryClient()
 
-  // useQuery to fetch all votings
   const { data: votes = [], isLoading } = useQuery<Voting[]>({
     queryKey: ['votings', groupId],
     queryFn: async () => (await userApi.getAllVoting(Number(groupId))).data
   })
 
-  // useMutation to create voting
   const createMutation = useMutation({
     mutationFn: (payload: CreateVotingPayload) => userApi.createVoting(payload),
     onSuccess: async () => {
       await queryClient.refetchQueries({ queryKey: ['votings', groupId] })
       setShowModal(false)
-      toast.success('Voting created successfully!')
+      toast.success(t('gp_voting_toast_create_success'))
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || 'Unable to create voting')
+    onError: (error: any) => toast.error(error.response?.data?.message || t('gp_voting_toast_create_error'))
   })
 
   if (isLoading) return <Skeleton />
@@ -41,20 +39,22 @@ export default function Voting() {
         <div className='flex items-center justify-between mb-8 flex-shrink-0'>
           <div>
             <h1 className='text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent'>
-              Voting
+              {t('gp_voting_header_title')}
             </h1>
-            <p className='text-gray-500 mt-2'>{votes.length} voting session(s)</p>
+            <p className='text-gray-500 mt-2'>
+              {t('gp_voting_header_subtitle_prefix')}
+              {votes.length} {t('gp_voting_header_subtitle_suffix')}
+            </p>
           </div>
           <button
             onClick={() => setShowModal(true)}
             className='px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-lg hover:scale-105 transition-all font-medium'
           >
-            + Create new
+            {t('gp_voting_create_button')}
           </button>
         </div>
 
         {/* Content */}
-        {/* If there are no votes, show this */}
         {votes.length === 0 ? (
           <EmptyVoting setShowModal={setShowModal} />
         ) : (
@@ -67,14 +67,11 @@ export default function Voting() {
           </div>
         )}
       </div>
-      {/* If modal is true, open this */}
+
       {showModal && (
         <CreateModal
-          // This toggles modal open/close
           onClose={() => setShowModal(false)}
-          // This allows creating voting
           onCreate={(data) => createMutation.mutate(data)}
-          // Show loading state
           isLoading={createMutation.isPending}
           groupId={Number(groupId)}
         />
@@ -84,6 +81,7 @@ export default function Voting() {
 }
 
 function VoteCard({ vote, groupId }: { vote: Voting; groupId: number }) {
+  const { t } = useI18n()
   const [selected, setSelected] = useState<string | null>(null)
   const isActive = vote.status === 'ACTIVE'
 
@@ -96,10 +94,10 @@ function VoteCard({ vote, groupId }: { vote: Voting; groupId: number }) {
   const voteMutation = useMutation({
     mutationFn: (payload: VotingSubmitPayload) => userApi.voting(payload),
     onSuccess: () => {
-      toast.success('Vote submitted successfully!')
+      toast.success(t('gp_voting_card_toast_submit_success'))
       setTimeout(() => window.location.reload(), 500)
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || 'Unable to submit vote')
+    onError: (error: any) => toast.error(error.response?.data?.message || t('gp_voting_card_toast_submit_error'))
   })
 
   const handleVote = () => {
@@ -119,13 +117,13 @@ function VoteCard({ vote, groupId }: { vote: Voting; groupId: number }) {
               isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
             }`}
           >
-            {isActive ? vote.timeRemaining : 'Closed'}
+            {isActive ? vote.timeRemaining : t('gp_voting_card_status_closed')}
           </span>
         </div>
         <p className='text-sm text-gray-600 line-clamp-2 mb-3'>{vote.description}</p>
         <div className='flex items-center gap-2 text-xs text-gray-500'>
           <span className='font-medium'>
-            {vote.totalVotes}/{vote.totalMembers} voted
+            {vote.totalVotes}/{vote.totalMembers} {t('gp_voting_card_voted_label')}
           </span>
           <span>•</span>
           <span>{vote.createdByName}</span>
@@ -156,7 +154,11 @@ function VoteCard({ vote, groupId }: { vote: Voting; groupId: number }) {
               )}
               <div className='relative flex items-center justify-between gap-2 w-full'>
                 <span className='font-medium text-gray-900 flex-1'>{opt.text}</span>
-                {vote.hasVoted && <span className='text-sm font-bold text-blue-600'>{opt.votes} votes</span>}
+                {vote.hasVoted && (
+                  <span className='text-sm font-bold text-blue-600'>
+                    {opt.votes} {t('gp_voting_card_voted_label')}
+                  </span>
+                )}
               </div>
             </button>
           )
@@ -168,7 +170,7 @@ function VoteCard({ vote, groupId }: { vote: Voting; groupId: number }) {
         {vote.estimatedAmount && vote.estimatedAmount > 0 && (
           <div className='mb-3'>
             <span className='text-xs text-gray-600'>
-              Estimated:{' '}
+              {t('gp_voting_card_estimated_label')}{' '}
               <span className='font-semibold text-blue-600'>{vote.estimatedAmount.toLocaleString('en-US')}$</span>
             </span>
           </div>
@@ -180,15 +182,15 @@ function VoteCard({ vote, groupId }: { vote: Voting; groupId: number }) {
             disabled={!selected || voteMutation.isPending}
             className='w-full px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:shadow-md disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all'
           >
-            {voteMutation.isPending ? 'Voting...' : 'Submit vote'}
+            {voteMutation.isPending ? t('gp_voting_card_submit_button_loading') : t('gp_voting_card_submit_button')}
           </button>
         ) : vote.hasVoted ? (
           <div className='w-full px-4 py-2.5 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg text-center'>
-            ✓ Voted
+            {t('gp_voting_card_voted_status')}
           </div>
         ) : (
           <div className='w-full px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg text-center'>
-            Ended
+            {t('gp_voting_card_ended_status')}
           </div>
         )}
       </div>
@@ -207,17 +209,18 @@ function CreateModal({
   isLoading: boolean
   groupId: number
 }) {
+  const { t } = useI18n()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [deadline, setDeadline] = useState('')
   const [options, setOptions] = useState(['', ''])
 
   const handleSubmit = () => {
-    if (!title.trim()) return toast.warning('Please enter a title')
+    if (!title.trim()) return toast.warning(t('gp_voting_create_modal_warning_title'))
 
     const validOptions = options.filter((o) => o.trim())
-    if (validOptions.length < 2) return toast.warning('Please enter at least 2 options')
-    if (!deadline) return toast.warning('Please select an end time')
+    if (validOptions.length < 2) return toast.warning(t('gp_voting_create_modal_warning_options'))
+    if (!deadline) return toast.warning(t('gp_voting_create_modal_warning_end_time'))
 
     onCreate({
       groupId,
@@ -239,18 +242,18 @@ function CreateModal({
         className='bg-white rounded-2xl max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto shadow-2xl'
       >
         <h2 className='text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent'>
-          Create new voting session
+          {t('gp_voting_create_modal_title')}
         </h2>
 
         <div className='space-y-4'>
           {/* Title */}
           <div>
-            <label className='block text-sm font-semibold mb-2'>Title *</label>
+            <label className='block text-sm font-semibold mb-2'>{t('gp_voting_create_modal_title_label')}</label>
             <input
               type='text'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder='Enter title'
+              placeholder={t('gp_voting_create_modal_title_placeholder')}
               maxLength={100}
               className='w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors'
             />
@@ -258,11 +261,11 @@ function CreateModal({
 
           {/* Description */}
           <div>
-            <label className='block text-sm font-semibold mb-2'>Description</label>
+            <label className='block text-sm font-semibold mb-2'>{t('gp_voting_create_modal_description_label')}</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder='Add a description...'
+              placeholder={t('gp_voting_create_modal_description_placeholder')}
               rows={2}
               maxLength={200}
               className='w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none resize-none transition-colors'
@@ -271,7 +274,7 @@ function CreateModal({
 
           {/* Deadline */}
           <div>
-            <label className='block text-sm font-semibold mb-2'>End time *</label>
+            <label className='block text-sm font-semibold mb-2'>{t('gp_voting_create_modal_end_time_label')}</label>
             <input
               type='datetime-local'
               value={deadline}
@@ -283,7 +286,7 @@ function CreateModal({
 
           {/* Options */}
           <div>
-            <label className='block text-sm font-semibold mb-2'>Options * (at least 2)</label>
+            <label className='block text-sm font-semibold mb-2'>{t('gp_voting_create_modal_options_label')}</label>
             <div className='space-y-2'>
               {options.map((opt, i) => (
                 <div key={i} className='flex gap-2'>
@@ -295,7 +298,7 @@ function CreateModal({
                       newOpts[i] = e.target.value
                       setOptions(newOpts)
                     }}
-                    placeholder={`Option ${i + 1}`}
+                    placeholder={`${t('gp_voting_create_modal_options_label').split(' ')[0]} ${i + 1}`}
                     maxLength={50}
                     className='flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-colors'
                   />
@@ -315,7 +318,7 @@ function CreateModal({
                 onClick={() => setOptions([...options, ''])}
                 className='mt-3 text-blue-600 text-sm font-semibold hover:underline'
               >
-                + Add option
+                {t('gp_voting_create_modal_add_option')}
               </button>
             )}
           </div>
@@ -328,17 +331,18 @@ function CreateModal({
             disabled={isLoading}
             className='flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors'
           >
-            Cancel
+            {t('gp_voting_create_modal_cancel')}
           </button>
           <button
             onClick={handleSubmit}
             disabled={isLoading}
             className='flex-1 px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:shadow-lg disabled:from-gray-300 disabled:to-gray-300 transition-all'
           >
-            {isLoading ? 'Creating...' : 'Create'}
+            {isLoading ? t('gp_voting_create_modal_creating') : t('gp_voting_create_modal_create')}
           </button>
         </div>
       </div>
     </div>
   )
 }
+

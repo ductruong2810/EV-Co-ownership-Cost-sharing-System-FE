@@ -10,10 +10,12 @@ import BenefitCard from './components/BenefitCard'
 import StepCard from './components/StepCard/StepCard'
 import UsageReportCard from './components/UsageReportCard'
 import { AppContext } from '../../../../contexts/app.context'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function DashboardGP() {
   const { groupId } = useParams<{ groupId: string }>()
   const { setGroupId, subscribeGroupNotifications, unsubscribeGroupNotifications } = useContext(AppContext)
+  const { t } = useI18n()
 
   useEffect(() => {
     if (!groupId) return
@@ -52,25 +54,25 @@ export default function DashboardGP() {
           <div className='absolute -inset-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-all duration-400' />
           <div className='relative rounded-3xl bg-white/15 backdrop-blur-xl border-[3px] border-white/40 p-8 shadow-[0_0_30px_rgba(16,185,129,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] transition-all duration-400'>
             <h2 className='text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(16,185,129,0.7)] mb-8'>
-              Complete these 3 steps
+              {t('gp_steps_title')}
             </h2>
             <div className='space-y-5'>
               <StepCard
                 num='1'
-                title='Upload Driver License (GPLX)'
-                desc='Clear image, ≤ 2MB'
+                title={t('gp_step1_title')}
+                desc={t('gp_step1_desc')}
                 color='from-green-400 to-emerald-500'
               />
               <StepCard
                 num='2'
-                title='Upload Citizen ID'
-                desc='Clear image, ≤ 2MB'
+                title={t('gp_step2_title')}
+                desc={t('gp_step2_desc')}
                 color='from-emerald-400 to-teal-500'
               />
               <StepCard
                 num='3'
-                title='Set ownership percentage'
-                desc='Total = 100% across all members'
+                title={t('gp_step3_title')}
+                desc={t('gp_step3_desc')}
                 color='from-teal-400 to-cyan-500'
               />
             </div>
@@ -82,15 +84,23 @@ export default function DashboardGP() {
           <div className='absolute -inset-1 bg-gradient-to-r from-cyan-400 to-sky-500 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-all duration-400' />
           <div className='relative rounded-3xl bg-white/15 backdrop-blur-xl border-[3px] border-white/40 p-8 shadow-[0_0_30px_rgba(6,182,212,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] transition-all duration-400'>
             <h2 className='text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.7)] mb-8'>
-              Why sign a contract?
+              {t('gp_benefits_title')}
             </h2>
             <div className='space-y-5'>
-              <BenefitCard icon={<CalendarOutlined />} title='Schedule vehicle usage' desc='Booking' />
-              <BenefitCard icon={<WalletOutlined />} title='Manage shared fund' desc='Top-up / Withdraw' />
+              <BenefitCard
+                icon={<CalendarOutlined />}
+                title={t('gp_benefit_schedule_title')}
+                desc={t('gp_benefit_schedule_desc')}
+              />
+              <BenefitCard
+                icon={<WalletOutlined />}
+                title={t('gp_benefit_fund_title')}
+                desc={t('gp_benefit_fund_desc')}
+              />
               <BenefitCard
                 icon={<BarChartOutlined />}
-                title='Split costs by ownership'
-                desc='Automatically calculated'
+                title={t('gp_benefit_cost_title')}
+                desc={t('gp_benefit_cost_desc')}
               />
             </div>
           </div>
@@ -98,9 +108,7 @@ export default function DashboardGP() {
       </div>
 
       {/* Footer note */}
-      <p className='text-center text-white/75 text-base font-medium'>
-        The contract must be approved before using these features
-      </p>
+      <p className='text-center text-white/75 text-base font-medium'>{t('gp_footer_note')}</p>
 
       {/* Bottom Gradient Bar */}
       <div className='absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-indigo-200 via-sky-100 to-cyan-200 shadow-[0_0_20px_rgba(14,165,233,0.6)]' />

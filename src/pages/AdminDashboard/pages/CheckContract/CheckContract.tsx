@@ -11,6 +11,7 @@ import { formatToVND } from '../../../../utils/formatPrice'
 import EmptyState from '../EmptyState'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -38,6 +39,7 @@ const getServerMessage = (error: unknown): string | null => {
 }
 
 function CheckContract() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const [selectedContract, setSelectedContract] = useState<ContractResponse | null>(null)
 
@@ -116,10 +118,10 @@ function CheckContract() {
     mutationFn: (id: number) => adminApi.approveContract(id, 'APPROVE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] })
-      toast.success('Approve contract successfully!', { autoClose: 1500 })
+      toast.success(t('admin_check_contract_approve_success'), { autoClose: 1500 })
     },
     onError: (error) => {
-      toast.error(getServerMessage(error) ?? 'Approve contract failed!', { autoClose: 2000 })
+      toast.error(getServerMessage(error) ?? t('admin_check_contract_approve_error'), { autoClose: 2000 })
     }
   })
 
@@ -128,7 +130,7 @@ function CheckContract() {
     mutationFn: ({ id, reason }: { id: number; reason: string }) => adminApi.approveContract(id, 'REJECT', reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] })
-      toast.success('Reject contract successfully!', { autoClose: 1500 })
+      toast.success(t('admin_check_contract_reject_success'), { autoClose: 1500 })
       setIsRejectModalOpen(false)
       setRejectReason('')
       setRejectingContractId(null)
@@ -137,13 +139,13 @@ function CheckContract() {
     onError: (error) => {
       const msg = getServerMessage(error)
       if (msg) setRejectReasonError(msg)
-      toast.error(msg ?? 'Reject contract failed!', { autoClose: 2000 })
+      toast.error(msg ?? t('admin_check_contract_reject_error'), { autoClose: 2000 })
     }
   })
 
   const handleAction = (id: number, type: 'APPROVE' | 'REJECT') => {
     if (type === 'APPROVE') {
-      if (!window.confirm('Confirm approving this contract?')) return
+      if (!window.confirm(t('admin_check_contract_confirm_approve'))) return
       approveMutation.mutate(id)
       return
     }
@@ -160,8 +162,8 @@ function CheckContract() {
 
     // client-side validate
     if (!trimmed) {
-      setRejectReasonError('Reject reason is required.')
-      toast.warn('Please enter a reject reason', { autoClose: 1800 })
+      setRejectReasonError(t('admin_check_contract_reject_reason_required'))
+      toast.warn(t('admin_check_contract_reject_reason_warn'), { autoClose: 1800 })
       return
     }
 
@@ -201,7 +203,7 @@ function CheckContract() {
           ? 'bg-green-100 text-green-800'
           : 'bg-red-100 text-red-800'
 
-    const label = status === 'SIGNED' ? 'Pending' : status === 'APPROVED' ? 'Approved' : 'Rejected'
+    const label = status === 'SIGNED' ? t('admin_check_contract_status_pending') : status === 'APPROVED' ? t('admin_check_contract_status_approved') : t('admin_check_contract_status_rejected')
     return <span className={`px-3 py-1 text-xs font-semibold rounded-full ${style}`}>{label}</span>
   }
 
@@ -213,23 +215,23 @@ function CheckContract() {
           ? 'bg-red-100 text-red-800'
           : 'bg-yellow-100 text-yellow-800'
 
-    const label = status === 'PAID' ? 'Paid' : status === 'UNPAID' ? 'Unpaid' : 'Pending'
+    const label = status === 'PAID' ? t('admin_check_contract_deposit_paid') : status === 'UNPAID' ? t('admin_check_contract_deposit_unpaid') : t('admin_check_contract_deposit_pending')
     return <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${style}`}>{label}</span>
   }
 
   return (
     <AdminPageContainer>
       <AdminPageHeader
-        eyebrow='Contracts & Team'
-        title='Contract Approval'
-        subtitle='Review and approve pending contracts'
+        eyebrow={t('admin_nav_section_contracts_team')}
+        title={t('admin_check_contract_title')}
+        subtitle={t('admin_check_contract_subtitle')}
       />
 
       {/* Search and Filter Section */}
         <div className='mb-6 space-y-3'>
           <div className='flex flex-col sm:flex-row gap-4'>
             <Input
-              placeholder='Search by contract ID or group ID...'
+              placeholder={t('admin_check_contract_search_placeholder')}
               prefix={<SearchOutlined className='text-gray-400' />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -243,10 +245,10 @@ function CheckContract() {
               className='w-full sm:w-48'
               size='large'
             >
-              <Option value='ALL'>All Status</Option>
-              <Option value='SIGNED'>Signed</Option>
-              <Option value='APPROVED'>Approved</Option>
-              <Option value='REJECTED'>Rejected</Option>
+              <Option value='ALL'>{t('admin_check_contract_status_all')}</Option>
+              <Option value='SIGNED'>{t('admin_check_contract_status_signed')}</Option>
+              <Option value='APPROVED'>{t('admin_check_contract_status_approved')}</Option>
+              <Option value='REJECTED'>{t('admin_check_contract_status_rejected')}</Option>
             </Select>
             <Button
               icon={<FilterOutlined />}
@@ -254,21 +256,21 @@ function CheckContract() {
               className={showAdvancedFilters ? 'bg-blue-500 text-white' : ''}
               size='large'
             >
-              Advanced Filters
+              {t('admin_check_contract_advanced_filters')}
             </Button>
             {hasActiveFilters && (
               <Button icon={<ClearOutlined />} onClick={clearFilters} size='large'>
-                Clear
+                {t('admin_check_contract_clear')}
               </Button>
             )}
           </div>
 
           {/* Advanced Filters Panel */}
           <Collapse activeKey={showAdvancedFilters ? ['filters'] : []} onChange={(keys) => setShowAdvancedFilters(keys.includes('filters'))}>
-            <Panel key='filters' header='Advanced Filters'>
+            <Panel key='filters' header={t('admin_check_contract_advanced_filters')}>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>Start Date Range</label>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>{t('admin_check_contract_filter_start_date')}</label>
                   <RangePicker
                     value={startDateRange}
                     onChange={(dates) => setStartDateRange(dates as [Dayjs | null, Dayjs | null])}
@@ -277,7 +279,7 @@ function CheckContract() {
                   />
                 </div>
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>End Date Range</label>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>{t('admin_check_contract_filter_end_date')}</label>
                   <RangePicker
                     value={endDateRange}
                     onChange={(dates) => setEndDateRange(dates as [Dayjs | null, Dayjs | null])}
@@ -293,9 +295,12 @@ function CheckContract() {
         {/* Results count */}
         {hasActiveFilters && (
           <div className='mb-4 text-sm text-gray-600'>
-            Showing {filteredContracts.length} of {contracts.length} contracts
-            {searchTerm && ` matching "${searchTerm}"`}
-            {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
+            {t('admin_check_contract_showing', {
+              showing: filteredContracts.length,
+              total: contracts.length,
+              searchTerm: searchTerm ? ` "${searchTerm}"` : '',
+              status: statusFilter !== 'ALL' ? ` "${statusFilter}"` : ''
+            })}
           </div>
         )}
 
@@ -305,7 +310,7 @@ function CheckContract() {
           <table className='w-full text-sm text-gray-700 min-w-[800px]'>
           <thead className='bg-gray-100 text-gray-700 uppercase text-xs'>
             <tr>
-              {['ID', 'Group', 'Start date', 'End date', 'Deposit amount', 'Status', 'Actions'].map((header) => (
+              {[t('admin_check_contract_table_id'), t('admin_check_contract_table_group'), t('admin_check_contract_table_start_date'), t('admin_check_contract_table_end_date'), t('admin_check_contract_table_deposit_amount'), t('admin_check_contract_table_status'), t('admin_check_contract_table_actions')].map((header) => (
                 <th key={header} className='px-4 py-3 text-left font-semibold'>
                   {header}
                 </th>
@@ -317,14 +322,14 @@ function CheckContract() {
             {filteredContracts.length === 0 ? (
               <tr>
                 <td colSpan={7} className='px-4 py-12 text-center text-gray-500'>
-                  {searchTerm || statusFilter !== 'ALL' ? 'No contracts match your filters' : 'No contracts found'}
+                  {searchTerm || statusFilter !== 'ALL' ? t('admin_check_contract_no_match') : t('admin_check_contract_no_contracts')}
                 </td>
               </tr>
             ) : (
               filteredContracts.map((c) => (
               <tr key={c.id} className='hover:bg-gray-50 transition-colors'>
                 <td className='px-4 py-3 font-medium'>#{c.id}</td>
-                <td className='px-4 py-3'>Group {c.groupId}</td>
+                <td className='px-4 py-3'>{t('admin_check_contract_group_label', { id: c.groupId })}</td>
                 <td className='px-4 py-3'>{new Date(c.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                 <td className='px-4 py-3'>{new Date(c.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                 <td className='px-4 py-3 font-semibold'>{formatToVND(c.requiredDepositAmount)}</td>
@@ -335,7 +340,7 @@ function CheckContract() {
                       onClick={() => setSelectedContract(c)}
                       className='px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all text-xs font-medium shadow-sm'
                     >
-                      Details
+                      {t('admin_check_contract_details')}
                     </button>
                     {c.approvalStatus === 'SIGNED' && (
                       <>
@@ -344,14 +349,14 @@ function CheckContract() {
                           disabled={approveMutation.isPending}
                           className='px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all text-xs font-medium shadow-sm disabled:opacity-50'
                         >
-                          {approveMutation.isPending ? 'Approving...' : 'Approve'}
+                          {approveMutation.isPending ? t('admin_check_contract_approving') : t('admin_check_contract_approve')}
                         </button>
                         <button
                           onClick={() => handleAction(c.id, 'REJECT')}
                           disabled={rejectMutation.isPending}
                           className='px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all text-xs font-medium shadow-sm disabled:opacity-50'
                         >
-                          {rejectMutation.isPending ? 'Processing...' : 'Reject'}
+                          {rejectMutation.isPending ? t('admin_check_contract_processing') : t('admin_check_contract_reject')}
                         </button>
                       </>
                     )}
@@ -377,7 +382,7 @@ function CheckContract() {
           >
             <div className='sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl z-10'>
               <div className='flex justify-between items-center'>
-                <h2 className='text-2xl font-bold'>Contract details #{selectedContract.id}</h2>
+                <h2 className='text-2xl font-bold'>{t('admin_check_contract_detail_title', { id: selectedContract.id })}</h2>
                 <button
                   onClick={() => setSelectedContract(null)}
                   className='text-white hover:bg-white/20 rounded-full p-2 transition-colors'
@@ -394,48 +399,48 @@ function CheckContract() {
                 </div>
               ) : detailError ? (
                 <div className='text-center py-12'>
-                  <p className='text-red-600 font-semibold'>Failed to load contract details</p>
+                  <p className='text-red-600 font-semibold'>{t('admin_check_contract_detail_error')}</p>
                 </div>
               ) : contractDetail ? (
                 <div className='space-y-6'>
                   {/* Contract info */}
                   <div>
-                    <h3 className='text-lg font-bold text-gray-800 mb-3'>Contract information</h3>
+                    <h3 className='text-lg font-bold text-gray-800 mb-3'>{t('admin_check_contract_detail_contract_info')}</h3>
                     <div className='grid grid-cols-2 gap-4'>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>Contract ID</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_contract_id')}</p>
                         <p className='text-lg font-semibold text-gray-800'>#{contractDetail.contract.contractId}</p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>Status</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_status')}</p>
                         {getStatusBadge(contractDetail.contract.approvalStatus)}
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>Start date</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_start_date')}</p>
                         <p className='text-base font-semibold text-gray-800'>
                           {new Date(contractDetail.contract.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>End date</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_end_date')}</p>
                         <p className='text-base font-semibold text-gray-800'>
                           {new Date(contractDetail.contract.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>Deposit deadline</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_deposit_deadline')}</p>
                         <p className='text-base font-semibold text-orange-600'>
                           {new Date(contractDetail.contract.depositDeadline).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>Required deposit amount</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_required_deposit')}</p>
                         <p className='text-xl font-bold text-green-600'>
                           {formatToVND(contractDetail.contract.requiredDepositAmount)}
                         </p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg col-span-2'>
-                        <p className='text-xs text-gray-500 mb-1'>Terms</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_terms')}</p>
                         <p className='text-sm text-gray-700 whitespace-pre-wrap'>{contractDetail.contract.terms}</p>
                       </div>
                     </div>
@@ -443,14 +448,14 @@ function CheckContract() {
 
                   {/* Group info */}
                   <div>
-                    <h3 className='text-lg font-bold text-gray-800 mb-3'>Group information</h3>
+                    <h3 className='text-lg font-bold text-gray-800 mb-3'>{t('admin_check_contract_detail_group_info')}</h3>
                     <div className='grid grid-cols-2 gap-4'>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>Group name</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_group_name')}</p>
                         <p className='text-lg font-semibold text-gray-800'>{contractDetail.group.groupName}</p>
                       </div>
                       <div className='bg-gray-50 p-4 rounded-lg'>
-                        <p className='text-xs text-gray-500 mb-1'>Group status</p>
+                        <p className='text-xs text-gray-500 mb-1'>{t('admin_check_contract_detail_group_status')}</p>
                         <span
                           className={`px-3 py-1 text-xs font-semibold rounded-full ${
                             contractDetail.group.status === 'ACTIVE'
@@ -458,7 +463,7 @@ function CheckContract() {
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {contractDetail.group.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                          {contractDetail.group.status === 'ACTIVE' ? t('admin_check_contract_group_active') : t('admin_check_contract_group_inactive')}
                         </span>
                       </div>
                     </div>
@@ -466,16 +471,16 @@ function CheckContract() {
 
                   {/* Members list */}
                   <div>
-                    <h3 className='text-lg font-bold text-gray-800 mb-3'>Members ({contractDetail.members.length})</h3>
+                    <h3 className='text-lg font-bold text-gray-800 mb-3'>{t('admin_check_contract_detail_members', { count: contractDetail.members.length })}</h3>
                     <div className='bg-white border border-gray-200 rounded-lg overflow-hidden'>
                       <table className='w-full text-sm'>
                         <thead className='bg-gray-50 text-gray-700 text-xs'>
                           <tr>
-                            <th className='px-4 py-3 text-left font-semibold'>Full name</th>
-                            <th className='px-4 py-3 text-left font-semibold'>Email</th>
-                            <th className='px-4 py-3 text-left font-semibold'>Role</th>
-                            <th className='px-4 py-3 text-left font-semibold'>Ownership</th>
-                            <th className='px-4 py-3 text-left font-semibold'>Deposit status</th>
+                            <th className='px-4 py-3 text-left font-semibold'>{t('admin_check_contract_detail_member_full_name')}</th>
+                            <th className='px-4 py-3 text-left font-semibold'>{t('admin_check_contract_detail_member_email')}</th>
+                            <th className='px-4 py-3 text-left font-semibold'>{t('admin_check_contract_detail_member_role')}</th>
+                            <th className='px-4 py-3 text-left font-semibold'>{t('admin_check_contract_detail_member_ownership')}</th>
+                            <th className='px-4 py-3 text-left font-semibold'>{t('admin_check_contract_detail_member_deposit_status')}</th>
                           </tr>
                         </thead>
                         <tbody className='divide-y divide-gray-200'>
@@ -493,7 +498,7 @@ function CheckContract() {
                                         : 'bg-gray-100 text-gray-800'
                                   }`}
                                 >
-                                  {m.userRole === 'ADMIN' ? 'Admin' : m.userRole === 'CO_OWNER' ? 'Co-owner' : 'Member'}
+                                  {m.userRole === 'ADMIN' ? t('admin_check_contract_role_admin') : m.userRole === 'CO_OWNER' ? t('admin_check_contract_role_co_owner') : t('admin_check_contract_role_member')}
                                 </span>
                               </td>
                               <td className='px-4 py-3 font-semibold text-gray-800'>{m.ownershipPercentage}%</td>
@@ -515,7 +520,7 @@ function CheckContract() {
                         }}
                         className='flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-all shadow-md'
                       >
-                        Approve contract
+                        {t('admin_check_contract_approve_contract')}
                       </button>
                       <button
                         onClick={() => {
@@ -524,7 +529,7 @@ function CheckContract() {
                         }}
                         className='flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all shadow-md'
                       >
-                        Reject contract
+                        {t('admin_check_contract_reject_contract')}
                       </button>
                     </div>
                   )}
@@ -542,7 +547,7 @@ function CheckContract() {
           onClick={handleCloseRejectModal}
         >
           <div className='bg-white rounded-2xl shadow-2xl max-w-md w-full p-6' onClick={(e) => e.stopPropagation()}>
-            <h3 className='text-lg font-bold text-gray-800 mb-4'>Enter reject reason</h3>
+            <h3 className='text-lg font-bold text-gray-800 mb-4'>{t('admin_check_contract_reject_reason_title')}</h3>
             <textarea
               className={`w-full border rounded-lg p-3 text-sm focus:outline-none focus:ring-2 ${
                 rejectReasonError ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-red-400'
@@ -550,7 +555,7 @@ function CheckContract() {
               rows={4}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder='For example: Contract information is incomplete, missing documents...'
+              placeholder={t('admin_check_contract_reject_reason_placeholder')}
               disabled={rejectMutation.isPending}
             />
             {rejectReasonError && <p className='mt-1 text-xs text-red-600'>{rejectReasonError}</p>}
@@ -561,7 +566,7 @@ function CheckContract() {
                 className='px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-50'
                 disabled={rejectMutation.isPending}
               >
-                Cancel
+                {t('admin_check_contract_cancel')}
               </button>
               <button
                 type='button'
@@ -569,7 +574,7 @@ function CheckContract() {
                 className='px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-semibold disabled:opacity-50'
                 disabled={rejectMutation.isPending}
               >
-                {rejectMutation.isPending ? 'Processing...' : 'Confirm reject'}
+                {rejectMutation.isPending ? t('admin_check_contract_processing') : t('admin_check_contract_confirm_reject')}
               </button>
             </div>
           </div>

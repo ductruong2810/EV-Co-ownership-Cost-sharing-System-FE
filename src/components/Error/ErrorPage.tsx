@@ -3,6 +3,7 @@ import { Button, Result } from 'antd'
 import { HomeOutlined, ReloadOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import path from '../../constants/path'
+import useI18n from '../../i18n/useI18n'
 
 interface ErrorPageProps {
   statusCode?: 404 | 500 | 403 | 401
@@ -24,42 +25,43 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
   showReloadButton = true
 }) => {
   const navigate = useNavigate()
+  const { t } = useI18n()
 
   const getErrorConfig = () => {
     switch (statusCode) {
       case 404:
         return {
           status: '404',
-          title: title || 'Page Not Found',
-          subTitle: message || "Sorry, the page you visited does not exist.",
+          title: title || t('error_404_title'),
+          subTitle: message || t('error_404_message'),
           icon: <ExclamationCircleOutlined className='text-blue-500' style={{ fontSize: '64px' }} />
         }
       case 500:
         return {
           status: '500',
-          title: title || 'Server Error',
-          subTitle: message || "Sorry, something went wrong on our end.",
+          title: title || t('error_500_title'),
+          subTitle: message || t('error_500_message'),
           icon: <ExclamationCircleOutlined className='text-red-400' />
         }
       case 403:
         return {
           status: '403',
-          title: title || 'Access Forbidden',
-          subTitle: message || "Sorry, you don't have permission to access this page.",
+          title: title || t('error_403_title'),
+          subTitle: message || t('error_403_message'),
           icon: <ExclamationCircleOutlined className='text-orange-400' />
         }
       case 401:
         return {
           status: '401',
-          title: title || 'Unauthorized',
-          subTitle: message || "Please log in to access this page.",
+          title: title || t('error_401_title'),
+          subTitle: message || t('error_401_message'),
           icon: <ExclamationCircleOutlined className='text-blue-400' />
         }
       default:
         return {
           status: '404',
-          title: title || 'Page Not Found',
-          subTitle: message || "Sorry, the page you visited does not exist.",
+          title: title || t('error_404_title'),
+          subTitle: message || t('error_404_message'),
           icon: <ExclamationCircleOutlined className='text-blue-500' style={{ fontSize: '64px' }} />
         }
     }
@@ -83,7 +85,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
               onClick={() => navigate(path.home || '/')}
               size='large'
             >
-              Back Home
+              {t('error_back_home_button')}
             </Button>
           ),
           showReloadButton && (
@@ -93,7 +95,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
               onClick={() => window.location.reload()}
               size='large'
             >
-              Reload Page
+              {t('error_reload_button')}
             </Button>
           )
         ].filter(Boolean)}

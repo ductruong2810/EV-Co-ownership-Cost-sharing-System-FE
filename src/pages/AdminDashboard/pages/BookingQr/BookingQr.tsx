@@ -11,10 +11,12 @@ import staffApi from '../../../../apis/staff.api'
 import EmptyQRCard from './components/EmptyQRCard'
 import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState'
+import { useI18n } from '../../../../i18n/useI18n'
 
 const { Option } = Select
 
 export default function BookingQr() {
+  const { t } = useI18n()
   const { userId, groupId } = useParams()
   const navigate = useNavigate()
   const qrRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
@@ -162,17 +164,17 @@ export default function BookingQr() {
 
         <div className='px-6 py-3 space-y-2 border-t border-gray-100 text-sm'>
           <div className='flex justify-between'>
-            <span className='text-gray-600'>Vehicle ID</span>
+            <span className='text-gray-600'>{t('admin_booking_qr_vehicle_id')}</span>
             <span className='font-semibold text-gray-800'>{qrData.vehicleId}</span>
           </div>
           <div className='flex justify-between'>
-            <span className='text-gray-600'>Start</span>
+            <span className='text-gray-600'>{t('admin_booking_qr_start')}</span>
             <span className='font-semibold text-gray-800 text-xs'>
               {new Date(qrData.startTime).toLocaleString('vi-VN')}
             </span>
           </div>
           <div className='flex justify-between'>
-            <span className='text-gray-600'>End</span>
+            <span className='text-gray-600'>{t('admin_booking_qr_end')}</span>
             <span className='font-semibold text-gray-800 text-xs'>
               {new Date(qrData.endTime).toLocaleString('vi-VN')}
             </span>
@@ -185,7 +187,7 @@ export default function BookingQr() {
           onClick={() => handleDownload(qrData.bookingId, phase)}
           className={`w-full px-6 py-3 font-medium border-t border-gray-100 transition-colors ${colors.button}`}
         >
-          Download {phase}
+          {t('admin_booking_qr_download', { phase })}
         </motion.button>
       </motion.div>
     )
@@ -197,16 +199,16 @@ export default function BookingQr() {
     return (
       <div className='min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 flex items-center justify-center p-6'>
         <div className='bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-lg max-w-md text-center'>
-          <p className='font-semibold text-lg mb-2'>Error loading bookings</p>
+          <p className='font-semibold text-lg mb-2'>{t('admin_booking_qr_error_load')}</p>
           <p className='text-sm'>
-            {error instanceof Error ? error.message : 'Unknown error'}
+            {error instanceof Error ? error.message : t('admin_booking_qr_error_unknown')}
           </p>
           <Button
             type='primary'
             onClick={() => refetch()}
             className='mt-4'
           >
-            Retry
+            {t('admin_dashboard_retry')}
           </Button>
         </div>
       </div>
@@ -225,7 +227,7 @@ export default function BookingQr() {
             onClick={() => navigate('/manager/checkBooking')}
             className='text-gray-600 hover:text-gray-900'
           >
-            Back to Booking Management
+            {t('admin_booking_qr_back')}
           </Button>
         </div>
 
@@ -233,21 +235,21 @@ export default function BookingQr() {
         <div className='mb-6'>
           <div className='flex items-center gap-3 mb-4'>
             <QrcodeOutlined className='text-3xl text-teal-600' />
-            <h1 className='text-3xl font-bold text-gray-900'>QR Code Management</h1>
+            <h1 className='text-3xl font-bold text-gray-900'>{t('admin_booking_qr_title')}</h1>
           </div>
           
           {/* User & Group Info */}
           <div className='flex flex-wrap items-center gap-3 mb-4'>
             <div className='flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200'>
-              <span className='text-sm font-semibold text-gray-600'>User:</span>
+              <span className='text-sm font-semibold text-gray-600'>{t('admin_booking_qr_user')}:</span>
               <span className='bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-sm font-medium'>
-                {userInfo?.fullName || `ID: ${userId}`}
+                {userInfo?.fullName || t('admin_booking_qr_id', { id: userId })}
               </span>
             </div>
             <div className='flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200'>
-              <span className='text-sm font-semibold text-gray-600'>Group:</span>
+              <span className='text-sm font-semibold text-gray-600'>{t('admin_booking_qr_group')}:</span>
               <span className='bg-purple-100 text-purple-800 px-3 py-1 rounded-md text-sm font-medium'>
-                {groupInfo?.groupName || `ID: ${groupId}`}
+                {groupInfo?.groupName || t('admin_booking_qr_id', { id: groupId })}
               </span>
             </div>
           </div>
@@ -256,23 +258,23 @@ export default function BookingQr() {
           <div className='grid grid-cols-2 md:grid-cols-5 gap-3 mb-6'>
             <Card className='text-center shadow-sm border-gray-200'>
               <div className='text-2xl font-bold text-gray-900'>{summary.total}</div>
-              <div className='text-xs text-gray-500 mt-1'>Total Bookings</div>
+              <div className='text-xs text-gray-500 mt-1'>{t('admin_booking_qr_summary_total')}</div>
             </Card>
             <Card className='text-center shadow-sm border-green-200 bg-green-50'>
               <div className='text-2xl font-bold text-green-700'>{summary.confirmed}</div>
-              <div className='text-xs text-green-600 mt-1'>Confirmed</div>
+              <div className='text-xs text-green-600 mt-1'>{t('admin_booking_qr_summary_confirmed')}</div>
             </Card>
             <Card className='text-center shadow-sm border-teal-200 bg-teal-50'>
               <div className='text-2xl font-bold text-teal-700'>{summary.checkedIn}</div>
-              <div className='text-xs text-teal-600 mt-1'>Checked In</div>
+              <div className='text-xs text-teal-600 mt-1'>{t('admin_booking_qr_summary_checked_in')}</div>
             </Card>
             <Card className='text-center shadow-sm border-gray-200 bg-gray-50'>
               <div className='text-2xl font-bold text-gray-700'>{summary.checkedOut}</div>
-              <div className='text-xs text-gray-600 mt-1'>Checked Out</div>
+              <div className='text-xs text-gray-600 mt-1'>{t('admin_booking_qr_summary_checked_out')}</div>
             </Card>
             <Card className='text-center shadow-sm border-orange-200 bg-orange-50'>
               <div className='text-2xl font-bold text-orange-700'>{summary.notCheckedIn}</div>
-              <div className='text-xs text-orange-600 mt-1'>Pending</div>
+              <div className='text-xs text-orange-600 mt-1'>{t('admin_booking_qr_summary_pending')}</div>
             </Card>
           </div>
         </div>
@@ -281,7 +283,7 @@ export default function BookingQr() {
         <div className='mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4'>
           <div className='flex flex-col sm:flex-row gap-3'>
             <Input
-              placeholder='Search by booking ID, license plate, or brand...'
+              placeholder={t('admin_booking_qr_search_placeholder')}
               prefix={<SearchOutlined className='text-gray-400' />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -295,10 +297,10 @@ export default function BookingQr() {
               className='w-full sm:w-48'
               size='large'
             >
-              <Option value='ALL'>All Status</Option>
-              <Option value='CONFIRMED'>Confirmed</Option>
-              <Option value='CANCELLED'>Cancelled</Option>
-              <Option value='PENDING'>Pending</Option>
+              <Option value='ALL'>{t('admin_booking_qr_status_all')}</Option>
+              <Option value='CONFIRMED'>{t('admin_booking_qr_status_confirmed')}</Option>
+              <Option value='CANCELLED'>{t('admin_booking_qr_status_cancelled')}</Option>
+              <Option value='PENDING'>{t('admin_booking_qr_status_pending')}</Option>
             </Select>
             <Select
               value={checkinFilter}
@@ -306,20 +308,23 @@ export default function BookingQr() {
               className='w-full sm:w-48'
               size='large'
             >
-              <Option value='ALL'>All Check-in</Option>
-              <Option value='NOT_CHECKED_IN'>Not Checked-in</Option>
-              <Option value='CHECKED_IN'>Checked-in Only</Option>
-              <Option value='CHECKED_OUT'>Checked-out</Option>
+              <Option value='ALL'>{t('admin_booking_qr_checkin_all')}</Option>
+              <Option value='NOT_CHECKED_IN'>{t('admin_booking_qr_checkin_not_checked_in')}</Option>
+              <Option value='CHECKED_IN'>{t('admin_booking_qr_checkin_checked_in_only')}</Option>
+              <Option value='CHECKED_OUT'>{t('admin_booking_qr_checkin_checked_out')}</Option>
             </Select>
           </div>
 
           {/* Results count */}
           {(bookings.length !== allBookings.length || searchTerm || statusFilter !== 'ALL' || checkinFilter !== 'ALL') && (
             <div className='mt-3 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg'>
-              Showing <span className='font-semibold'>{bookings.length}</span> of <span className='font-semibold'>{allBookings.length}</span> bookings
-              {searchTerm && ` matching "${searchTerm}"`}
-              {statusFilter !== 'ALL' && ` with status "${statusFilter}"`}
-              {checkinFilter !== 'ALL' && ` with check-in status "${checkinFilter.replace('_', ' ')}"`}
+              {t('admin_booking_qr_showing_results', {
+                showing: bookings.length,
+                total: allBookings.length,
+                searchTerm: searchTerm ? ` "${searchTerm}"` : '',
+                status: statusFilter !== 'ALL' ? ` "${statusFilter}"` : '',
+                checkinStatus: checkinFilter !== 'ALL' ? ` "${checkinFilter.replace('_', ' ')}"` : ''
+              })}
             </div>
           )}
         </div>
@@ -330,12 +335,12 @@ export default function BookingQr() {
             <Card className='text-center py-12 shadow-sm border-gray-200'>
               <ClockCircleOutlined className='text-5xl text-gray-300 mb-4' />
               <p className='text-lg font-semibold text-gray-700 mb-2'>
-                {searchTerm || statusFilter !== 'ALL' || checkinFilter !== 'ALL' ? 'No bookings match your filters' : 'No bookings found'}
+                {searchTerm || statusFilter !== 'ALL' || checkinFilter !== 'ALL' ? t('admin_booking_qr_no_match') : t('admin_booking_qr_no_bookings')}
               </p>
               <p className='text-sm text-gray-500'>
                 {searchTerm || statusFilter !== 'ALL' || checkinFilter !== 'ALL' 
-                  ? 'Try adjusting your search or filter criteria' 
-                  : 'This user has no bookings in this group'}
+                  ? t('admin_booking_qr_try_adjusting') 
+                  : t('admin_booking_qr_no_bookings_group')}
               </p>
             </Card>
           ) : (
@@ -354,9 +359,9 @@ export default function BookingQr() {
                   <div className='px-6 py-4 flex items-center justify-between'>
                     <div className='flex-1'>
                       <div className='flex items-center gap-3 mb-2'>
-                        <h3 className='text-lg font-bold text-gray-900'>Booking #{booking.bookingId}</h3>
+                        <h3 className='text-lg font-bold text-gray-900'>{t('admin_booking_qr_booking_id', { id: booking.bookingId })}</h3>
                         <span className='px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full'>
-                          ID: {booking.bookingId}
+                          {t('admin_booking_qr_id_label', { id: booking.bookingId })}
                         </span>
                       </div>
                       <div className='flex items-center gap-3 text-sm text-gray-600 mb-2'>
@@ -400,11 +405,11 @@ export default function BookingQr() {
                   <div className='px-6 py-2 bg-gray-50 border-t border-gray-100 flex gap-4 text-xs'>
                     <div className='flex items-center gap-2'>
                       <div className={`w-2 h-2 rounded-full ${booking.qrCodeCheckin ? 'bg-teal-600' : 'bg-gray-300'}`} />
-                      <span className='text-gray-600'>{booking.qrCodeCheckin ? '✓ Check-in' : 'Check-in'}</span>
+                      <span className='text-gray-600'>{booking.qrCodeCheckin ? t('admin_booking_qr_check_in_done') : t('admin_booking_qr_check_in')}</span>
                     </div>
                     <div className='flex items-center gap-2'>
                       <div className={`w-2 h-2 rounded-full ${booking.qrCodeCheckout ? 'bg-gray-600' : 'bg-gray-300'}`} />
-                      <span className='text-gray-600'>{booking.qrCodeCheckout ? '✓ Check-out' : 'Check-out'}</span>
+                      <span className='text-gray-600'>{booking.qrCodeCheckout ? t('admin_booking_qr_check_out_done') : t('admin_booking_qr_check_out')}</span>
                     </div>
                   </div>
                 </motion.div>

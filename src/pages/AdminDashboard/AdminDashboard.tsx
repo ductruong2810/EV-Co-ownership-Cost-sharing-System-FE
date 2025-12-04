@@ -20,8 +20,10 @@ import {
 import { getRoleFromLS } from '../../utils/auth'
 import path from '../../constants/path'
 import logger from '../../utils/logger'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function AdminDashboard() {
+  const { t } = useI18n()
   const role = getRoleFromLS()
   const location = useLocation()
   const [periodType, setPeriodType] = useState<string>('DAY')
@@ -30,15 +32,15 @@ export default function AdminDashboard() {
   const roleLabel = useMemo(() => {
     switch (role) {
       case 'ADMIN':
-        return 'Admin Console'
+        return t('admin_role_label_admin_console')
       case 'STAFF':
-        return 'Staff Workspace'
+        return t('admin_role_label_staff_workspace')
       case 'TECHNICIAN':
-        return 'Technician Panel'
+        return t('admin_role_label_technician_panel')
       default:
-        return 'Management'
+        return t('admin_role_label_management')
     }
-  }, [role])
+  }, [role, t])
   
   // Check if we're on dashboard page (index route or /dashboard)
   const isDashboardPage = location.pathname === '/manager' || 
@@ -95,13 +97,13 @@ export default function AdminDashboard() {
   const getPeriodLabel = (type: string) => {
     switch (type) {
       case 'DAY':
-        return 'By Day'
+        return t('admin_period_day')
       case 'WEEK':
-        return 'By Week'
+        return t('admin_period_week')
       case 'MONTH':
-        return 'By Month'
+        return t('admin_period_month')
       default:
-        return 'By Day'
+        return t('admin_period_day')
     }
   }
   
@@ -144,7 +146,13 @@ export default function AdminDashboard() {
             {!sidebarCollapsed && (
               <div className='space-y-0.5'>
                 <p className='text-xs font-semibold tracking-wide text-gray-400 uppercase'>
-                  {role === 'ADMIN' ? 'System Admin' : role === 'STAFF' ? 'Back Office' : role === 'TECHNICIAN' ? 'Operations' : 'Dashboard'}
+                  {role === 'ADMIN'
+                    ? t('admin_role_tag_system_admin')
+                    : role === 'STAFF'
+                      ? t('admin_role_tag_back_office')
+                      : role === 'TECHNICIAN'
+                        ? t('admin_role_tag_operations')
+                        : t('admin_role_tag_dashboard')}
                 </p>
                 <h2 className='text-lg font-bold text-gray-800'>{roleLabel}</h2>
               </div>
@@ -175,7 +183,7 @@ export default function AdminDashboard() {
                         <>
                           <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : ''}`}>
                             <DashboardOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                            {!sidebarCollapsed && <span>Dashboard</span>}
+                            {!sidebarCollapsed && <span>{t('admin_nav_dashboard')}</span>}
                           </div>
                           {!sidebarCollapsed && shouldBeActive && isDashboardPage && (
                             <span className='ml-2 px-2.5 py-1 text-xs font-semibold text-white bg-white/20 backdrop-blur-sm rounded-full shadow-sm border border-white/30'>
@@ -196,7 +204,7 @@ export default function AdminDashboard() {
                 {/* Review & Verification Section */}
                 {!sidebarCollapsed && (
                   <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
-                    Review & Verification
+                    {t('admin_nav_section_review')}
                   </p>
                 )}
                 <li>
@@ -212,7 +220,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <TeamOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Groups</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_groups')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -230,7 +238,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <IdcardOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Documents</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_documents')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -248,7 +256,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <CalendarOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Bookings</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_bookings')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -268,7 +276,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <AlertOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Disputes</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_disputes')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -292,7 +300,7 @@ export default function AdminDashboard() {
                             sidebarCollapsed ? '' : 'mr-3'
                           }`}
                         />
-                        {!sidebarCollapsed && <span>Financial Reports</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_financial_reports')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -306,7 +314,7 @@ export default function AdminDashboard() {
                 {/* Contract Management Section */}
                 {!sidebarCollapsed && (
                   <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
-                    Contracts & Team
+                    {t('admin_nav_section_contracts_team')}
                   </p>
                 )}
                 <li>
@@ -322,7 +330,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <FileTextOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Contracts</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_contracts')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -338,7 +346,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <EditOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Edit Contract</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_edit_contract')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -359,7 +367,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <UserAddOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Add Staff</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_add_staff')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -375,7 +383,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <ToolOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Add Technician</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_add_technician')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -384,7 +392,7 @@ export default function AdminDashboard() {
                 {/* System & Audit Section */}
                 {!sidebarCollapsed && (
                   <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
-                    System & Audit
+                    {t('admin_nav_section_system_audit')}
                   </p>
                 )}
                 <li>
@@ -402,7 +410,7 @@ export default function AdminDashboard() {
                     {({ isActive }) => (
                       <>
                         <HistoryOutlined className={`${sidebarCollapsed ? 'text-lg' : 'text-base'} ${sidebarCollapsed ? '' : 'mr-3'}`} />
-                        {!sidebarCollapsed && <span>Audit Logs</span>}
+                        {!sidebarCollapsed && <span>{t('admin_nav_audit_logs')}</span>}
                       </>
                     )}
                   </NavLink>
@@ -414,7 +422,7 @@ export default function AdminDashboard() {
               <li>
                 {!sidebarCollapsed && (
                   <p className='px-2 mb-2 text-[11px] font-semibold tracking-wide text-gray-400 uppercase'>
-                    Technician Tools
+                    {t('admin_nav_section_technician_tools')}
                   </p>
                 )}
                 <NavLink
@@ -435,7 +443,7 @@ export default function AdminDashboard() {
                           sidebarCollapsed ? '' : 'mr-3'
                         }`}
                       />
-                      {!sidebarCollapsed && <span>Vehicle Reports</span>}
+                      {!sidebarCollapsed && <span>{t('admin_nav_vehicle_reports')}</span>}
                     </>
                   )}
                 </NavLink>
@@ -457,7 +465,7 @@ export default function AdminDashboard() {
                           sidebarCollapsed ? '' : 'mr-3'
                         }`}
                       />
-                      {!sidebarCollapsed && <span>Maintenance</span>}
+                      {!sidebarCollapsed && <span>{t('admin_nav_maintenance')}</span>}
                     </>
                   )}
                 </NavLink>
