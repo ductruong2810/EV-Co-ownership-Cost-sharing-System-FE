@@ -101,13 +101,20 @@ export default function Login() {
           
           // Extract userId from JWT token and save to localStorage for WebSocket connection
           // userId is already in the token, no need to include in response
+          console.log('🔐 Login: Extracting userId from token...')
           const userId = getUserIdFromToken()
+          console.log('🔐 Login: Extracted userId:', userId)
           if (userId) {
             setUserIdToLS(userId)
+            console.log('🔐 Login: Saved userId to localStorage, updating AppContext state...')
             setUserId(userId) // Update AppContext state to trigger WebSocket connection
+            console.log('🔐 Login: AppContext userId updated')
+          } else {
+            console.warn('⚠️ Login: Failed to extract userId from token')
           }
           
           setIsAuthenticated(true)
+          console.log('🔐 Login: Authentication state updated')
 
           // Hiển thị thông báo thành công
           showSuccessToast('Login successful! Welcome back.', 'Success')

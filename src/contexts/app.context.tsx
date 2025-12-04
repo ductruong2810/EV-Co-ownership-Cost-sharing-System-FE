@@ -62,10 +62,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   // thêm state groupId
   const [groupId, setGroupId] = useState<string>(initialAppContext.groupId)
 
-  const websocketOptions = useMemo(() => ({ 
-    initialGroupId: groupId || undefined,
-    userId: userId || undefined // Pass userId to trigger WebSocket connection when it changes
-  }), [groupId, userId])
+  const websocketOptions = useMemo(() => {
+    const options = { 
+      initialGroupId: groupId || undefined,
+      userId: userId || undefined // Pass userId to trigger WebSocket connection when it changes
+    }
+    console.log('📡 AppContext: WebSocket options updated:', { userId: options.userId, groupId: options.initialGroupId })
+    return options
+  }, [groupId, userId])
   const {
     status: websocketStatus,
     subscribeToGroupNotifications,

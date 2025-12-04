@@ -274,17 +274,22 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
 
   useEffect(() => {
     if (!userId) {
+      console.log('⚠️ WebSocket: No userId, skipping connection')
       return
     }
 
+    console.log('🔌 WebSocket: Attempting to connect with userId:', userId)
+
     // Nếu đã có connection, không tạo mới
     if (isConnectedRef.current && clientRef.current?.connected) {
+      console.log('✅ WebSocket: Already connected, skipping')
       return
     }
 
     // Tạo SockJS client với base URL từ config
     // SockJS cần HTTP URL, không phải WebSocket URL
     const wsUrl = config.baseUrl.replace(/\/$/, '') + '/ws'
+    console.log('🔌 WebSocket: Creating connection to', wsUrl)
     const socket = new SockJS(wsUrl)
     socketRef.current = socket
 
@@ -424,12 +429,15 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
 
     clientRef.current = stompClient
     updateStatus('connecting')
+    console.log('🔄 WebSocket: Setting status to connecting, activating client...')
 
     // Activate connection
     try {
       stompClient.activate()
+      console.log('🔄 WebSocket: Client activation initiated')
     } catch (error) {
-      console.error('Failed to activate WebSocket:', error)
+      console.error('❌ Failed to activate WebSocket:', error)
+      updateStatus('error')
     }
 
     // Cleanup khi unmount
