@@ -328,7 +328,7 @@ function NavHeader() {
                 <Link to={path.uploadLicense} className='flex items-center gap-3'>
                   <SafetyCertificateOutlined className='text-green-500 group-hover:text-green-600 transition-colors' />
                   <span className='group-hover:text-green-600 transition-colors'>
-                    {isEn ? 'Update Driver License & Citizen ID' : 'Cập nhật GPLX & CCCD'}
+                    {isEn ? 'Upload Documents' : 'Tải lên giấy tờ'}
                   </span>
                 </Link>
               </div>
