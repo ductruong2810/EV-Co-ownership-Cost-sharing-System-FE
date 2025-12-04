@@ -8,9 +8,10 @@ interface AvatarProps {
   userId?: string
   size?: number // px
   className?: string
+  onClick?: () => void
 }
 
-export default function Avatar({ avatar, userId, size = 128, className = '' }: AvatarProps) {
+export default function Avatar({ avatar, userId, size = 128, className = '', onClick }: AvatarProps) {
   // Generate avatar từ DiceBear, deterministic theo userId
   const generatedAvatar = useMemo(() => {
     if (!userId) return ''
@@ -29,7 +30,12 @@ export default function Avatar({ avatar, userId, size = 128, className = '' }: A
   const hasAvatar = Boolean(src)
 
   return (
-    <div className={`relative group ${className}`}>
+    <button
+      type='button'
+      onClick={onClick}
+      className={`relative group focus:outline-none ${className}`}
+      aria-label='Change avatar'
+    >
       <div
         className='rounded-full overflow-hidden 
                    border-[4px] border-white/60 
@@ -45,6 +51,15 @@ export default function Avatar({ avatar, userId, size = 128, className = '' }: A
           <div className='w-full h-full bg-slate-200' />
         )}
       </div>
-    </div>
+
+      {/* Hover overlay hint */}
+      {onClick && (
+        <div className='absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300'>
+          <span className='text-xs font-semibold text-white/90 bg-black/50 px-3 py-1 rounded-full'>
+            Change avatar
+          </span>
+        </div>
+      )}
+    </button>
   )
 }

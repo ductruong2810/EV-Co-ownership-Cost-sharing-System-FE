@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import userApi from '../../apis/user.api'
 import Skeleton from '../../components/Skeleton'
 import ActivitiBadge from './Components/ActivityBadge'
@@ -12,10 +13,13 @@ import Icon from './Components/Icon'
 import Username from './Components/Username'
 import { toast } from 'react-toastify'
 import { useI18n } from '../../i18n/useI18n'
+import path from '../../constants/path'
+import authApi from '../../apis/auth.api'
 
 export default function MyAccount() {
   const queryClient = useQueryClient()
-  const [editingField, setEditingField] = useState<'phone' | 'name' | null>(null)
+  const navigate = useNavigate()
+  const [editingField, setEditingField] = useState<'phone' | 'name' | 'email' | null>(null)
   const [editValue, setEditValue] = useState('')
   const { t } = useI18n()
 
@@ -57,7 +61,27 @@ export default function MyAccount() {
     }
   })
 
-  const handleEdit = (field: 'phone' | 'name', currentValue: string) => {
+  // Mutation for change email (request OTP)
+  const changeEmailMutation = useMutation({
+    mutationFn: (newEmail: string) => authApi.requestChangeEmail({ newEmail }),
+    onSuccess: (response) => {
+      setEditingField(null)
+      setEditValue('')
+      toast.success(response.data.message || 'Verification code sent to your new email', {
+        autoClose: 2500,
+        position: 'top-right'
+      })
+      navigate(path.OTP, {
+        state: {
+          message: response.data.message,
+          email: response.data.email,
+          type: response.data.type
+        }
+      })
+    }
+  })
+
+  const handleEdit = (field: 'phone' | 'name' | 'email', currentValue: string) => {
     setEditingField(field)
     setEditValue(currentValue)
   }
@@ -67,6 +91,12 @@ export default function MyAccount() {
       phonemutation.mutate(editValue)
     } else if (editingField === 'name') {
       nameMutation.mutate(editValue)
+    } else if (editingField === 'email') {
+      if (!editValue || !editValue.includes('@')) {
+        toast.error('Please enter a valid email address', { autoClose: 2500, position: 'top-right' })
+        return
+      }
+      changeEmailMutation.mutate(editValue)
     }
   }
 
@@ -192,7 +222,12 @@ export default function MyAccount() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className='lg:col-span-1 flex flex-col items-center justify-center space-y-6 bg-white/15 backdrop-blur-xl rounded-2xl p-8 border-[3px] border-white/40 shadow-[0_0_30px_rgba(6,182,212,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)]'
           >
-            <Avatar userId={user.userId.toString()} size={128} className='mx-auto' />
+            <Avatar
+              userId={user.userId.toString()}
+              size={128}
+              className='mx-auto'
+              onClick={() => navigate(`/dashboard/${path.profile}`)}
+            />
 
             {/* Username with Edit Button */}
             <div className='relative group'>
@@ -261,7 +296,23 @@ export default function MyAccount() {
                   variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}
                   transition={{ duration: 0.4 }}
                 >
-                  <Field label={t('my_account_field_email')} value={user?.email as string} glow={true} />
+                  <div className='relative group'>
+                    <Field label={t('my_account_field_email')} value={user?.email as string} glow={true} />
+                    <button
+                      onClick={() => handleEdit('email', user?.email as string)}
+                      className='absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 p-2 rounded-lg shadow-lg hover:bg-white'
+                      title='Change email'
+                    >
+                      <svg className='w-4 h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z'
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </motion.div>
 
                 {/* Phone Field - Editable */}
@@ -320,21 +371,47 @@ export default function MyAccount() {
                 </svg>
               </Icon>
 
-              <div className='grid md:grid-cols-2 gap-4'>
-                <DocCard
-                  title={t('my_account_doc_citizen')}
-                  imageFront={user?.documents.citizenIdImages?.front?.imageUrl || ''}
-                  imageBack={user?.documents.citizenIdImages?.back?.imageUrl || ''}
-                  statusFront={user?.documents.citizenIdImages?.front?.status || ''}
-                  statusBack={user?.documents.citizenIdImages?.back?.status || ''}
-                />
-                <DocCard
-                  title={t('my_account_doc_driver')}
-                  imageFront={user?.documents.driverLicenseImages?.front?.imageUrl || ''}
-                  imageBack={user?.documents.driverLicenseImages?.back?.imageUrl || ''}
-                  statusFront={user?.documents.driverLicenseImages?.front?.status || ''}
-                  statusBack={user?.documents.driverLicenseImages?.back?.status || ''}
-                />
+              <div className='flex flex-col gap-4'>
+                <div className='grid md:grid-cols-2 gap-4'>
+                  <DocCard
+                    title={t('my_account_doc_citizen')}
+                    imageFront={user?.documents.citizenIdImages?.front?.imageUrl || ''}
+                    imageBack={user?.documents.citizenIdImages?.back?.imageUrl || ''}
+                    statusFront={user?.documents.citizenIdImages?.front?.status || ''}
+                    statusBack={user?.documents.citizenIdImages?.back?.status || ''}
+                  />
+                  <DocCard
+                    title={t('my_account_doc_driver')}
+                    imageFront={user?.documents.driverLicenseImages?.front?.imageUrl || ''}
+                    imageBack={user?.documents.driverLicenseImages?.back?.imageUrl || ''}
+                    statusFront={user?.documents.driverLicenseImages?.front?.status || ''}
+                    statusBack={user?.documents.driverLicenseImages?.back?.status || ''}
+                  />
+                </div>
+
+                <div className='flex justify-end'>
+                  <button
+                    type='button'
+                    onClick={() => navigate(`/dashboard/${path.uploadLicense}`)}
+                    className='inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 border border-white/40 text-xs sm:text-sm font-semibold text-white hover:bg-white/25 hover:border-white/60 shadow-[0_0_18px_rgba(6,182,212,0.45)] transition-all duration-300'
+                  >
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      strokeWidth={1.8}
+                      stroke='currentColor'
+                      className='w-4 h-4'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M16 12l-4 4m0 0l-4-4m4 4V4'
+                      />
+                    </svg>
+                    <span>{t('upload_header_title')}</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

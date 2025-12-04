@@ -150,6 +150,15 @@ export default function UploadLicense() {
 
   const { t } = useI18n()
 
+  const buildEmptyDocumentInfo = (): DocumentInfo => ({
+    idNumber: '',
+    fullName: '',
+    dateOfBirth: '',
+    issueDate: '',
+    expiryDate: '',
+    address: ''
+  })
+
   // Preview OCR mutation
   const previewOcrMutation = useMutation({
     mutationFn: ({ frontFile, backFile, documentType }: PreviewOcrPayload) =>
@@ -170,6 +179,13 @@ export default function UploadLicense() {
       console.error('Failed to preview OCR:', error)
       setIsPreviewingOcr(false)
       toast.error(t('upload_toast_ocr_failed'), { autoClose: 3000 })
+      // Fallback: allow user to input document info manually even when OCR fails
+      const docType = activeTab
+      setOcrResults((prev) => ({
+        ...prev,
+        [docType]: prev[docType] ?? buildEmptyDocumentInfo()
+      }))
+      setShowOcrEditor((prev) => ({ ...prev, [docType]: true }))
     }
   })
 

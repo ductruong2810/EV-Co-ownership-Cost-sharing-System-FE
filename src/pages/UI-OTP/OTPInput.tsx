@@ -55,6 +55,11 @@ function OTPInput({ length = 6 }: OTPInputProps) {
               resetToken: response.data?.resetToken // chuyền resetToken qua trang đặt lại mật khẩu mới
             }
           })
+        } else if (type === 'CHANGE_EMAIL') {
+          toast.success('Email has been updated successfully', {
+            autoClose: 1000
+          })
+          navigate(`${path.dashBoard}/${path.profile}`)
         }
       }
     })

@@ -58,6 +58,11 @@ const authApi = {
   // refresh token
   refreshToken: (refreshToken: string) => {
     return http.post<AuthResponse>('api/auth/refresh', { refreshToken })
+  },
+
+  // change email - request OTP to new email
+  requestChangeEmail: (body: { newEmail: string }) => {
+    return http.post<AuthResponse>('api/auth/change-email/request-otp', body)
   }
 }
 

@@ -78,6 +78,7 @@ const messages = {
     my_account_field_phone: 'Phone',
     my_account_doc_citizen: 'Citizen ID',
     my_account_doc_driver: 'Driver License',
+    my_account_member_since_label: 'Member since',
 
     // Upload License
     upload_header_title: 'Upload Documents',
@@ -1215,6 +1216,7 @@ const messages = {
     my_account_field_phone: 'Số điện thoại',
     my_account_doc_citizen: 'Căn cước công dân',
     my_account_doc_driver: 'Giấy phép lái xe',
+    my_account_member_since_label: 'Thành viên từ',
 
     // Upload License
     upload_header_title: 'Tải lên giấy tờ',

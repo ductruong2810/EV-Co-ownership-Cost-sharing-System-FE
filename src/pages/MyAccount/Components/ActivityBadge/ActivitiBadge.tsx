@@ -1,6 +1,11 @@
 import { formatVnTime } from '../../../../utils/helper'
+import { useI18n } from '../../../../i18n/useI18n'
 
 export default function ActivitiBadge({ status, time }: { status: string; time: string }) {
+  const { t } = useI18n()
+
+  const label = status === 'ACTIVE' ? t('my_account_member_since_label') : status
+
   return (
     <div
       className='w-full bg-white/12 backdrop-blur-lg rounded-xl p-4
@@ -11,7 +16,7 @@ export default function ActivitiBadge({ status, time }: { status: string; time: 
     >
       <div className='flex items-center justify-center gap-3'>
         <div className='text-left'>
-          <div className='text-white font-bold text-sm drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'>{status}</div>
+          <div className='text-white font-bold text-sm drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'>{label}</div>
           <div className='text-white/75 text-xs font-medium'>{formatVnTime(time)}</div>
         </div>
       </div>
