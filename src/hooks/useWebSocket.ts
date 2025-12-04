@@ -272,13 +272,25 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
     }
   }, [status, userId, updateStatus, scheduleReconnect])
 
+  // Sync userId from localStorage when it changes (e.g., after login)
   useEffect(() => {
-    if (!userId) {
+    const storedUserId = getUserIdFromLS()
+    if (storedUserId && storedUserId !== userId) {
+      console.log('🔄 WebSocket: userId changed in localStorage, will trigger re-connection')
+      // This will trigger the main useEffect below to re-run with new userId
+    }
+  }, [userId])
+
+  useEffect(() => {
+    // Use userId from options first, then fallback to localStorage
+    const currentUserId = options?.userId || getUserIdFromLS()
+    
+    if (!currentUserId) {
       console.log('⚠️ WebSocket: No userId, skipping connection')
       return
     }
 
-    console.log('🔌 WebSocket: Attempting to connect with userId:', userId)
+    console.log('🔌 WebSocket: Attempting to connect with userId:', currentUserId, 'from options:', options?.userId)
 
     // Nếu đã có connection, không tạo mới
     if (isConnectedRef.current && clientRef.current?.connected) {
@@ -375,8 +387,9 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
         }, 2000) // Check every 2 seconds
 
         // Subscribe to user-specific notifications
+        // Use currentUserId from useEffect scope, not userId from component body
         stompClient.subscribe(
-          `/user/${userId}/queue/notifications`,
+          `/user/${currentUserId}/queue/notifications`,
           (message) => {
             try {
               const notification: WebSocketNotification = JSON.parse(message.body)
@@ -470,6 +483,7 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
     }
   }, [
     userId,
+    options?.userId, // Explicitly include options.userId to trigger re-run when it changes
     updateStatus,
     options?.initialGroupId,
     handleNotification,
