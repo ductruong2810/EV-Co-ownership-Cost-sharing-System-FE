@@ -49,6 +49,11 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
   const heartbeatCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const lastHeartbeatTimeRef = useRef<number>(0)
   const socketRef = useRef<SockJS | null>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const reconnectAttemptsRef = useRef<number>(0)
+  const MAX_RECONNECT_ATTEMPTS = 10 // Max 10 attempts before giving up
+  const INITIAL_RECONNECT_DELAY = 5000 // 5 seconds
+  const MAX_RECONNECT_DELAY = 30000 // Max 30 seconds between attempts
   const HEARTBEAT_TIMEOUT_MS = 12000 // 12 seconds = 3 missed heartbeats (4s each)
 
   const updateStatus = useCallback((next: WebSocketStatus) => {
@@ -187,11 +192,82 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
     }
   }, [])
 
+  // Auto-reconnect logic when disconnected
+  const scheduleReconnect = useCallback(() => {
+    if (!userId || isConnectedRef.current || reconnectTimeoutRef.current) {
+      return
+    }
+
+    if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      console.error('❌ Max reconnect attempts reached, giving up')
+      updateStatus('error')
+      return
+    }
+
+    reconnectAttemptsRef.current++
+    const delay = Math.min(
+      INITIAL_RECONNECT_DELAY * Math.pow(1.5, reconnectAttemptsRef.current - 1),
+      MAX_RECONNECT_DELAY
+    )
+
+    console.log(`🔄 Scheduling reconnect (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}) in ${delay}ms...`)
+    updateStatus('connecting')
+
+    reconnectTimeoutRef.current = setTimeout(() => {
+      reconnectTimeoutRef.current = null
+      
+      // Clear old client if exists
+      if (clientRef.current) {
+        try {
+          if (clientRef.current.connected) {
+            clientRef.current.deactivate()
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+        clientRef.current = null
+      }
+      if (socketRef.current) {
+        try {
+          socketRef.current.close()
+        } catch (e) {
+          // Ignore errors
+        }
+        socketRef.current = null
+      }
+
+      // Reset connection state to trigger new connection in useEffect
+      isConnectedRef.current = false
+      // Force useEffect to run by updating a dependency
+      updateStatus('connecting')
+    }, delay)
+  }, [userId, updateStatus])
+
   useEffect(() => {
     if (!userId) {
       updateStatus('disconnected')
+      return
     }
-  }, [userId, updateStatus])
+
+    // Auto-reconnect when disconnected or error (but not when already connecting)
+    if ((status === 'disconnected' || status === 'error') && !isConnectedRef.current && !reconnectTimeoutRef.current && status !== 'connecting') {
+      scheduleReconnect()
+    } else if (status === 'connected') {
+      // Reset reconnect attempts on successful connection
+      reconnectAttemptsRef.current = 0
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+        reconnectTimeoutRef.current = null
+      }
+    }
+
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+        reconnectTimeoutRef.current = null
+      }
+    }
+  }, [status, userId, updateStatus, scheduleReconnect])
 
   useEffect(() => {
     if (!userId) {
@@ -215,6 +291,11 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
       if (isConnectedRef.current) {
         isConnectedRef.current = false
         updateStatus('disconnected')
+        // Clear heartbeat check interval
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current)
+          heartbeatCheckIntervalRef.current = null
+        }
       }
     }
 
@@ -223,6 +304,11 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
       if (isConnectedRef.current) {
         isConnectedRef.current = false
         updateStatus('error')
+        // Clear heartbeat check interval
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current)
+          heartbeatCheckIntervalRef.current = null
+        }
       }
     }
 
@@ -358,6 +444,10 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
 
     // Cleanup khi unmount
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+        reconnectTimeoutRef.current = null
+      }
       if (heartbeatCheckIntervalRef.current) {
         clearInterval(heartbeatCheckIntervalRef.current)
         heartbeatCheckIntervalRef.current = null
