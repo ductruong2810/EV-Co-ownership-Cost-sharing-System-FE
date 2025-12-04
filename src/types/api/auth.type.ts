@@ -15,4 +15,5 @@ export type AuthResponse = {
   type?: string
   resetToken?: string
   role?: Role
+  userId?: number // Added for WebSocket connection initialization
 }

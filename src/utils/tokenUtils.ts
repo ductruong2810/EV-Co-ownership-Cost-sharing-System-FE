@@ -2,6 +2,9 @@ import { jwtDecode } from 'jwt-decode'
 
 interface JwtPayload {
   exp: number
+  userId?: number
+  email?: string
+  role?: string
 }
 
 export const getToken = () => localStorage.getItem('access_token')
@@ -16,5 +19,17 @@ export const isTokenExpired = (): boolean => {
     return decoded.exp < currentTime
   } catch {
     return true
+  }
+}
+
+export const getUserIdFromToken = (): string | null => {
+  const token = getToken()
+  if (!token) return null
+
+  try {
+    const decoded = jwtDecode<JwtPayload>(token)
+    return decoded.userId?.toString() || null
+  } catch {
+    return null
   }
 }

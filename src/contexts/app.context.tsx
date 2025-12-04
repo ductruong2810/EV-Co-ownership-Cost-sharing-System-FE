@@ -6,10 +6,12 @@ import {
   getGroupIdFromLS,
   getRoleFromLS,
   getUserIdFromLS,
+  setUserIdToLS,
   LocalStorageEventTarget,
   GROUP_ID_CHANGED_EVENT
 } from '../utils/auth'
 import { useWebSocket, type WebSocketStatus } from '../hooks/useWebSocket'
+import { getUserIdFromToken } from '../utils/tokenUtils'
 
 // Định nghĩa context lưu dữ liệu kiểu gì hoặc nói cách khác là định nghĩa cho initialState
 interface AppContextInterface {
@@ -66,6 +68,18 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     subscribeToGroupNotifications,
     unsubscribeFromGroupNotifications
   } = useWebSocket(websocketOptions)
+
+  // Extract userId from token if not in localStorage (for users who logged in before this fix)
+  useEffect(() => {
+    const storedUserId = getUserIdFromLS()
+    if (!storedUserId && isAuthenticated) {
+      const userIdFromToken = getUserIdFromToken()
+      if (userIdFromToken) {
+        setUserIdToLS(userIdFromToken)
+        setUserId(userIdFromToken)
+      }
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     const handleGroupIdChange = (event: Event) => {

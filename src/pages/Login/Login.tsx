@@ -18,10 +18,12 @@ import {
   setEmailAccountToLS,
   setRoleToLS,
   setRefreshTokenToLS,
+  setUserIdToLS,
   getRememberedEmailFromLS,
   setRememberedEmailToLS,
   clearRememberedEmailFromLS
 } from '../../utils/auth'
+import { getUserIdFromToken } from '../../utils/tokenUtils'
 import { loginSchema, type LoginSchema } from '../../utils/rule'
 import { LOGIN_IMG_URL } from '../../constants/images'
 import logger from '../../utils/logger'
@@ -88,13 +90,22 @@ export default function Login() {
           logger.info('Login successful')
           // Mục đích set luôn là để cho nó đồng bộ luôn chứ lúc đầu nó đâu có sẵn mà lấy từ LS
           //phải ctrl r mới có sẽ bị bất đồng bộ
-          setAccessTokenToLS(response.data?.accessToken as string)
+          const accessToken = response.data?.accessToken as string
+          setAccessTokenToLS(accessToken)
           if (response.data?.refreshToken) {
             setRefreshTokenToLS(response.data.refreshToken as string)
           }
           const userRole = response.data?.role as string
           setRoleToLS(userRole)
           setEmailAccountToLS(data.email)
+          
+          // Extract userId from JWT token and save to localStorage for WebSocket connection
+          // userId is already in the token, no need to include in response
+          const userId = getUserIdFromToken()
+          if (userId) {
+            setUserIdToLS(userId)
+          }
+          
           setIsAuthenticated(true)
 
           // Hiển thị thông báo thành công
