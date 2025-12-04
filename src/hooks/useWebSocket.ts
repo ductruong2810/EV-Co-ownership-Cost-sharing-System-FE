@@ -46,6 +46,10 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
   const pendingInvalidationsRef = useRef<Map<string, QueryKey>>(new Map())
   const flushTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastStatusRef = useRef<WebSocketStatus>('disconnected')
+  const heartbeatCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const lastHeartbeatTimeRef = useRef<number>(0)
+  const socketRef = useRef<SockJS | null>(null)
+  const HEARTBEAT_TIMEOUT_MS = 12000 // 12 seconds = 3 missed heartbeats (4s each)
 
   const updateStatus = useCallback((next: WebSocketStatus) => {
     setStatus((prev) => {
@@ -156,6 +160,8 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
         try {
           const notification: WebSocketNotification = JSON.parse(message.body)
           handleNotification(notification)
+          // Update heartbeat time when receiving any message (indicates connection is alive)
+          lastHeartbeatTimeRef.current = Date.now()
         } catch (error) {
           console.error('❌ Error parsing group WebSocket message:', error)
         }
@@ -201,6 +207,24 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
     // SockJS cần HTTP URL, không phải WebSocket URL
     const wsUrl = config.baseUrl.replace(/\/$/, '') + '/ws'
     const socket = new SockJS(wsUrl)
+    socketRef.current = socket
+
+    // Track socket state changes to detect disconnections faster
+    socket.onclose = () => {
+      console.log('🔌 SockJS socket closed')
+      if (isConnectedRef.current) {
+        isConnectedRef.current = false
+        updateStatus('disconnected')
+      }
+    }
+
+    socket.onerror = () => {
+      console.error('❌ SockJS socket error')
+      if (isConnectedRef.current) {
+        isConnectedRef.current = false
+        updateStatus('error')
+      }
+    }
 
     const accessToken = getAccessTokenFromLS()
 
@@ -223,6 +247,51 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
         console.log('✅ WebSocket connected')
         isConnectedRef.current = true
         updateStatus('connected')
+        lastHeartbeatTimeRef.current = Date.now()
+
+        // Start heartbeat monitoring to detect sudden disconnections
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current)
+        }
+        heartbeatCheckIntervalRef.current = setInterval(() => {
+          if (isConnectedRef.current && clientRef.current?.connected) {
+            const now = Date.now()
+            const timeSinceLastHeartbeat = now - lastHeartbeatTimeRef.current
+            
+            // Check underlying socket state
+            const currentSocket = socketRef.current
+            if (!currentSocket) {
+              isConnectedRef.current = false
+              updateStatus('disconnected')
+              return
+            }
+            const socketState = currentSocket.readyState
+            const isSocketOpen = socketState === SockJS.OPEN
+            
+            // If socket is not open, mark as disconnected immediately
+            if (!isSocketOpen) {
+              console.warn('⚠️ Underlying socket is not open, marking as disconnected')
+              isConnectedRef.current = false
+              updateStatus('disconnected')
+              return
+            }
+            
+            // If no activity (message/heartbeat) received for too long, consider it disconnected
+            // This handles cases where socket appears open but server is actually down
+            if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT_MS) {
+              console.warn('⚠️ Heartbeat timeout detected, marking as disconnected')
+              isConnectedRef.current = false
+              updateStatus('disconnected')
+              if (clientRef.current?.connected) {
+                try {
+                  clientRef.current.deactivate()
+                } catch (e) {
+                  console.error('Error deactivating client:', e)
+                }
+              }
+            }
+          }
+        }, 2000) // Check every 2 seconds
 
         // Subscribe to user-specific notifications
         stompClient.subscribe(
@@ -231,6 +300,8 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
             try {
               const notification: WebSocketNotification = JSON.parse(message.body)
               handleNotification(notification)
+              // Update heartbeat time when receiving any message (indicates connection is alive)
+              lastHeartbeatTimeRef.current = Date.now()
             } catch (error) {
               console.error('❌ Error parsing WebSocket message:', error)
             }
@@ -248,6 +319,10 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
         console.error('❌ WebSocket STOMP error:', frame)
         isConnectedRef.current = false
         updateStatus('error')
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current)
+          heartbeatCheckIntervalRef.current = null
+        }
       },
       onDisconnect: () => {
         console.log('🔌 WebSocket disconnected')
@@ -255,11 +330,19 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
         updateStatus('disconnected')
         subscriptionsRef.current.forEach((subscription) => subscription.unsubscribe())
         subscriptionsRef.current.clear()
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current)
+          heartbeatCheckIntervalRef.current = null
+        }
       },
       onWebSocketError: (event) => {
         console.error('❌ WebSocket error:', event)
         isConnectedRef.current = false
         updateStatus('error')
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current)
+          heartbeatCheckIntervalRef.current = null
+        }
       }
     })
 
@@ -275,6 +358,16 @@ export function useWebSocket(options?: UseWebSocketOptions): UseWebSocketResult 
 
     // Cleanup khi unmount
     return () => {
+      if (heartbeatCheckIntervalRef.current) {
+        clearInterval(heartbeatCheckIntervalRef.current)
+        heartbeatCheckIntervalRef.current = null
+      }
+      if (socketRef.current) {
+        socketRef.current.onclose = null
+        socketRef.current.onerror = null
+        socketRef.current.close()
+        socketRef.current = null
+      }
       if (stompClient.connected) {
         stompClient.deactivate()
         isConnectedRef.current = false
