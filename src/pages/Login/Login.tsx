@@ -24,6 +24,7 @@ import {
   clearRememberedEmailFromLS
 } from '../../utils/auth'
 import { getUserIdFromToken } from '../../utils/tokenUtils'
+import { jwtDecode } from 'jwt-decode'
 import { loginSchema, type LoginSchema } from '../../utils/rule'
 import { LOGIN_IMG_URL } from '../../constants/images'
 import logger from '../../utils/logger'
@@ -102,7 +103,23 @@ export default function Login() {
           // Extract userId from JWT token and save to localStorage for WebSocket connection
           // userId is already in the token, no need to include in response
           console.log('🔐 Login: Extracting userId from token...')
-          const userId = getUserIdFromToken()
+          console.log('🔐 Login: Access token received:', accessToken ? `${accessToken.substring(0, 20)}...` : 'null')
+          
+          // Decode directly from the response token instead of reading from localStorage
+          // to avoid timing issues where token might not be saved yet
+          let userId: string | null = null
+          try {
+            if (accessToken) {
+              const decoded = jwtDecode<{ userId?: number; email?: string; role?: string; exp: number }>(accessToken)
+              console.log('🔐 Login: Decoded token payload:', { userId: decoded.userId, email: decoded.email, role: decoded.role })
+              userId = decoded.userId?.toString() || null
+            }
+          } catch (error) {
+            console.error('❌ Login: Failed to decode token:', error)
+            // Fallback to reading from localStorage (after token is saved)
+            userId = getUserIdFromToken()
+          }
+          
           console.log('🔐 Login: Extracted userId:', userId)
           if (userId) {
             setUserIdToLS(userId)
@@ -111,6 +128,17 @@ export default function Login() {
             console.log('🔐 Login: AppContext userId updated')
           } else {
             console.warn('⚠️ Login: Failed to extract userId from token')
+            console.warn('⚠️ Login: Token might not contain userId. Checking token payload...')
+            // Debug: try to decode and log full payload
+            if (accessToken) {
+              try {
+                const { jwtDecode } = await import('jwt-decode')
+                const decoded = jwtDecode<any>(accessToken)
+                console.warn('⚠️ Login: Full token payload:', decoded)
+              } catch (e) {
+                console.error('❌ Login: Cannot decode token for debugging:', e)
+              }
+            }
           }
           
           setIsAuthenticated(true)

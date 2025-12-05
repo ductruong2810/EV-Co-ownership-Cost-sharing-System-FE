@@ -7,7 +7,7 @@ interface JwtPayload {
   role?: string
 }
 
-export const getToken = () => localStorage.getItem('access_token')
+export const getToken = () => localStorage.getItem('accessToken') || ''
 
 export const isTokenExpired = (): boolean => {
   const token = getToken()
