@@ -81,6 +81,52 @@ export default function MyAccount() {
     }
   })
 
+  // Mutation for update avatar
+  const avatarMutation = useMutation({
+    mutationFn: (avatarFile: File) => userApi.updateAvatar(avatarFile),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+      toast.success('Avatar updated successfully', {
+        autoClose: 2500,
+        position: 'top-right'
+      })
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to update avatar', {
+        autoClose: 2500,
+        position: 'top-right'
+      })
+    }
+  })
+
+  // Handle avatar file selection
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file', {
+        autoClose: 2500,
+        position: 'top-right'
+      })
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB', {
+        autoClose: 2500,
+        position: 'top-right'
+      })
+      return
+    }
+
+    avatarMutation.mutate(file)
+    // Reset input value to allow selecting the same file again
+    event.target.value = ''
+  }
+
   const handleEdit = (field: 'phone' | 'name' | 'email', currentValue: string) => {
     setEditingField(field)
     setEditValue(currentValue)
@@ -222,12 +268,32 @@ export default function MyAccount() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className='lg:col-span-1 flex flex-col items-center justify-center space-y-6 bg-white/15 backdrop-blur-xl rounded-2xl p-8 border-[3px] border-white/40 shadow-[0_0_30px_rgba(6,182,212,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)]'
           >
-            <Avatar
-              userId={user.userId.toString()}
-              size={128}
-              className='mx-auto'
-              onClick={() => navigate(`/dashboard/${path.profile}`)}
-            />
+            <div className='relative'>
+              <Avatar
+                avatar={user?.avatarUrl || undefined}
+                userId={user.userId.toString()}
+                size={128}
+                className='mx-auto'
+                onClick={() => {
+                  // Trigger file input click
+                  const fileInput = document.getElementById('avatar-file-input') as HTMLInputElement
+                  fileInput?.click()
+                }}
+              />
+              <input
+                id='avatar-file-input'
+                type='file'
+                accept='image/*'
+                onChange={handleAvatarChange}
+                className='hidden'
+                disabled={avatarMutation.isPending}
+              />
+              {avatarMutation.isPending && (
+                <div className='absolute inset-0 flex items-center justify-center bg-black/20 rounded-full'>
+                  <div className='w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin' />
+                </div>
+              )}
+            </div>
 
             {/* Username with Edit Button */}
             <div className='relative group'>

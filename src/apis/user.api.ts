@@ -180,6 +180,19 @@ const userApi = {
   // admin group send feedback status approve
   groupAdminRejectFeedback: ({ groupId, reason }: { groupId: string; reason: string }) => {
     return http.post(`api/contracts/${groupId}/cancel`, { reason })
+  },
+  // update avatar
+  updateAvatar: (avatarFile: File) => {
+    const accessToken = getAccessTokenFromLS()
+    const formData = new FormData()
+    formData.append('file', avatarFile)
+    
+    return http.post<UserGetProfile>('api/user/profile/avatar', formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
   }
 }
 
