@@ -304,7 +304,12 @@ function NavHeader() {
             <div className='px-4 py-3 border-b border-gray-200/70 bg-gradient-to-r from-blue-50 to-indigo-50'>
               <div className='flex items-center gap-3'>
                 <div className='w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center'>
-                  <Avatar userId={userId} size={40} className='cursor-pointer' />
+                  <Avatar 
+                    userId={userId} 
+                    avatar={userProfile?.avatarUrl || undefined}
+                    size={40} 
+                    className='cursor-pointer' 
+                  />
                 </div>
                 <div>
                   <div className='text-sm font-semibold text-gray-800'>{userProfile?.fullName || getEmailAccountFromLS()}</div>

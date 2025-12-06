@@ -12,9 +12,17 @@ interface AvatarProps {
 }
 
 export default function Avatar({ avatar, userId, size = 128, className = '', onClick }: AvatarProps) {
-  // Generate avatar từ DiceBear, deterministic theo userId
+  // Generate default avatar từ DiceBear, deterministic theo userId
+  // Avatar này sẽ luôn được tạo nếu có userId, dùng làm fallback khi chưa có avatarUrl
   const generatedAvatar = useMemo(() => {
-    if (!userId) return ''
+    if (!userId) {
+      // Fallback: generate với seed mặc định nếu không có userId
+      return createAvatar(lorelei as any, {
+        size,
+        seed: 'default-avatar',
+        backgroundColor: ['b6e3f4', 'c0aede', 'd1d4f9', 'ffd5dc', 'ffdfbf']
+      }).toDataUri()
+    }
 
     const seed = userId
 
@@ -25,9 +33,10 @@ export default function Avatar({ avatar, userId, size = 128, className = '', onC
     }).toDataUri()
   }, [userId, size])
 
-  // Ưu tiên avatar custom, fallback sang avatar generate
-  const src = avatar || generatedAvatar
-  const hasAvatar = Boolean(src)
+  // Ưu tiên avatar custom (nếu có và hợp lệ), fallback sang generated avatar
+  // Chỉ dùng avatarUrl nếu nó không null/empty và là URL hợp lệ
+  const hasCustomAvatar = avatar && avatar.trim() !== '' && avatar !== 'null'
+  const src = hasCustomAvatar ? avatar : generatedAvatar
 
   return (
     <button
@@ -44,12 +53,19 @@ export default function Avatar({ avatar, userId, size = 128, className = '', onC
                    group-hover:shadow-[0_0_40px_rgba(6,182,212,0.8)]'
         style={{ width: size, height: size }}
       >
-        {hasAvatar ? (
-          <img src={src} alt='Avatar' className='w-full h-full object-cover' loading='lazy' />
-        ) : (
-          // Skeleton: tránh cảm giác “nhảy hình” lúc mới vào trang
-          <div className='w-full h-full bg-slate-200' />
-        )}
+        <img 
+          src={src} 
+          alt='Avatar' 
+          className='w-full h-full object-cover' 
+          loading='lazy'
+          onError={(e) => {
+            // Nếu avatarUrl load lỗi, fallback về generated avatar
+            if (hasCustomAvatar) {
+              const target = e.target as HTMLImageElement
+              target.src = generatedAvatar
+            }
+          }}
+        />
       </div>
 
       {/* Hover overlay hint */}
