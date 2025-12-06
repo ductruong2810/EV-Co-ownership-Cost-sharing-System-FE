@@ -110,9 +110,22 @@ export default function Login() {
           let userId: string | null = null
           try {
             if (accessToken) {
-              const decoded = jwtDecode<{ userId?: number; email?: string; role?: string; exp: number }>(accessToken)
-              console.log('🔐 Login: Decoded token payload:', { userId: decoded.userId, email: decoded.email, role: decoded.role })
-              userId = decoded.userId?.toString() || null
+              // Decode as any first to see full payload structure
+              const decoded = jwtDecode<any>(accessToken)
+              console.log('🔐 Login: Full decoded token payload:', decoded)
+              console.log('🔐 Login: Token keys:', Object.keys(decoded))
+              
+              // Try different possible field names for userId
+              // Backend might serialize Long as number or string
+              const userIdValue = decoded.userId || decoded.user_id || decoded.sub
+              console.log('🔐 Login: userId value:', userIdValue, 'type:', typeof userIdValue)
+              
+              if (userIdValue !== null && userIdValue !== undefined) {
+                userId = String(userIdValue)
+                console.log('🔐 Login: Extracted userId as string:', userId)
+              } else {
+                console.warn('⚠️ Login: userId not found in token payload')
+              }
             }
           } catch (error) {
             console.error('❌ Login: Failed to decode token:', error)
