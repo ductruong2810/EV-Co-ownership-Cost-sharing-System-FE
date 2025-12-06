@@ -132,7 +132,6 @@ export default function Login() {
             // Debug: try to decode and log full payload
             if (accessToken) {
               try {
-                const { jwtDecode } = await import('jwt-decode')
                 const decoded = jwtDecode<any>(accessToken)
                 console.warn('⚠️ Login: Full token payload:', decoded)
               } catch (e) {
