@@ -176,6 +176,12 @@ const messages = {
     gp_benefit_cost_title: 'Split costs by ownership',
     gp_benefit_cost_desc: 'Automatically calculated',
     gp_footer_note: 'The contract must be approved before using these features',
+    gp_banner_start: 'Complete driver license, citizen ID and ownership ratio to generate the contract',
+    gp_banner_progress: '{{completed}} of {{total}} steps completed. Keep going!',
+    gp_banner_all_completed: '🎉 All steps completed! You can now generate the contract.',
+    gp_banner_complete: 'Complete',
+    gp_cta_start_upload: 'Start Upload Documents',
+    gp_cta_set_percentage: 'Set Ownership Percentage',
 
     // GroupPage - MyBooking
     gp_mybooking_title: 'My Bookings',
@@ -1067,6 +1073,7 @@ const messages = {
     admin_check_license_expired: 'EXPIRED',
     admin_check_license_verify_ocr: '⚠️ Verify this information matches the document image',
     admin_check_license_doc_id: 'Document ID',
+    admin_check_license_status: 'Status',
     admin_check_license_reviewed_by: 'Reviewed By',
     admin_check_license_review_note: 'Review Note',
     admin_check_license_address: 'Address',
@@ -2516,6 +2523,7 @@ const messages = {
     admin_check_license_expired: 'HẾT HẠN',
     admin_check_license_verify_ocr: '⚠️ Xác minh thông tin này khớp với hình ảnh tài liệu',
     admin_check_license_doc_id: 'ID Tài liệu',
+    admin_check_license_status: 'Trạng thái',
     admin_check_license_reviewed_by: 'Được Xem xét Bởi',
     admin_check_license_review_note: 'Ghi chú Xem xét',
     admin_check_license_address: 'Địa chỉ',

@@ -10,6 +10,7 @@ export interface GroupItem {
   groupName?: string
   description?: string
   status?: string
+  ownershipPercentage?: number | null // Tỷ lệ sở hữu của user trong group
 }
 
 export interface InvitationResponse {

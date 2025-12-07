@@ -12,7 +12,7 @@ interface IField {
 function Field({ type, side, label, handleFileChange, docs, disabled = false }: IField) {
   const file = docs[type][side]
   const hasFile = Boolean(file)
-  const fileSizeMB = file ? (file.size / 1024 / 1024).toFixed(2) : 0
+  const fileSizeMB = file ? Number((file.size / 1024 / 1024).toFixed(2)) : 0
   const isFileTooLarge = file ? file.size > 5 * 1024 * 1024 : false // 5MB limit
 
   return (

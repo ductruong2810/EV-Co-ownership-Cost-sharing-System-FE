@@ -90,7 +90,7 @@ export default function FeedBackAdmin() {
   const feedbacksKey = useMemo(() => {
     const allFeedbacks = feedbacks?.feedbacks || []
     if (allFeedbacks.length === 0) return 'empty'
-    return JSON.stringify(allFeedbacks.map(f => ({ id: f.id, email: f.email })))
+    return JSON.stringify(allFeedbacks.map(f => ({ id: f.feedbackId, email: f.email })))
   }, [feedbacks?.feedbacks])
 
   const groupedFeedbacks = useMemo(() => {

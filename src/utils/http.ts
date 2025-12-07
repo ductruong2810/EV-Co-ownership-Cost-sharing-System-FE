@@ -237,13 +237,18 @@ class Http {
                                  error.config?.url?.includes('/documents/preview-ocr') ||
                                  error.config?.url?.includes('/groups/with-vehicle') ||
                                  error.config?.url?.includes('/ocr/')
+        
+        // Skip toast for optional/non-critical endpoints that may not exist
+        const isOptionalEndpoint = error.config?.url?.includes('/usage-report') ||
+                                  error.config?.url?.includes('/smart-insights')
 
-        // Only show toast if not handled elsewhere and not a validation/upload/auth error
+        // Only show toast if not handled elsewhere and not a validation/upload/auth/optional error
         if (
           error.response?.status !== HttpStatusCode.UnprocessableEntity &&
           !isHandlingRefresh &&
           !isUploadEndpoint &&
-          !isAuthEndpoint
+          !isAuthEndpoint &&
+          !isOptionalEndpoint
         ) {
           try {
             const errorInfo = convertToErrorInfo(error)

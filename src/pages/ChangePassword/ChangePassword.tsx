@@ -20,8 +20,8 @@ export default function ChangePassword() {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm<ChangePasswordSchema>({
-    resolver: yupResolver<FieldValues>(changePasswordSchema)
+  } = useForm({
+    resolver: yupResolver(changePasswordSchema)
   })
 
   const { t } = useI18n()
@@ -39,7 +39,7 @@ export default function ChangePassword() {
   const navigate = useNavigate()
 
   const changePasswordMutation = useMutation({
-    mutationFn: (body: ChangePasswordSchema) => authApi.changePassword(body)
+    mutationFn: (body: any) => authApi.changePassword(body)
   })
 
   const onSubmit = handleSubmit((data) => {

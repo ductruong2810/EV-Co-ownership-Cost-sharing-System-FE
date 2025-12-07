@@ -1,8 +1,9 @@
-import type { UsageAnalytics } from '../../../../../../types/api/group.type'
+import type { UsageAnalytics } from '../../../../../types/api/group.type'
 
 interface UsageReportCardProps {
   data?: UsageAnalytics
   isLoading: boolean
+  isError?: boolean
 }
 
 const statusStyles: Record<
@@ -26,7 +27,7 @@ const statusStyles: Record<
   }
 }
 
-const UsageReportCard = ({ data, isLoading }: UsageReportCardProps) => {
+const UsageReportCard = ({ data, isLoading, isError }: UsageReportCardProps) => {
   if (isLoading) {
     return (
       <div className='rounded-3xl bg-white/20 border-[3px] border-white/50 backdrop-blur-xl p-6 text-white/70'>
@@ -35,7 +36,8 @@ const UsageReportCard = ({ data, isLoading }: UsageReportCardProps) => {
     )
   }
 
-  if (!data) return null
+  // Silently hide if error or no data (optional feature)
+  if (isError || !data) return null
 
   const status = statusStyles[data.fairnessStatus] || statusStyles.ON_TRACK
   const totalSlots = data.totalQuotaSlots ?? 0

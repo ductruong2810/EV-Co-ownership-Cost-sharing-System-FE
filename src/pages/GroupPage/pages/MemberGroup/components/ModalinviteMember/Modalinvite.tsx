@@ -65,7 +65,7 @@ export default function Modalinvite({
             {errors.inviteeEmail && (
               <p className='mt-2.5 text-sm text-red-200 flex items-center gap-1.5 font-medium'>
                 <CloseCircleOutlined />
-                {errors.inviteeEmail.message}
+                {String(errors.inviteeEmail.message || '')}
               </p>
             )}
           </div>
