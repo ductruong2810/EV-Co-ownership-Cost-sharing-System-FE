@@ -8,6 +8,8 @@ import convertIsoString from '../../../../../../utils/createIsoString'
 import ModalConfirm from '../ModalConfirm'
 import getSlotStyle from './utils/getSlotStyle'
 import getTooltip from './utils/getTooltip'
+import { showErrorToast } from '../../../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../../../types/error.type'
 
 export interface Slot {
   date: string
@@ -78,12 +80,22 @@ export default function BookingSlotCell({
       return
     }
     if (quotaUser.remainingSlots <= 0) {
-      toast.error('You have used up your quota for this week!')
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: 'You have used up your quota for this week!',
+        timestamp: new Date()
+      })
       return
     }
 
     if (vehicleStatus === 'Has Issues') {
-      toast.error('The vehicle is currently damaged and cannot be booked!')
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: 'The vehicle is currently damaged and cannot be booked!',
+        timestamp: new Date()
+      })
       return
     }
 

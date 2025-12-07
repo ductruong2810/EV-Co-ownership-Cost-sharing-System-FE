@@ -19,6 +19,8 @@ import { toast } from 'react-toastify'
 import { getGroupIdFromLS, getUserIdFromLS } from '../../../../utils/auth'
 import Skeleton from '../../../../components/Skeleton'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 // ============ HEADER COMPONENT ============
 const FundHeader: React.FC = () => {
@@ -286,7 +288,12 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
       window.open(`${response?.data?.vnpayUrl}`, '_blank')
     },
     onError: () => {
-      toast.error(t('gp_fund_toast_contribute_failed'))
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: t('gp_fund_toast_contribute_failed'),
+        timestamp: new Date()
+      })
     }
   })
 
@@ -310,11 +317,21 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
     const userId = getUserIdFromLS() || ''
 
     if (numericValue < 10000) {
-      toast.error('Minimum amount is 10,000 VND')
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: 'Minimum amount is 10,000 VND',
+        timestamp: new Date()
+      })
       return
     }
     if (numericValue > 100000000) {
-      toast.error('Maximum amount is 100,000,000 VND')
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: 'Maximum amount is 100,000,000 VND',
+        timestamp: new Date()
+      })
       return
     }
     paymentFundMutation.mutate({

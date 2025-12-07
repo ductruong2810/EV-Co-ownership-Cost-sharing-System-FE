@@ -3,6 +3,8 @@ import { toast } from 'react-toastify'
 import groupApi from '../../../../../../apis/group.api'
 import type { CreateDepositSuccess } from '../../../../../../types/api/group.type'
 import { getGroupIdFromLS, getUserIdFromLS } from '../../../../../../utils/auth'
+import { showErrorToast } from '../../../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../../../types/error.type'
 
 interface IModalCreateDeposit {
   handleSetShowCreateDeposit: () => void
@@ -17,7 +19,12 @@ function ModalCreateDeposit({ handleSetShowCreateDeposit }: IModalCreateDeposit)
   useEffect(() => {
     const fetchMemberDetail = async () => {
       if (!userId) {
-        toast.error('Group ID or User ID not found')
+        showErrorToast({
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.MEDIUM,
+          message: 'Group ID or User ID not found',
+          timestamp: new Date()
+        })
         return
       }
       try {
@@ -27,7 +34,12 @@ function ModalCreateDeposit({ handleSetShowCreateDeposit }: IModalCreateDeposit)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error(error)
-        toast.error('Error loading member data')
+        showErrorToast({
+          type: ErrorType.SERVER,
+          severity: ErrorSeverity.HIGH,
+          message: 'Error loading member data',
+          timestamp: new Date()
+        })
       }
     }
 

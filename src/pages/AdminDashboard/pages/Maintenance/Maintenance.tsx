@@ -9,6 +9,8 @@ import { Input, Select, Tag, DatePicker, InputNumber, Button, Space, Checkbox, M
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 // TYPES
 export interface MaintenanceReport {
@@ -239,7 +241,12 @@ function MaintenanceList() {
         .catch(() => undefined)
     },
     onError: () => {
-      toast.error(t('admin_maintenance_complete_error'))
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: t('admin_maintenance_complete_error'),
+        timestamp: new Date()
+      })
     }
   })
 
@@ -280,7 +287,12 @@ function MaintenanceList() {
       })
     },
     onError: () => {
-      toast.error(t('admin_maintenance_bulk_complete_error'))
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: t('admin_maintenance_bulk_complete_error'),
+        timestamp: new Date()
+      })
     }
   })
 

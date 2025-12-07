@@ -8,6 +8,8 @@ import { toast } from 'react-toastify'
 import { Fragment } from 'react/jsx-runtime'
 import { useEffect, useState } from 'react'
 import groupApi from '../../apis/group.api'
+import { showErrorToast } from '../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../types/error.type'
 import Skeleton from '../../components/Skeleton'
 import path from '../../constants/path'
 import { createGroupSchema, type CreateGroupSchema } from '../../utils/rule'
@@ -52,7 +54,12 @@ export default function CreateGroups() {
       navigate(fullPath)
     },
     onError: (error) => {
-      toast.error(t('cg_toast_create_failed'))
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: t('cg_toast_create_failed'),
+        timestamp: new Date()
+      })
       console.error('Create group failed:', error)
     }
   })
@@ -91,7 +98,12 @@ export default function CreateGroups() {
           }
         } catch (error) {
           console.error('OCR processing failed:', error)
-          toast.error(t('cg_ocr_failed'))
+          showErrorToast({
+            type: ErrorType.SERVER,
+            severity: ErrorSeverity.MEDIUM,
+            message: t('cg_ocr_failed'),
+            timestamp: new Date()
+          })
         } finally {
           setIsProcessingOcr(false)
         }

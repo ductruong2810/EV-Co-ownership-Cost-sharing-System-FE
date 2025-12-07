@@ -6,6 +6,8 @@ import groupApi from '../../../../apis/group.api'
 import Skeleton from '../../../../components/Skeleton'
 import { ClockCircleOutlined } from '@ant-design/icons'
 import userApi from '../../../../apis/user.api'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 const CreateContract: React.FC = () => {
   const queryClient = useQueryClient()
@@ -29,7 +31,12 @@ const CreateContract: React.FC = () => {
     },
     onError: (error) => {
       console.log('Error signing contract', error.message)
-      toast.error('An error occurred while signing the contract.')
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: 'An error occurred while signing the contract.',
+        timestamp: new Date()
+      })
       queryClient.invalidateQueries({ queryKey: ['contractData', groupId] })
     }
   })

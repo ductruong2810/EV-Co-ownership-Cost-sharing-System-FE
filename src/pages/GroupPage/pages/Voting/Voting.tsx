@@ -8,6 +8,8 @@ import type { Voting, CreateVotingPayload, VotingSubmitPayload } from '../../../
 import Skeleton from '../../../../components/Skeleton'
 import EmptyVoting from './components/EmptyVoting'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 export default function Voting() {
   const { t } = useI18n()
@@ -27,7 +29,14 @@ export default function Voting() {
       setShowModal(false)
       toast.success(t('gp_voting_toast_create_success'))
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || t('gp_voting_toast_create_error'))
+    onError: (error: any) => {
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: error.response?.data?.message || t('gp_voting_toast_create_error'),
+        timestamp: new Date()
+      })
+    }
   })
 
   if (isLoading) return <Skeleton />
@@ -97,7 +106,14 @@ function VoteCard({ vote, groupId }: { vote: Voting; groupId: number }) {
       toast.success(t('gp_voting_card_toast_submit_success'))
       setTimeout(() => window.location.reload(), 500)
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || t('gp_voting_card_toast_submit_error'))
+    onError: (error: any) => {
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: error.response?.data?.message || t('gp_voting_card_toast_submit_error'),
+        timestamp: new Date()
+      })
+    }
   })
 
   const handleVote = () => {

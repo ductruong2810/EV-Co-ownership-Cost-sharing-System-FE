@@ -8,6 +8,8 @@ import Skeleton from '../../components/Skeleton'
 import path from '../../constants/path'
 import { useOTPLogic } from '../../hooks/useOTPInput'
 import { useI18n } from '../../i18n/useI18n'
+import { showErrorToast } from '../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../types/error.type'
 
 // Props của component - hoàn toàn độc lập
 interface OTPInputProps {
@@ -89,8 +91,11 @@ function OTPInput({ length = 6 }: OTPInputProps) {
 
   const handleResend = () => {
     if (!email) {
-      toast.error(t('otp_resend_error_email_missing'), {
-        autoClose: 1000
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: t('otp_resend_error_email_missing'),
+        timestamp: new Date()
       })
       return
     }
@@ -105,8 +110,11 @@ function OTPInput({ length = 6 }: OTPInputProps) {
         }
       },
       onError: () =>
-        toast.error(t('otp_resend_failed'), {
-          autoClose: 1000
+        showErrorToast({
+          type: ErrorType.SERVER,
+          severity: ErrorSeverity.MEDIUM,
+          message: t('otp_resend_failed'),
+          timestamp: new Date()
         })
     })
   }

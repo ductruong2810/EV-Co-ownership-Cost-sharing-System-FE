@@ -12,6 +12,8 @@ import EmptyState from '../EmptyState'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -121,7 +123,13 @@ function CheckContract() {
       toast.success(t('admin_check_contract_approve_success'), { autoClose: 1500 })
     },
     onError: (error) => {
-      toast.error(getServerMessage(error) ?? t('admin_check_contract_approve_error'), { autoClose: 2000 })
+      const message = getServerMessage(error) ?? t('admin_check_contract_approve_error')
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: message,
+        timestamp: new Date()
+      })
     }
   })
 
@@ -139,7 +147,12 @@ function CheckContract() {
     onError: (error) => {
       const msg = getServerMessage(error)
       if (msg) setRejectReasonError(msg)
-      toast.error(msg ?? t('admin_check_contract_reject_error'), { autoClose: 2000 })
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: msg ?? t('admin_check_contract_reject_error'),
+        timestamp: new Date()
+      })
     }
   })
 

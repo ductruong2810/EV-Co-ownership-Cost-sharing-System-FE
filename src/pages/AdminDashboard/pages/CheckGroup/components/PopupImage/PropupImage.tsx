@@ -16,6 +16,8 @@ import Header from './components/Header'
 import RejectModal from './components/RejectModal/RejectModal'
 import { groupImages } from './utils/classifyImagesType'
 import ImageGroup from './components/ImageGroup/ImageGroup'
+import { showErrorToast } from '../../../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../../../types/error.type'
 
 interface IPropupImageProps {
   group: groupStaffItem | null
@@ -64,13 +66,23 @@ export default function PropupImage({ group, onClose }: IPropupImageProps) {
       if (data.groupStatus === 'ACTIVE') {
         toast.success('Duyệt hình ảnh thành công', { autoClose: 1000 })
       } else if (data.groupStatus === 'INACTIVE') {
-        toast.error('Từ chối hình ảnh nhóm này', { autoClose: 1000 })
+        showErrorToast({
+          type: ErrorType.SERVER,
+          severity: ErrorSeverity.MEDIUM,
+          message: 'Từ chối hình ảnh nhóm này',
+          timestamp: new Date()
+        })
       }
       // fetch lại danh sách nhóm để cập nhật trạng thái
       queryClient.invalidateQueries({ queryKey: ['groupList'] })
     },
     onError: (error) => {
-      toast.error(error?.message || 'Có lỗi xảy ra khi gửi yêu cầu')
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: error?.message || 'Có lỗi xảy ra khi gửi yêu cầu',
+        timestamp: new Date()
+      })
     },
     // sau khi thành công thì đóng popup
     onSettled: () => {

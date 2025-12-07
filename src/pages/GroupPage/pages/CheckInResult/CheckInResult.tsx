@@ -9,6 +9,8 @@ import path from '../../../../constants/path'
 import groupApi from '../../../../apis/group.api'
 import SignaturePad from '../../../../components/SignaturePad/SignaturePad'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 const CheckInResult: React.FC = () => {
   const { t } = useI18n()
@@ -41,7 +43,12 @@ const CheckInResult: React.FC = () => {
     onError: (error) => {
       const axiosError = error as AxiosError<{ message?: string }>
       const message = axiosError.response?.data?.message || t('gp_checkin_signature_modal_toast_fail')
-      toast.error(message)
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: message,
+        timestamp: new Date()
+      })
     }
   })
 

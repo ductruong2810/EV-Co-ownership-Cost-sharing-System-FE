@@ -7,6 +7,8 @@ import groupApi from '../../../../apis/group.api'
 import { useNavigate } from 'react-router-dom'
 import { getGroupIdFromLS } from '../../../../utils/auth'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 interface CameraError extends Error {
   name: string
@@ -102,13 +104,33 @@ export default function CheckQR() {
       const cameraError = error as CameraError
 
       if (cameraError.name === 'NotAllowedError') {
-        toast.error(t('gp_checkqr_toast_camera_denied'))
+        showErrorToast({
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.MEDIUM,
+          message: t('gp_checkqr_toast_camera_denied'),
+          timestamp: new Date()
+        })
       } else if (cameraError.name === 'NotFoundError') {
-        toast.error(t('gp_checkqr_toast_camera_not_found'))
+        showErrorToast({
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.MEDIUM,
+          message: t('gp_checkqr_toast_camera_not_found'),
+          timestamp: new Date()
+        })
       } else if (cameraError.name === 'NotReadableError') {
-        toast.error(t('gp_checkqr_toast_camera_in_use'))
+        showErrorToast({
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.MEDIUM,
+          message: t('gp_checkqr_toast_camera_in_use'),
+          timestamp: new Date()
+        })
       } else {
-        toast.error(`${t('gp_checkqr_toast_camera_error')}: ${cameraError.message}`)
+        showErrorToast({
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.MEDIUM,
+          message: `${t('gp_checkqr_toast_camera_error')}: ${cameraError.message}`,
+          timestamp: new Date()
+        })
       }
     }
   }, [])
@@ -171,7 +193,12 @@ export default function CheckQR() {
         console.log(' QR Code:', code.data)
         QRVerify.mutate(code.data)
       } else {
-        toast.error(t('gp_checkqr_toast_qr_not_found'))
+        showErrorToast({
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.MEDIUM,
+          message: t('gp_checkqr_toast_qr_not_found'),
+          timestamp: new Date()
+        })
       }
       // giải phóng URL tạm thời để tránh rò rỉ bộ nhớ
       URL.revokeObjectURL(imageUrl)
@@ -179,7 +206,12 @@ export default function CheckQR() {
 
     img.onerror = () => {
       // nếu lỗi thông báo không thể load ảnh
-      toast.error(t('gp_checkqr_toast_image_load_fail'))
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: t('gp_checkqr_toast_image_load_fail'),
+        timestamp: new Date()
+      })
       URL.revokeObjectURL(imageUrl)
     }
 

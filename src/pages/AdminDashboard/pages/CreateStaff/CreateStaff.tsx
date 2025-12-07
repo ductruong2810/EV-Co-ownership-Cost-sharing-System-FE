@@ -12,6 +12,8 @@ import AdminPageHeader from '../../AdminPageHeader'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 // Validation schema factory
 const createStaffSchemaFactory = (t: (key: string) => string) => yup.object({
@@ -87,7 +89,12 @@ export default function CreateStaff() {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || t('admin_create_staff_error')
-      toast.error(message)
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: message,
+        timestamp: new Date()
+      })
       logger.error('Create staff error:', error)
     }
   })

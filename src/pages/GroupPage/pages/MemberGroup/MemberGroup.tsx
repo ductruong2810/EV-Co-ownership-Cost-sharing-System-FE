@@ -11,6 +11,8 @@ import Header from './components/HeaderMembers'
 import Memberlist from './components/MemberList/Memberlist'
 import Modalinvite from './components/ModalinviteMember'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 export default function MemberGroup() {
   const { groupId } = useParams<{ groupId: string }>()
@@ -56,7 +58,12 @@ export default function MemberGroup() {
           toast.success(t('mg_invite_success'))
         },
         onError: () => {
-          toast.error(t('mg_invite_error'))
+          showErrorToast({
+            type: ErrorType.SERVER,
+            severity: ErrorSeverity.HIGH,
+            message: t('mg_invite_error'),
+            timestamp: new Date()
+          })
         }
       }
     )

@@ -7,6 +7,8 @@ import technicianApi from '../../../../apis/technician.api'
 import type { VehicleCheck } from '../../../../types/api/technician.type'
 import { toast } from 'react-toastify'
 import { useI18n } from '../../../../i18n/useI18n'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 const STATUS_COLORS = {
   PENDING: 'bg-lime-50 text-lime-600 animate-pulse',
@@ -100,7 +102,12 @@ export function CheckVehicleReport() {
       queryClient.invalidateQueries({ queryKey: ['vehicleChecks'] })
     } catch (err) {
       console.error(err)
-      toast.error(t('admin_check_vehicle_report_batch_error'))
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        message: t('admin_check_vehicle_report_batch_error'),
+        timestamp: new Date()
+      })
     }
   }
 

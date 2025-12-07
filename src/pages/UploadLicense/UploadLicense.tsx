@@ -11,6 +11,8 @@ import userApi from '../../apis/user.api'
 import { toast } from 'react-toastify'
 import type { DocumentInfo } from '../../types/api/user.type'
 import { useI18n } from '../../i18n/useI18n'
+import { showErrorToast } from '../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../types/error.type'
 
 export type DocType = 'gplx' | 'cccd'
 export type DocSide = 'front' | 'back'
@@ -178,7 +180,12 @@ export default function UploadLicense() {
     onError: (error) => {
       console.error('Failed to preview OCR:', error)
       setIsPreviewingOcr(false)
-      toast.error(t('upload_toast_ocr_failed'), { autoClose: 3000 })
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.MEDIUM,
+        message: t('upload_toast_ocr_failed'),
+        timestamp: new Date()
+      })
       // Fallback: allow user to input document info manually even when OCR fails
       const docType = activeTab
       setOcrResults((prev) => ({
@@ -218,17 +225,13 @@ export default function UploadLicense() {
       console.error('Failed to upload driver license:', error)
       const { errorTitle, errorMessage } = buildUploadError(error, 'driver license')
 
-      toast.error(
-        <div>
-          <div className='font-semibold mb-1'>{errorTitle}</div>
-          <div className='text-sm whitespace-pre-line'>{errorMessage}</div>
-        </div>,
-        {
-          autoClose: 5000,
-          position: 'top-right',
-          className: 'toast-error-custom'
-        }
-      )
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        title: errorTitle,
+        message: errorMessage,
+        timestamp: new Date()
+      })
     }
   })
 
@@ -261,17 +264,13 @@ export default function UploadLicense() {
       console.error('Failed to upload citizen ID:', error)
       const { errorTitle, errorMessage } = buildUploadError(error, 'citizen ID')
 
-      toast.error(
-        <div>
-          <div className='font-semibold mb-1'>{errorTitle}</div>
-          <div className='text-sm whitespace-pre-line'>{errorMessage}</div>
-        </div>,
-        {
-          autoClose: 5000,
-          position: 'top-right',
-          className: 'toast-error-custom'
-        }
-      )
+      showErrorToast({
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        title: errorTitle,
+        message: errorMessage,
+        timestamp: new Date()
+      })
     }
   })
 

@@ -9,6 +9,8 @@ import adminApi from '../../../../apis/admin.api'
 import type { FeedbackItem } from '../../../../types/api/admin.type'
 import userApi from '../../../../apis/user.api'
 import logger from '../../../../utils/logger'
+import { showErrorToast } from '../../../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 export default function FeedBackAdmin() {
   const queryClient = useQueryClient()
@@ -32,7 +34,12 @@ export default function FeedBackAdmin() {
 
   const handleAcceptFeedback = (feedbackId: string, adminNote: string) => {
     if (adminNote.trim().length === 0) {
-      toast.error('Please enter contract modification information before accepting feedback')
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: 'Please enter contract modification information before accepting feedback',
+        timestamp: new Date()
+      })
       return
     }
     accepctFeedback.mutate(
@@ -49,7 +56,12 @@ export default function FeedBackAdmin() {
 
   const handleRejectFeedback = ({ feedbackId, reason }: { feedbackId: string; reason: string }) => {
     if (reason.trim().length === 0) {
-      toast.error('Please enter a reason before rejecting feedback')
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.MEDIUM,
+        message: 'Please enter a reason before rejecting feedback',
+        timestamp: new Date()
+      })
       return
     }
     rejectFeedback.mutate(

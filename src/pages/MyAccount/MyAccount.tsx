@@ -149,7 +149,12 @@ export default function MyAccount() {
       nameMutation.mutate(editValue)
     } else if (editingField === 'email') {
       if (!editValue || !editValue.includes('@')) {
-        toast.error('Please enter a valid email address', { autoClose: 2500, position: 'top-right' })
+        showErrorToast({
+          type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.MEDIUM,
+          message: 'Please enter a valid email address',
+          timestamp: new Date()
+        })
         return
       }
       changeEmailMutation.mutate(editValue)
