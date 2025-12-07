@@ -25,12 +25,14 @@ export interface MaintenanceRequest {
   id: number
   vehicleId: number
   vehicleModel: string
+  licensePlate?: string
   requestedByName: string
   approvedByName: string | null
   liableUserName: string
   coverageType: 'PERSONAL' | 'COMMERCIAL' | string
   description: string
   actualCost: number
+  cost?: number
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'FUNDED' | string
   requestDate: string
   approvalDate: string | null
@@ -196,7 +198,7 @@ function MaintenanceList() {
   // Mutation to create maintenance request
   const createMutation = useMutation<unknown, unknown, CreateMaintenanceInput>({
     mutationFn: (data) => technicianApi.createMantainance(data, data.vehicleId),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success(t('admin_maintenance_create_success'))
       setShowModal(false)
       setFormErrors({})
@@ -213,10 +215,10 @@ function MaintenanceList() {
       auditApi
         .logAction({
           type: 'MAINTENANCE_REQUEST',
-          entityId: data.vehicleId,
+          entityId: variables.vehicleId,
           entityType: 'MAINTENANCE',
-          message: `Created maintenance request for vehicle #${data.vehicleId}`,
-          metadata: { cost: data.cost, duration: data.estimatedDurationDays }
+          message: `Created maintenance request for vehicle #${variables.vehicleId}`,
+          metadata: { cost: variables.cost, duration: variables.estimatedDurationDays }
         })
         .catch(() => undefined)
     },
@@ -228,15 +230,15 @@ function MaintenanceList() {
   // Mutation to mark as complete (only when status = FUNDED)
   const completeMutation = useMutation<unknown, unknown, { id: number }>({
     mutationFn: (data) => technicianApi.completeMantainance(String(data.id)),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       toast.success(t('admin_maintenance_complete_success'))
       queryClient.invalidateQueries({ queryKey: ['technician', 'myMaintenances'] })
       auditApi
         .logAction({
           type: 'MAINTENANCE_COMPLETE',
-          entityId: data.id,
+          entityId: variables.id,
           entityType: 'MAINTENANCE',
-          message: `Completed maintenance request #${data.id}`
+          message: `Completed maintenance request #${variables.id}`
         })
         .catch(() => undefined)
     },
@@ -593,24 +595,24 @@ function MaintenanceList() {
                       <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_maintenance_filter_min_cost')}</label>
                       <InputNumber
                         value={minCost}
-                        onChange={(value) => setMinCost(value)}
+                        onChange={(value) => setMinCost(value ?? null)}
                         min={0}
                         placeholder={t('admin_check_group_filter_minimum')}
                         className='w-full'
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                        parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
                       />
                     </div>
                     <div>
                       <label className='block text-sm font-medium text-gray-700 mb-1'>{t('admin_maintenance_filter_max_cost')}</label>
                       <InputNumber
                         value={maxCost}
-                        onChange={(value) => setMaxCost(value)}
+                        onChange={(value) => setMaxCost(value ?? null)}
                         min={0}
                         placeholder={t('admin_check_group_filter_maximum')}
                         className='w-full'
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                        parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
                       />
                     </div>
                   </div>
@@ -759,7 +761,7 @@ function MaintenanceList() {
                               <div className='mt-3 space-y-2 rounded-xl border border-gray-100 bg-slate-50 p-3 text-xs text-gray-600'>
                                 <div className='flex justify-between'>
                                   <span>{t('admin_maintenance_estimated_cost')}</span>
-                                  <strong>{formatCurrency(item.cost)}</strong>
+                                  <strong>{formatCurrency(item.cost ?? item.actualCost)}</strong>
                                 </div>
                                 <div className='flex justify-between'>
                                   <span>{t('admin_maintenance_actual_cost')}</span>

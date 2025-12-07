@@ -10,6 +10,8 @@ export interface VehicleCheck {
   issues: string | null
   status: 'PENDING' | 'APPROVED' | 'REJECTED' // tùy hệ thống bạn dùng
   createdAt: string
+  vehicleModel?: string
+  licensePlate?: string
 }
 
 export interface Pageable {

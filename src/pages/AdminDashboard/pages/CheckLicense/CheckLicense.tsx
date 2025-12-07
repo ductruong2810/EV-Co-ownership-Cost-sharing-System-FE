@@ -103,17 +103,9 @@ export default function CheckLicense() {
       message.success(t('admin_check_license_bulk_approve_success', { count: selectedDocuments.size }))
       setSelectedDocuments(new Set())
       setShowBulkActions(false)
-      // Reload data
-      setLoading(true)
-      staffApi
-        .getUsersPendingLicense()
-        .then((res) => {
-          if (res.data && Array.isArray(res.data)) {
-            setMembers(res.data.map(mapUserToMember))
-          }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false))
+      // Invalidate and refetch query
+      queryClient.invalidateQueries({ queryKey: ['admin', 'pending-licenses'] })
+      refetchMembers()
     },
     onError: () => {
       message.error(t('admin_check_license_bulk_approve_error'))
@@ -130,17 +122,9 @@ export default function CheckLicense() {
       message.success(t('admin_check_license_bulk_reject_success', { count: selectedDocuments.size }))
       setSelectedDocuments(new Set())
       setShowBulkActions(false)
-      // Reload data
-      setLoading(true)
-      staffApi
-        .getUsersPendingLicense()
-        .then((res) => {
-          if (res.data && Array.isArray(res.data)) {
-            setMembers(res.data.map(mapUserToMember))
-          }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false))
+      // Invalidate and refetch query
+      queryClient.invalidateQueries({ queryKey: ['admin', 'pending-licenses'] })
+      refetchMembers()
     },
     onError: () => {
       message.error(t('admin_check_license_bulk_reject_error'))
@@ -242,6 +226,26 @@ export default function CheckLicense() {
     })
   }
 
+  // Fetch members with React Query for better cache management
+  const { data: membersData, refetch: refetchMembers } = useQuery({
+    queryKey: ['admin', 'pending-licenses'],
+    queryFn: async () => {
+      const res = await staffApi.getUsersPendingLicense()
+      if (res.data && Array.isArray(res.data)) {
+        return res.data.map(mapUserToMember)
+      }
+      return []
+    },
+    refetchOnWindowFocus: false
+  })
+
+  useEffect(() => {
+    if (membersData) {
+      setMembers(membersData)
+    }
+  }, [membersData])
+
+  // Initial load
   useEffect(() => {
     setLoading(true)
     staffApi
@@ -271,19 +275,9 @@ export default function CheckLicense() {
     // Update local state immediately for better UX
     setMembers((m) => m.map((x) => (x.id === id ? { ...x, [type]: { ...x[type], [`${side}Status`]: status } } : x)))
     
-    // Reload data from server to ensure consistency
-    setLoading(true)
-    try {
-      const res = await staffApi.getUsersPendingLicense()
-      if (res.data && Array.isArray(res.data)) {
-        setMembers(res.data.map(mapUserToMember))
-      }
-    } catch (error) {
-      console.error('Error reloading data:', error)
-      message.error(t('admin_check_license_reload_error'))
-    } finally {
-      setLoading(false)
-    }
+      // Invalidate and refetch query to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['admin', 'pending-licenses'] })
+      await refetchMembers()
   }
 
   const approveBothSides = async (memberId: string, docType: DocType) => {
@@ -335,17 +329,9 @@ export default function CheckLicense() {
         )
       )
 
-      // Reload data
-      setLoading(true)
-      staffApi
-        .getUsersPendingLicense()
-        .then((res) => {
-          if (res.data && Array.isArray(res.data)) {
-            setMembers(res.data.map(mapUserToMember))
-          }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false))
+      // Invalidate and refetch query
+      queryClient.invalidateQueries({ queryKey: ['admin', 'pending-licenses'] })
+      await refetchMembers()
     } catch (error) {
       message.error(t('admin_check_license_approve_both_sides_error'))
       console.error(error)
@@ -418,17 +404,9 @@ export default function CheckLicense() {
             )
           )
 
-          // Reload data
-          setLoading(true)
-          staffApi
-            .getUsersPendingLicense()
-            .then((res) => {
-              if (res.data && Array.isArray(res.data)) {
-                setMembers(res.data.map(mapUserToMember))
-              }
-            })
-            .catch(console.error)
-            .finally(() => setLoading(false))
+          // Invalidate and refetch query
+          queryClient.invalidateQueries({ queryKey: ['admin', 'pending-licenses'] })
+          await refetchMembers()
 
           close()
         } catch (error) {
@@ -727,7 +705,7 @@ export default function CheckLicense() {
     <AdminPageContainer>
       <AdminPageHeader
         title={t('admin_check_license_title')}
-        subtitle={t('admin_check_license_subtitle', { count: members.length })}
+        subtitle={t('admin_check_license_subtitle', { count: summary.pending })}
         rightSlot={
           <button
             onClick={() => {

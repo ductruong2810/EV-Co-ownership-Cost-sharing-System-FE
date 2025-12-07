@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import type { SubmitHandler } from 'react-hook-form'
+import type { SubmitHandler, FieldValues } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -30,8 +30,8 @@ export default function CreateGroups() {
     watch,
     setValue,
     formState: { errors }
-  } = useForm<FieldValues>({
-    resolver: yupResolver<FieldValues>(createGroupSchema),
+  } = useForm({
+    resolver: yupResolver(createGroupSchema),
     mode: 'onSubmit',
     defaultValues: {
       vehicleImage: null,
@@ -82,12 +82,7 @@ export default function CreateGroups() {
           if (autoFillInfo.extractedChassisNumber && !watch('chassisNumber')) {
             setValue('chassisNumber', autoFillInfo.extractedChassisNumber)
           }
-          if (autoFillInfo.extractedBrand && !watch('brand')) {
-            // Note: brand field might not exist in form, adjust as needed
-          }
-          if (autoFillInfo.extractedModel && !watch('model')) {
-            // Note: model field might not exist in form, adjust as needed
-          }
+          // Note: brand and model fields are not in the form schema, so we skip them
 
           if (autoFillInfo.isRegistrationDocument) {
             toast.success(t('cg_ocr_success'), { autoClose: 2000 })

@@ -229,6 +229,123 @@ const messages = {
     gp_payment_notes_text: 'Your payment has been successfully recorded.',
     gp_payment_close_button: 'Close',
 
+    // GroupPage - CheckInResult
+    gp_checkin_fail_title: 'Check-in Failed',
+    gp_checkin_fail_message: 'Invalid QR code format',
+    gp_checkin_fail_error_code: 'Error Code:',
+    gp_checkin_fail_try_again: 'Please try:',
+    gp_checkin_fail_solution1: 'Ensure the QR code is not blurry or damaged',
+    gp_checkin_fail_solution2: 'Check if the QR code is in the correct format',
+    gp_checkin_fail_solution3: 'Request a new QR code from the administrator',
+    gp_checkin_fail_scan_button: 'Scan QR Code Again',
+    gp_checkin_fail_go_home_button: 'Go Home',
+    gp_checkin_success_title: 'Check-in Successful!',
+    gp_checkin_success_message: 'Your vehicle is ready to use.',
+    gp_checkin_trip_info_title: 'Trip Information',
+    gp_checkin_status_label: 'Status:',
+    gp_checkin_status_success: 'Success',
+    gp_checkin_time_label: 'Time:',
+    gp_checkin_vehicle_info_title: 'Vehicle Information',
+    gp_checkin_license_plate_label: 'License Plate:',
+    gp_checkin_brand_label: 'Brand:',
+    gp_checkin_go_home_button: 'Go Home',
+    gp_checkin_scan_again_button: 'Scan Again',
+    gp_checkin_signature_modal_title: 'Confirm Check-in with Digital Signature',
+    gp_checkin_signature_modal_description: 'Please sign to confirm your check-in. You can skip this step if you prefer.',
+    gp_checkin_signature_modal_skip: 'Skip',
+    gp_checkin_signature_modal_confirm: 'Confirm',
+    gp_checkin_signature_modal_toast_warning: 'Please sign to confirm check-in',
+    gp_checkin_signature_modal_toast_success: 'Check-in confirmed with digital signature!',
+    gp_checkin_signature_modal_toast_fail: 'Check-in confirmation failed',
+
+    // GroupPage - CheckQR
+    gp_checkqr_header_title: 'Scan QR Code: Check-in/Check-out',
+    gp_checkqr_camera_placeholder: 'Press "Start Scan" to open camera',
+    gp_checkqr_start_scan_button: 'Start Scan QR',
+    gp_checkqr_turn_off_camera_button: 'Turn Off Camera',
+    gp_checkqr_upload_image_button: 'Upload QR Image',
+    gp_checkqr_toast_scan_success: 'QR scan successful!',
+    gp_checkqr_toast_camera_denied: 'Camera access denied',
+    gp_checkqr_toast_camera_not_found: 'No camera found on device',
+    gp_checkqr_toast_camera_in_use: 'Camera is being used by another application',
+    gp_checkqr_toast_camera_error: 'Camera error',
+    gp_checkqr_toast_qr_not_found: 'QR code not found in image',
+    gp_checkqr_toast_image_load_fail: 'Failed to load image',
+
+    // GroupPage - FundOwnership
+    gp_fund_header_title: 'Shared Fund & Deposit',
+    gp_fund_header_subtitle: 'Efficient group financial management',
+    gp_fund_about_title: 'About shared fund and deposit',
+    gp_fund_about_body:
+      'The shared fund is used for maintenance and other group expenses. The deposit is a security amount collected from members when joining the group. When the contract ends, the deposit will be refunded according to regulations.',
+    gp_fund_card_total_title: 'Total Fund',
+    gp_fund_card_total_button: 'Contribute',
+    gp_fund_card_deposit_title: 'Deposit',
+    gp_fund_card_deposit_subtitle: 'Initial deposit amount',
+    gp_fund_card_income_title: 'Total Income',
+    gp_fund_card_income_subtitle: 'From member contributions',
+    gp_fund_card_expense_title: 'Total Expense',
+    gp_fund_card_expense_subtitle: 'Maintenance and other costs',
+    gp_fund_txn_title: 'Transaction History',
+    gp_fund_txn_type: 'Type',
+    gp_fund_txn_fund_type: 'Fund Type',
+    gp_fund_txn_user: 'Member',
+    gp_fund_txn_role: 'Role',
+    gp_fund_txn_amount: 'Amount',
+    gp_fund_txn_date: 'Date',
+    gp_fund_txn_direction_in: 'Income',
+    gp_fund_txn_direction_out: 'Expense',
+    gp_fund_txn_fund_deposit: 'Deposit',
+    gp_fund_txn_fund_contribution: 'Contribution',
+    gp_fund_txn_total_label: 'Total',
+    gp_fund_txn_total_suffix: 'transactions',
+    gp_fund_toast_contribute_failed: 'Failed to contribute. Please try again.',
+    gp_fund_modal_amount_label: 'Amount',
+    gp_fund_modal_amount_placeholder: 'Enter amount (VND)',
+    gp_fund_modal_note_label: 'Note',
+    gp_fund_modal_note_placeholder: 'Enter note (optional)',
+    gp_fund_modal_cancel: 'Cancel',
+    gp_fund_modal_confirm: 'Confirm',
+    gp_fund_filter_month: 'Current Month',
+    gp_fund_filter_quarter: 'Current Quarter',
+    gp_fund_filter_custom: 'Custom',
+    gp_fund_export_csv: 'Export CSV',
+
+    // GroupPage - MemberGroup
+    mg_invite_success: 'Invitation sent successfully!',
+    mg_invite_error: 'Failed to send invitation. Please try again.',
+
+    // GroupPage - Voting
+    gp_voting_header_title: 'Voting',
+    gp_voting_header_subtitle_prefix: '',
+    gp_voting_header_subtitle_suffix: 'voting sessions',
+    gp_voting_create_button: '+ Create New',
+    gp_voting_toast_create_success: 'Voting created successfully!',
+    gp_voting_toast_create_error: 'Failed to create voting',
+    gp_voting_card_status_closed: 'Closed',
+    gp_voting_card_voted_label: 'voted',
+    gp_voting_card_toast_submit_success: 'Vote submitted successfully!',
+    gp_voting_card_toast_submit_error: 'Failed to submit vote',
+    gp_voting_card_estimated_label: 'Estimated:',
+    gp_voting_card_submit_button: 'Submit Vote',
+    gp_voting_card_submit_button_loading: 'Submitting...',
+    gp_voting_card_voted_status: '✓ Voted',
+    gp_voting_card_ended_status: 'Ended',
+    gp_voting_create_modal_title: 'Create New Voting Session',
+    gp_voting_create_modal_title_label: 'Title *',
+    gp_voting_create_modal_title_placeholder: 'Enter title',
+    gp_voting_create_modal_description_label: 'Description',
+    gp_voting_create_modal_description_placeholder: 'Add description...',
+    gp_voting_create_modal_end_time_label: 'End Time *',
+    gp_voting_create_modal_options_label: 'Options * (at least 2)',
+    gp_voting_create_modal_add_option: '+ Add Option',
+    gp_voting_create_modal_cancel: 'Cancel',
+    gp_voting_create_modal_create: 'Create',
+    gp_voting_create_modal_creating: 'Creating...',
+    gp_voting_create_modal_warning_title: 'Please enter title',
+    gp_voting_create_modal_warning_options: 'Please enter at least 2 options',
+    gp_voting_create_modal_warning_end_time: 'Please select end time',
+
     // AdminDashboard - sidebar & sections
     admin_role_label_admin_console: 'Admin Console',
     admin_role_label_staff_workspace: 'Staff Workspace',
@@ -287,6 +404,8 @@ const messages = {
     admin_dashboard_select_month: 'Select month',
     admin_dashboard_from_date: 'From date',
     admin_dashboard_to_date: 'To date',
+    admin_dashboard_range_from_date_placeholder: 'From date',
+    admin_dashboard_range_to_date_placeholder: 'To date',
     admin_dashboard_no_data: 'No data available. Please select a different time range.',
     admin_dashboard_quick_revenue: 'Total Revenue',
     admin_dashboard_quick_payments: 'payments',
@@ -1136,7 +1255,37 @@ const messages = {
 
     // EmptyState component
     empty_state_default_title: 'No data',
-    empty_state_default_description: 'There is currently no data to display'
+    empty_state_default_description: 'There is currently no data to display',
+
+    // Creategroups
+    cg_toast_create_success: 'Group created successfully!',
+    cg_toast_create_failed: 'Failed to create group. Please try again!',
+    cg_field_group_name_label: 'Group Name',
+    cg_field_group_name_placeholder: 'Enter group name',
+    cg_field_asset_value_label: 'Asset Value',
+    cg_field_asset_value_placeholder: 'Enter value (VND)',
+    cg_field_license_plate_label: 'License Plate',
+    cg_field_license_plate_placeholder: '29A-123.45',
+    cg_field_chassis_label: 'Chassis Number',
+    cg_field_chassis_placeholder: 'RLHRE7EXXXXXXXX',
+    cg_field_vehicle_image_label: 'Vehicle Image',
+    cg_field_registration_image_label: 'Registration Document',
+    cg_ocr_processing: 'Processing OCR...',
+    cg_ocr_extracted_title: '✓ Extracted from OCR:',
+    cg_ocr_license_plate: 'License Plate:',
+    cg_ocr_chassis: 'Chassis:',
+    cg_ocr_brand: 'Brand:',
+    cg_ocr_model: 'Model:',
+    cg_ocr_processed_in: 'Processed in',
+    cg_field_member_count_label: 'Member Count',
+    cg_field_member_count_placeholder: 'Enter member count',
+    cg_field_description_label: 'Description',
+    cg_field_description_placeholder: 'Enter group description (optional)',
+    cg_submit_pending: 'Processing...',
+    cg_submit_create: 'Create Group',
+    cg_ocr_success: 'Vehicle information extracted successfully!',
+    cg_ocr_not_registration: 'Registration document not recognized. Please check the image.',
+    cg_ocr_failed: 'Unable to extract vehicle information. Please enter manually.'
   },
   vi: {
     // Dashboard
@@ -1721,6 +1870,8 @@ const messages = {
     admin_dashboard_select_month: 'Chọn tháng',
     admin_dashboard_from_date: 'Từ ngày',
     admin_dashboard_to_date: 'Đến ngày',
+    admin_dashboard_range_from_date_placeholder: 'Từ ngày',
+    admin_dashboard_range_to_date_placeholder: 'Đến ngày',
     admin_dashboard_no_data: 'Không có dữ liệu. Vui lòng chọn khoảng thời gian khác.',
     admin_dashboard_quick_revenue: 'Tổng Doanh thu',
     admin_dashboard_quick_payments: 'giao dịch',
@@ -2417,9 +2568,18 @@ type MessageKey = keyof (typeof messages)['en']
 export const useI18n = () => {
   const { language } = useLanguage()
 
-  const t = (key: MessageKey): string => {
+  const t = (key: MessageKey, params?: Record<string, string | number>): string => {
     const currentLocale = (language ?? 'en') as Locale
-    return messages[currentLocale][key] ?? messages.en[key]
+    let message = messages[currentLocale][key] ?? messages.en[key]
+    
+    // Replace interpolation placeholders like {{count}} with actual values
+    if (params) {
+      Object.entries(params).forEach(([paramKey, paramValue]) => {
+        message = message.replace(new RegExp(`\\{\\{${paramKey}\\}\\}`, 'g'), String(paramValue))
+      })
+    }
+    
+    return message
   }
 
   return { t, language }

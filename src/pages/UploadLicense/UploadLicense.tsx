@@ -326,7 +326,7 @@ export default function UploadLicense() {
         toast.warning(
           <div>
             <div className='font-semibold mb-1'>{t('upload_warning_missing_files_title')}</div>
-            <div className='text-sm'>{t('upload_warning_citizen_body')}</div>
+            <div className='text-sm'>{t('upload_warning_missing_citizen_body')}</div>
           </div>,
           {
             autoClose: 3000,
@@ -495,6 +495,30 @@ export default function UploadLicense() {
             </div>
           </div>
 
+          {/* OCR Processing State */}
+          {isPreviewingOcr && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className='flex items-center gap-3 bg-blue-400/20 backdrop-blur-lg border-[2px] border-blue-300/40 rounded-xl p-4 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+            >
+              <div className='animate-spin rounded-full h-5 w-5 border-b-2 border-blue-200' />
+              <div className='flex flex-col flex-1'>
+                <span className='text-white font-semibold'>Processing OCR...</span>
+                <span className='text-white/70 text-xs mt-0.5'>Extracting information from images</span>
+              </div>
+              <div className='w-32 bg-blue-200/30 rounded-full h-1.5 overflow-hidden'>
+                <motion.div
+                  className='bg-blue-300 h-full rounded-full'
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Uploading State */}
           {isUploading && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -530,23 +554,59 @@ export default function UploadLicense() {
             </motion.div>
           )}
 
-          {/* OCR Results Preview */}
-          {ocrResults[activeTab] && (
+          {/* OCR Results Preview - Only show if not yet uploaded successfully */}
+          {ocrResults[activeTab] && !uploadSuccess[activeTab] && (
             <div className='space-y-4'>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                <OCRPreview
-                  documentInfo={ocrResults[activeTab]!}
-                  documentType={activeTab}
-                  processingTime={processingTime[activeTab]}
-                  onConfirm={() => handleConfirmOcr(ocrResults[activeTab]!)}
-                  onEdit={() => setShowOcrEditor((prev) => ({ ...prev, [activeTab]: true }))}
-                />
-              </motion.div>
+              {/* Warning when OCR failed and showing editor */}
+              {showOcrEditor[activeTab] && (!ocrResults[activeTab]?.idNumber || !ocrResults[activeTab]?.fullName) && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className='bg-orange-50 border-2 border-orange-300 rounded-xl p-4 shadow-lg'
+                >
+                  <div className='flex items-start gap-3'>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      strokeWidth={2}
+                      stroke='currentColor'
+                      className='w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'
+                      />
+                    </svg>
+                    <div className='flex-1'>
+                      <p className='text-orange-800 font-semibold text-sm mb-1'>OCR Extraction Failed</p>
+                      <p className='text-orange-700 text-xs'>
+                        Unable to extract information from the images. Please enter the information manually below.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
+              {/* OCR Preview - Only show if not in edit mode */}
+              {!showOcrEditor[activeTab] && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <OCRPreview
+                    documentInfo={ocrResults[activeTab]!}
+                    documentType={activeTab}
+                    processingTime={processingTime[activeTab]}
+                    onConfirm={() => handleConfirmOcr(ocrResults[activeTab]!)}
+                    onEdit={() => setShowOcrEditor((prev) => ({ ...prev, [activeTab]: true }))}
+                  />
+                </motion.div>
+              )}
+
+              {/* OCR Editor */}
               {showOcrEditor[activeTab] && (
                 <motion.div
                   key={`${activeTab}-${ocrResults[activeTab]?.idNumber || 'editor'}`}

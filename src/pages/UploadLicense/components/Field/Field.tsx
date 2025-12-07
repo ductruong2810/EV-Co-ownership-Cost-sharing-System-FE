@@ -12,6 +12,8 @@ interface IField {
 function Field({ type, side, label, handleFileChange, docs, disabled = false }: IField) {
   const file = docs[type][side]
   const hasFile = Boolean(file)
+  const fileSizeMB = file ? (file.size / 1024 / 1024).toFixed(2) : 0
+  const isFileTooLarge = file ? file.size > 5 * 1024 * 1024 : false // 5MB limit
 
   return (
     <div className='space-y-2'>
@@ -63,7 +65,20 @@ function Field({ type, side, label, handleFileChange, docs, disabled = false }: 
         >
           {hasFile ? file?.name : 'Choose or drag-and-drop image'}
         </span>
-        <span className='text-xs text-gray-400 mt-1'>PNG, JPG (Max 5MB)</span>
+        <div className='flex flex-col items-center gap-1 mt-1'>
+          <span className='text-xs text-gray-400'>PNG, JPG (Max 5MB)</span>
+          {hasFile && (
+            <span
+              className={`text-xs font-medium ${
+                isFileTooLarge ? 'text-red-400' : fileSizeMB > 3 ? 'text-yellow-400' : 'text-green-400'
+              }`}
+            >
+              {fileSizeMB} MB
+              {isFileTooLarge && ' (Too large, may take longer)'}
+              {!isFileTooLarge && fileSizeMB > 3 && ' (Large file)'}
+            </span>
+          )}
+        </div>
 
         <input
           type='file'

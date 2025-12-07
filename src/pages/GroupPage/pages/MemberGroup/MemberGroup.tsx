@@ -24,8 +24,8 @@ export default function MemberGroup() {
     handleSubmit,
     reset,
     formState: { errors }
-  } = useForm<InviteSchema>({
-    resolver: yupResolver<FieldValues>(inviteSchema)
+  } = useForm({
+    resolver: yupResolver(inviteSchema)
   })
   // hiển thị thông tin các member trong group
 
@@ -48,7 +48,7 @@ export default function MemberGroup() {
   })
 
   // hàm submit mời thành viên vào nhóm
-  const onSubmit = (data: InviteSchema) => {
+  const onSubmit = (data: { inviteeEmail: string }) => {
     inviteMutation.mutate(
       { groupId: groupId as string, inviteeEmail: data.inviteeEmail },
       {
