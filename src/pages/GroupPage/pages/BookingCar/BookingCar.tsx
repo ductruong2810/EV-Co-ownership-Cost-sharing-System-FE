@@ -18,6 +18,7 @@ import AISuggestionPanel from './components/AISuggestionPanel'
 import FlexibleBookingModal from './components/FlexibleBookingModal'
 import MonthViewCalendar from './components/MonthViewCalendar'
 import RangeSelector from './components/RangeSelector'
+import QuickBookingPanel from './components/QuickBookingPanel'
 import { AppContext } from '../../../../contexts/app.context'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -558,39 +559,18 @@ const BookingCar = () => {
           </div>
         ))}
 
-        {/* Message when calendar is hidden */}
+        {/* Quick Booking Panel when calendar is hidden */}
         {!showSlotCalendar && (
-          <Card className='shadow-xl border-0 rounded-3xl overflow-hidden bg-gradient-to-br from-cyan-50 to-blue-50/30 border-2 border-cyan-200'>
-            <div className='p-8 sm:p-12 text-center'>
-              <div className='mb-6'>
-                <div className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 mb-4 shadow-lg'>
-                  <CalendarOutlined style={{ fontSize: '40px', color: 'white' }} />
-                </div>
-              </div>
-              <h3 className='text-2xl sm:text-3xl font-black text-cyan-800 mb-3'>{t('gp_booking_calendar_hidden') || 'Calendar đã được ẩn'}</h3>
-              <p className='text-cyan-700 mb-8 text-base sm:text-lg max-w-2xl mx-auto'>
-                {t('gp_booking_calendar_hidden_desc') || 'Bạn có thể sử dụng Flexible Booking hoặc Range Selector để đặt xe với thời gian linh hoạt'}
-              </p>
-              <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
-                <Button
-                  icon={<EyeOutlined />}
-                  onClick={() => setShowSlotCalendar(true)}
-                  className='bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-lg hover:shadow-xl transition-all duration-200'
-                  size='large'
-                >
-                  {t('gp_booking_show_calendar') || 'Hiện lại lịch slot'}
-                </Button>
-                <Button
-                  icon={<CalendarOutlined />}
-                  onClick={() => setIsFlexibleModalVisible(true)}
-                  className='bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-600 hover:to-teal-600 shadow-lg hover:shadow-xl transition-all duration-200'
-                  size='large'
-                >
-                  {t('gp_booking_flexible') || 'Đặt linh hoạt'}
-                </Button>
-              </div>
-            </div>
-          </Card>
+          <QuickBookingPanel
+            onFlexibleBooking={() => setIsFlexibleModalVisible(true)}
+            onRangeSelector={() => setShowRangeSelector(true)}
+            onShowCalendar={() => setShowSlotCalendar(true)}
+            vehicleInfo={{
+              brand: groupSummary?.brand,
+              model: groupSummary?.model,
+              licensePlate: groupSummary?.licensePlate
+            }}
+          />
         )}
 
         {/* mô tả các trang thái khi booking*/}
