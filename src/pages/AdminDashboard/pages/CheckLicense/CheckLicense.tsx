@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
-import { Input, Select, Tag, Checkbox, Button, Space, Modal, message } from 'antd'
+import { Input, Select, Tag, Checkbox, Button, Space, Modal, message, Alert } from 'antd'
 import { SearchOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { toast } from 'react-toastify'
 import staffApi from '../../../../apis/staff.api'
@@ -227,7 +227,7 @@ export default function CheckLicense() {
   }
 
   // Fetch members with React Query for better cache management
-  const { data: membersData, refetch: refetchMembers } = useQuery({
+  const { data: membersData, refetch: refetchMembers, isError, error } = useQuery({
     queryKey: ['admin', 'pending-licenses'],
     queryFn: async () => {
       const res = await staffApi.getUsersPendingLicense()
@@ -718,6 +718,23 @@ export default function CheckLicense() {
           </button>
         }
       />
+
+      {/* Error Alert */}
+      {isError && (
+        <Alert
+          message={t('admin_dashboard_error_load')}
+          description={t('admin_dashboard_error_desc')}
+          type='error'
+          showIcon
+          closable
+          className='mb-4 rounded-lg shadow-sm border-l-4 border-red-500'
+          action={
+            <Button size='small' type='primary' onClick={() => refetchMembers()}>
+              {t('admin_dashboard_retry')}
+            </Button>
+          }
+        />
+      )}
 
         <div className='mb-4 grid grid-cols-4 gap-3'>
           <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
