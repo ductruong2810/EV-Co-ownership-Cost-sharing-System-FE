@@ -226,7 +226,7 @@ export default function CheckLicense() {
   }
 
   // Fetch members with React Query for better cache management
-  const { data: membersData, refetch: refetchMembers, isError, error } = useQuery({
+  const { data: membersData, refetch: refetchMembers, isError, error, isLoading: isLoadingQuery } = useQuery({
     queryKey: ['admin', 'pending-licenses'],
     queryFn: async () => {
       const res = await staffApi.getUsersPendingLicense()
@@ -243,20 +243,6 @@ export default function CheckLicense() {
       setMembers(membersData)
     }
   }, [membersData])
-
-  // Initial load
-  useEffect(() => {
-    setLoading(true)
-    staffApi
-      .getUsersPendingLicense()
-      .then((res) => {
-        if (res.data && Array.isArray(res.data)) {
-          setMembers(res.data.map(mapUserToMember))
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
 
   const handleViewDetail = async (userId: string) => {
     setLoadingDetail(true)
@@ -691,14 +677,6 @@ export default function CheckLicense() {
 
   const selectedMember = filteredMembers.find((m) => m.id === selectedMemberId) || null
 
-  if (members.length === 0 && !loading) {
-    return (
-      <AdminPageContainer>
-        <EmptyState />
-      </AdminPageContainer>
-    )
-  }
-
   return (
     <AdminPageContainer>
       <AdminPageHeader
@@ -717,7 +695,7 @@ export default function CheckLicense() {
         }
       />
 
-      {/* Error Alert */}
+      {/* Error Alert - Check error FIRST before empty state */}
       {isError && (
         <Alert
           message={t('admin_dashboard_error_load')}
@@ -735,12 +713,21 @@ export default function CheckLicense() {
       )}
 
       {/* Loading State */}
-      {loading && (
+      {(isLoadingQuery || loading) && (
         <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
           <Spin size='large' />
           <span className='ml-3 text-gray-600 font-medium'>{t('admin_check_license_loading')}</span>
         </div>
       )}
+
+      {/* Empty State - Only show if not loading and not error */}
+      {!isError && members.length === 0 && !isLoadingQuery && !loading && (
+        <EmptyState />
+      )}
+
+      {/* Content - Only show if not empty and not error */}
+      {!isError && members.length > 0 && (
+        <>
 
         <div className='mb-4 grid grid-cols-4 gap-3'>
           <div className='bg-white rounded-lg border border-gray-200 p-3 text-center'>
@@ -1458,11 +1445,17 @@ export default function CheckLicense() {
 
       {/* Review Guidelines Modal */}
       <dialog id='review-guidelines-modal' className='modal'>
-        <div className='modal-box max-w-3xl'>
-          <form method='dialog'>
-            <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
+        <div className='modal-box max-w-3xl relative'>
+          <form method='dialog' className='absolute right-4 top-4 z-10'>
+            <button 
+              type='submit'
+              className='btn btn-sm btn-circle btn-ghost hover:bg-gray-200 text-gray-600 hover:text-gray-800'
+              aria-label={t('admin_check_license_close')}
+            >
+              ✕
+            </button>
           </form>
-          <h3 className='font-bold text-2xl mb-4'>{t('admin_check_license_guidelines_title')}</h3>
+          <h3 className='font-bold text-2xl mb-4 pr-10'>{t('admin_check_license_guidelines_title')}</h3>
 
           <div className='space-y-6'>
             {/* Why Review Section */}
@@ -1589,9 +1582,11 @@ export default function CheckLicense() {
           </div>
         </div>
         <form method='dialog' className='modal-backdrop'>
-          <button>{t('admin_check_license_close')}</button>
+          <button type='submit' aria-label={t('admin_check_license_close')}></button>
         </form>
       </dialog>
+        </>
+      )}
     </AdminPageContainer>
   )
 }

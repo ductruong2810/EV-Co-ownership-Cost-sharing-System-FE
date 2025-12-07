@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
-import { Input, Select, Tag, DatePicker, InputNumber, Collapse, Button, Space, Checkbox, Modal, message, Spin } from 'antd'
+import { Input, Select, Tag, DatePicker, InputNumber, Collapse, Button, Space, Checkbox, Modal, message, Spin, Alert } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import staffApi from '../../../../apis/staff.api'
 import type { groupStaffItem } from '../../../../types/api/staff.type'
@@ -326,25 +326,7 @@ export default function CheckGroup() {
   }, [groupData, selectedGroup])
 
 
-  if (isError) {
-    return (
-      <AdminPageContainer>
-        <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
-          <p className='mb-3 text-base font-semibold text-red-700'>
-            {t('admin_check_group_error_load')}
-          </p>
-          <p className='mb-4 text-sm text-red-600'>
-            {error instanceof Error ? error.message : t('admin_check_group_error_check_connection')}
-          </p>
-          <Button type='primary' danger onClick={() => refetch()}>
-            {t('admin_dashboard_retry')}
-          </Button>
-        </div>
-      </AdminPageContainer>
-    )
-  }
-
-  if (allGroupData.length === 0) {
+  if (allGroupData.length === 0 && !isPending && !isError) {
     return (
       <AdminPageContainer>
         <EmptyState />
@@ -359,6 +341,23 @@ export default function CheckGroup() {
         title={t('admin_check_group_title')}
         subtitle={t('admin_check_group_subtitle')}
       />
+
+      {/* Error Alert */}
+      {isError && (
+        <Alert
+          message={t('admin_check_group_error_load')}
+          description={error instanceof Error ? error.message : t('admin_check_group_error_check_connection')}
+          type='error'
+          showIcon
+          closable
+          className='mb-4 rounded-lg shadow-sm border-l-4 border-red-500'
+          action={
+            <Button size='small' type='primary' onClick={() => refetch()}>
+              {t('admin_dashboard_retry')}
+            </Button>
+          }
+        />
+      )}
 
       {/* Loading State */}
       {isPending && (

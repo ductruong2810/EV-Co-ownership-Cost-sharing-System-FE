@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { Input, Select, Tag, Spin } from 'antd'
+import { Input, Select, Tag, Spin, Alert, Button } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import technicianApi from '../../../../apis/technician.api'
 import auditApi from '../../../../apis/audit.api'
@@ -38,7 +38,6 @@ export function CheckVehicleReport() {
     retry: 1
   })
 
-  if (isError) return <ErrorState error={error as Error} onRetry={() => refetch()} />
 
   const reportData: VehicleCheck[] = data?.data ?? []
 
@@ -119,6 +118,23 @@ export function CheckVehicleReport() {
           approved={summary.approved}
           rejected={summary.rejected}
         />
+
+        {/* Error Alert */}
+        {isError && (
+          <Alert
+            message={t('admin_check_vehicle_report_error_load')}
+            description={error instanceof Error ? error.message : t('admin_check_vehicle_report_error_load')}
+            type='error'
+            showIcon
+            closable
+            className='mb-4 rounded-lg shadow-sm border-l-4 border-red-500'
+            action={
+              <Button size='small' type='primary' onClick={() => refetch()}>
+                {t('admin_dashboard_retry')}
+              </Button>
+            }
+          />
+        )}
 
         {/* Loading State */}
         {isPending && (

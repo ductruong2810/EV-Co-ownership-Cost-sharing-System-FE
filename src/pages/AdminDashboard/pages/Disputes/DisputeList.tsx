@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Tag, Select, Input, DatePicker, Collapse, Button, Space, Checkbox, Modal, message, Spin } from 'antd'
+import { Tag, Select, Input, DatePicker, Collapse, Button, Space, Checkbox, Modal, message, Spin, Alert } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -279,23 +279,6 @@ const DisputeList = () => {
   const hasActiveFilters = searchTerm || dateRange[0] || dateRange[1] || groupIdFilter || disputeTypeFilter !== 'ALL'
 
 
-  if (isError) {
-    return (
-      <AdminPageContainer>
-        <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
-          <p className='mb-3 text-base font-semibold text-red-700'>
-            {t('admin_disputes_error_load')}
-          </p>
-          <p className='mb-4 text-sm text-red-600'>
-            {error instanceof Error ? error.message : t('admin_disputes_error_check_connection')}
-          </p>
-          <Button type='primary' danger onClick={() => refetch()}>
-            {t('admin_dashboard_retry')}
-          </Button>
-        </div>
-      </AdminPageContainer>
-    )
-  }
 
   return (
     <AdminPageContainer>
@@ -318,6 +301,23 @@ const DisputeList = () => {
           />
         }
       />
+
+      {/* Error Alert */}
+      {isError && (
+        <Alert
+          message={t('admin_disputes_error_load')}
+          description={error instanceof Error ? error.message : t('admin_disputes_error_check_connection')}
+          type='error'
+          showIcon
+          closable
+          className='mb-4 rounded-lg shadow-sm border-l-4 border-red-500'
+          action={
+            <Button size='small' type='primary' onClick={() => refetch()}>
+              {t('admin_dashboard_retry')}
+            </Button>
+          }
+        />
+      )}
 
       {/* Loading State */}
       {isLoading && (

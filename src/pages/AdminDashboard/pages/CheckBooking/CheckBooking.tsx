@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Avatar, Pagination, Input, Select, Tag, DatePicker, Button, Space, Spin } from 'antd'
+import { Avatar, Pagination, Input, Select, Tag, DatePicker, Button, Space, Spin, Alert } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons'
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
@@ -139,25 +139,7 @@ export default function CheckBooking() {
   const selectedUser = filteredUsers.find((u: UserOfStaff) => u.userId === selectedUserId)
 
   // Render
-
-  if (isError) {
-    return (
-      <AdminPageContainer>
-        <div className='max-w-xl mx-auto mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center'>
-          <p className='mb-3 text-base font-semibold text-red-700'>
-            {t('admin_check_booking_error_load')}
-          </p>
-          <p className='mb-4 text-sm text-red-600'>
-            {error instanceof Error ? error.message : t('admin_check_booking_error_check_connection')}
-          </p>
-          <Button type='primary' danger onClick={() => refetch()}>
-            {t('admin_dashboard_retry')}
-          </Button>
-        </div>
-      </AdminPageContainer>
-    )
-  }
-  if (!data.length) {
+  if (!data.length && !isLoading && !isError) {
     return (
       <AdminPageContainer>
         <EmptyState />
@@ -176,6 +158,23 @@ export default function CheckBooking() {
           totalPages: total
         })}
       />
+
+      {/* Error Alert */}
+      {isError && (
+        <Alert
+          message={t('admin_check_booking_error_load')}
+          description={error instanceof Error ? error.message : t('admin_check_booking_error_check_connection')}
+          type='error'
+          showIcon
+          closable
+          className='mb-4 rounded-lg shadow-sm border-l-4 border-red-500'
+          action={
+            <Button size='small' type='primary' onClick={() => refetch()}>
+              {t('admin_dashboard_retry')}
+            </Button>
+          }
+        />
+      )}
 
       {/* Loading State */}
       {isLoading && (

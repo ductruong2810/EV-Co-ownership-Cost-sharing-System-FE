@@ -4,7 +4,7 @@ import technicianApi from '../../../../apis/technician.api'
 import auditApi from '../../../../apis/audit.api'
 import { toast } from 'react-toastify'
 import logger from '../../../../utils/logger'
-import { Input, Select, Tag, DatePicker, InputNumber, Button, Space, Checkbox, Modal, message, Spin } from 'antd'
+import { Input, Select, Tag, DatePicker, InputNumber, Button, Space, Checkbox, Modal, message, Spin, Alert } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { useI18n } from '../../../../i18n/useI18n'
@@ -388,37 +388,6 @@ function MaintenanceList() {
   }
 
 
-  if (errorUser) {
-    return (
-      <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-6 flex items-center justify-center'>
-        <div className='max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow'>
-          <p className='mb-3 text-base font-semibold text-red-700'>
-            {t('admin_maintenance_error_load_vehicles')}
-          </p>
-          <p className='mb-4 text-sm text-red-600'>{errorUserMsg?.message || t('admin_maintenance_error_try_later')}</p>
-          <Button type='primary' danger onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'rejectedUsers'] })}>
-            {t('admin_dashboard_retry')}
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  if (errorMaint) {
-    return (
-      <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 p-6 flex items-center justify-center'>
-        <div className='max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center shadow'>
-          <p className='mb-3 text-base font-semibold text-red-700'>
-            {t('admin_maintenance_error_load_requests')}
-          </p>
-          <p className='mb-4 text-sm text-red-600'>{errorMaintMsg?.message || t('admin_maintenance_error_try_later')}</p>
-          <Button type='primary' danger onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'myMaintenances'] })}>
-            {t('admin_dashboard_retry')}
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
   const selectedVehicle =
     form.vehicleId && form.userId
@@ -492,6 +461,39 @@ function MaintenanceList() {
           <h1 className='text-3xl font-bold text-gray-900'>{t('admin_maintenance_title')}</h1>
           <p className='text-gray-600'>{t('admin_maintenance_subtitle')}</p>
         </div>
+
+        {/* Error Alerts */}
+        {errorUser && (
+          <Alert
+            message={t('admin_maintenance_error_load_vehicles')}
+            description={errorUserMsg?.message || t('admin_maintenance_error_try_later')}
+            type='error'
+            showIcon
+            closable
+            className='mb-4 rounded-lg shadow-sm border-l-4 border-red-500'
+            action={
+              <Button size='small' type='primary' onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'rejectedUsers'] })}>
+                {t('admin_dashboard_retry')}
+              </Button>
+            }
+          />
+        )}
+
+        {errorMaint && (
+          <Alert
+            message={t('admin_maintenance_error_load_requests')}
+            description={errorMaintMsg?.message || t('admin_maintenance_error_try_later')}
+            type='error'
+            showIcon
+            closable
+            className='mb-4 rounded-lg shadow-sm border-l-4 border-red-500'
+            action={
+              <Button size='small' type='primary' onClick={() => queryClient.invalidateQueries({ queryKey: ['technician', 'myMaintenances'] })}>
+                {t('admin_dashboard_retry')}
+              </Button>
+            }
+          />
+        )}
 
         {/* Loading State */}
         {(loadingUser || loadingMaint) && (
