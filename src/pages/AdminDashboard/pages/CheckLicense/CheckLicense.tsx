@@ -1511,7 +1511,7 @@ export default function CheckLicense() {
                   </ul>
                 </div>
                 <div>
-                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_ocr_verification')}:</p>
+                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_ocr_verification')}</p>
                   <ul className='list-disc list-inside space-y-1 text-gray-700 ml-4'>
                     <li>{t('admin_check_license_guidelines_doc_number_match')}</li>
                     <li>{t('admin_check_license_guidelines_dob_correct')}</li>
@@ -1520,7 +1520,7 @@ export default function CheckLicense() {
                   </ul>
                 </div>
                 <div>
-                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_doc_validity')}:</p>
+                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_doc_validity')}</p>
                   <ul className='list-disc list-inside space-y-1 text-gray-700 ml-4'>
                     <li>{t('admin_check_license_guidelines_not_expired')}</li>
                     <li>{t('admin_check_license_guidelines_format_match')}</li>
