@@ -166,8 +166,8 @@ const BookingCar = () => {
   // Calendar view state (week or month)
   const [calendarView, setCalendarView] = useState<'week' | 'month'>('week')
 
-  // Show/hide slot-based calendar
-  const [showSlotCalendar, setShowSlotCalendar] = useState(true)
+  // Show/hide slot-based calendar - mặc định ẩn để tập trung vào flexible booking
+  const [showSlotCalendar, setShowSlotCalendar] = useState(false)
 
   // Range selection state
   const [selectedRange, setSelectedRange] = useState<{ start: string; end: string } | null>(null)
@@ -269,7 +269,7 @@ const BookingCar = () => {
 
         {/* Stats Bar */}
         <div className='bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-cyan-100/50'>
-          <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
+        <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
         </div>
 
         {/* Range Selector */}
@@ -521,16 +521,16 @@ const BookingCar = () => {
                                   ⭐ {aiSuggestion.recommendationLevel}
                                 </div>
                               )}
-                              <BookingSlotCell
-                                date={day.date}
-                                time={daySlot?.time}
-                                bookedBy={daySlot?.bookedBy}
-                                type={daySlot?.type as SlotType}
-                                vehicleId={groupSummary?.vehicleId as number}
-                                vehicleStatus={vehicleStatus}
-                                quotaUser={quotaUser}
-                                bookingId={daySlot?.bookingId ?? undefined}
-                              />
+                            <BookingSlotCell
+                              date={day.date}
+                              time={daySlot?.time}
+                              bookedBy={daySlot?.bookedBy}
+                              type={daySlot?.type as SlotType}
+                              vehicleId={groupSummary?.vehicleId as number}
+                              vehicleStatus={vehicleStatus}
+                              quotaUser={quotaUser}
+                              bookingId={daySlot?.bookingId ?? undefined}
+                            />
                             </div>
                           )}
                         </td>
@@ -560,21 +560,35 @@ const BookingCar = () => {
 
         {/* Message when calendar is hidden */}
         {!showSlotCalendar && (
-          <Card className='shadow-xl border-0 rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/30 border-2 border-amber-200'>
+          <Card className='shadow-xl border-0 rounded-3xl overflow-hidden bg-gradient-to-br from-cyan-50 to-blue-50/30 border-2 border-cyan-200'>
             <div className='p-8 sm:p-12 text-center'>
-              <EyeInvisibleOutlined style={{ fontSize: '48px', color: '#f59e0b' }} className='mb-4' />
-              <h3 className='text-2xl font-black text-amber-800 mb-2'>{t('gp_booking_calendar_hidden') || 'Calendar đã được ẩn'}</h3>
-              <p className='text-amber-700 mb-6'>
-                {t('gp_booking_calendar_hidden_desc') || 'Bạn có thể sử dụng Flexible Booking hoặc Range Selector để đặt xe'}
+              <div className='mb-6'>
+                <div className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 mb-4 shadow-lg'>
+                  <CalendarOutlined style={{ fontSize: '40px', color: 'white' }} />
+                </div>
+              </div>
+              <h3 className='text-2xl sm:text-3xl font-black text-cyan-800 mb-3'>{t('gp_booking_calendar_hidden') || 'Calendar đã được ẩn'}</h3>
+              <p className='text-cyan-700 mb-8 text-base sm:text-lg max-w-2xl mx-auto'>
+                {t('gp_booking_calendar_hidden_desc') || 'Bạn có thể sử dụng Flexible Booking hoặc Range Selector để đặt xe với thời gian linh hoạt'}
               </p>
-              <Button
-                icon={<EyeOutlined />}
-                onClick={() => setShowSlotCalendar(true)}
-                className='bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 hover:from-amber-600 hover:to-orange-600 shadow-lg'
-                size='large'
-              >
-                {t('gp_booking_show_calendar') || 'Hiện lại lịch slot'}
-              </Button>
+              <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+                <Button
+                  icon={<EyeOutlined />}
+                  onClick={() => setShowSlotCalendar(true)}
+                  className='bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-lg hover:shadow-xl transition-all duration-200'
+                  size='large'
+                >
+                  {t('gp_booking_show_calendar') || 'Hiện lại lịch slot'}
+                </Button>
+                <Button
+                  icon={<CalendarOutlined />}
+                  onClick={() => setIsFlexibleModalVisible(true)}
+                  className='bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-600 hover:to-teal-600 shadow-lg hover:shadow-xl transition-all duration-200'
+                  size='large'
+                >
+                  {t('gp_booking_flexible') || 'Đặt linh hoạt'}
+                </Button>
+              </div>
             </div>
           </Card>
         )}
