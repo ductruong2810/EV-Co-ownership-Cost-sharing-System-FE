@@ -15,6 +15,8 @@ import { toast } from 'react-toastify'
 import { useI18n } from '../../i18n/useI18n'
 import path from '../../constants/path'
 import authApi from '../../apis/auth.api'
+import { showSuccessToast, showErrorToast } from '../../components/Error/ErrorToast'
+import { ErrorType, ErrorSeverity } from '../../types/error.type'
 
 export default function MyAccount() {
   const queryClient = useQueryClient()
@@ -86,15 +88,15 @@ export default function MyAccount() {
     mutationFn: (avatarFile: File) => userApi.updateAvatar(avatarFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-profile'] })
-      toast.success('Avatar updated successfully', {
-        autoClose: 2500,
-        position: 'top-right'
-      })
+      showSuccessToast('Avatar updated successfully')
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Failed to update avatar', {
-        autoClose: 2500,
-        position: 'top-right'
+      const errorMessage = error?.response?.data?.message || 'Failed to update avatar'
+      showErrorToast({
+        type: ErrorType.UNKNOWN,
+        severity: ErrorSeverity.MEDIUM,
+        message: errorMessage,
+        timestamp: new Date()
       })
     }
   })
@@ -106,18 +108,22 @@ export default function MyAccount() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file', {
-        autoClose: 2500,
-        position: 'top-right'
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.LOW,
+        message: 'Please select an image file',
+        timestamp: new Date()
       })
       return
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB', {
-        autoClose: 2500,
-        position: 'top-right'
+      showErrorToast({
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.LOW,
+        message: 'Image size must be less than 5MB',
+        timestamp: new Date()
       })
       return
     }

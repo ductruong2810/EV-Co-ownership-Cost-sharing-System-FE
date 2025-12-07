@@ -62,7 +62,17 @@ export default function Avatar({ avatar, userId, size = 128, className = '', onC
             // Nếu avatarUrl load lỗi, fallback về generated avatar
             if (hasCustomAvatar) {
               const target = e.target as HTMLImageElement
+              // Log error để debug (chỉ trong development)
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('Failed to load avatar from R2:', src, 'Falling back to generated avatar')
+              }
               target.src = generatedAvatar
+            }
+          }}
+          onLoad={() => {
+            // Log success để debug (chỉ trong development)
+            if (process.env.NODE_ENV === 'development' && hasCustomAvatar) {
+              console.log('Successfully loaded avatar from R2:', src)
             }
           }}
         />
