@@ -1574,12 +1574,6 @@ export default function CheckLicense() {
               </div>
             </div>
           </div>
-
-          <div className='modal-action'>
-            <form method='dialog'>
-              <button className='btn btn-primary'>{t('admin_check_license_guidelines_got_it')}</button>
-            </form>
-          </div>
         </div>
         <form method='dialog' className='modal-backdrop'>
           <button type='submit' aria-label={t('admin_check_license_close')}></button>
