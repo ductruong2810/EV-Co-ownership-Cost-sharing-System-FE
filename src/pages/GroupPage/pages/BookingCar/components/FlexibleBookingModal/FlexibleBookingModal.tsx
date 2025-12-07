@@ -3,6 +3,7 @@ import { Modal, DatePicker, TimePicker, Alert } from 'antd'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { useState, useEffect } from 'react'
+import { useI18n } from '../../../../../../i18n/useI18n'
 
 interface FlexibleBookingModalProps {
   visible: boolean
@@ -31,6 +32,7 @@ const FlexibleBookingModal = ({
   quotaUser,
   isLoading = false
 }: FlexibleBookingModalProps) => {
+  const { t } = useI18n()
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs())
   const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().hour(9).minute(0))
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs())
@@ -63,11 +65,11 @@ const FlexibleBookingModal = ({
     const newErrors: string[] = []
 
     if (!startDate || !startTime) {
-      newErrors.push('Vui lòng chọn ngày và giờ bắt đầu')
+      newErrors.push(t('gp_booking_validation_start_required'))
     }
 
     if (!endDate || !endTime) {
-      newErrors.push('Vui lòng chọn ngày và giờ kết thúc')
+      newErrors.push(t('gp_booking_validation_end_required'))
     }
 
     if (startDate && startTime && endDate && endTime) {
@@ -76,19 +78,19 @@ const FlexibleBookingModal = ({
       const now = dayjs()
 
       if (start.isBefore(now)) {
-        newErrors.push('Thời gian bắt đầu không được ở quá khứ')
+        newErrors.push(t('gp_booking_validation_past'))
       }
 
       if (end.isBefore(start) || end.isSame(start)) {
-        newErrors.push('Thời gian kết thúc phải sau thời gian bắt đầu')
+        newErrors.push(t('gp_booking_validation_order'))
       }
 
       if (duration < 1) {
-        newErrors.push('Thời lượng booking tối thiểu là 1 giờ')
+        newErrors.push(t('gp_booking_validation_min_duration'))
       }
 
       if (duration > 24) {
-        newErrors.push('Thời lượng booking tối đa là 24 giờ')
+        newErrors.push(t('gp_booking_validation_max_duration'))
       }
     }
 
@@ -113,8 +115,9 @@ const FlexibleBookingModal = ({
   const formatDuration = (hours: number) => {
     const h = Math.floor(hours)
     const m = Math.round((hours - h) * 60)
-    if (m === 0) return `${h} giờ`
-    return `${h} giờ ${m} phút`
+    // Note: Duration format should use i18n, but for now using simple format
+    if (m === 0) return `${h}h`
+    return `${h}h ${m}m`
   }
 
   return (
@@ -124,7 +127,7 @@ const FlexibleBookingModal = ({
           <div className='bg-gradient-to-br from-[#06B6D4] to-[#0EA5E9] p-4 rounded-2xl shadow-xl'>
             <CalendarOutlined style={{ fontSize: '28px', color: 'white' }} />
           </div>
-          <span className='text-3xl font-black text-[#06B6D4] tracking-tight'>Đặt xe linh hoạt</span>
+          <span className='text-3xl font-black text-[#06B6D4] tracking-tight'>{t('gp_booking_flexible_title')}</span>
         </div>
       }
       open={visible}
@@ -135,14 +138,14 @@ const FlexibleBookingModal = ({
             onClick={onClose}
             className='bg-gray-100 text-gray-800 font-semibold text-base h-12 px-6 rounded-xl hover:bg-gray-200 transition'
           >
-            Hủy
+            {t('gp_booking_cancel')}
           </button>
           <button
             onClick={handleConfirm}
             disabled={isLoading || errors.length > 0}
             className='bg-gradient-to-br from-[#06B6D4] to-[#0EA5E9] text-white font-bold text-base h-12 px-6 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed'
           >
-            {isLoading ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
+            {isLoading ? t('gp_booking_processing') : t('gp_booking_confirm')}
           </button>
         </div>
       }
@@ -153,7 +156,7 @@ const FlexibleBookingModal = ({
         {vehicleInfo && (
           <div className='bg-gradient-to-br from-cyan-50 to-blue-50/30 p-6 rounded-2xl border-l-4 border-[#06B6D4] shadow-md ring-1 ring-cyan-100'>
             <div className='flex items-center gap-3 text-[#06B6D4] font-bold text-base mb-2'>
-              <CarOutlined /> Thông tin xe
+              <CarOutlined /> {t('gp_booking_vehicle_info')}
             </div>
             <div className='text-gray-800 font-black text-xl tracking-tight'>
               {vehicleInfo.brand} {vehicleInfo.model} - {vehicleInfo.licensePlate}
@@ -164,7 +167,7 @@ const FlexibleBookingModal = ({
         {/* Errors */}
         {errors.length > 0 && (
           <Alert
-            message='Lỗi xác thực'
+            message={t('gp_booking_error')}
             description={
               <ul className='list-disc list-inside mt-2'>
                 {errors.map((error, idx) => (
@@ -183,11 +186,11 @@ const FlexibleBookingModal = ({
           {/* Start Date & Time */}
           <div className='space-y-4'>
             <div className='flex items-center gap-2 text-[#06B6D4] font-bold text-lg'>
-              <ClockCircleOutlined /> Thời gian bắt đầu
+              <ClockCircleOutlined /> {t('gp_booking_start_time')}
             </div>
             <div className='space-y-3'>
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>Ngày bắt đầu</label>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_start_date')}</label>
                 <DatePicker
                   value={startDate}
                   onChange={(date) => {
@@ -202,7 +205,7 @@ const FlexibleBookingModal = ({
                 />
               </div>
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>Giờ bắt đầu</label>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_start_time')}</label>
                 <TimePicker
                   value={startTime}
                   onChange={setStartTime}
@@ -217,11 +220,11 @@ const FlexibleBookingModal = ({
           {/* End Date & Time */}
           <div className='space-y-4'>
             <div className='flex items-center gap-2 text-[#06B6D4] font-bold text-lg'>
-              <CheckCircleOutlined /> Thời gian kết thúc
+              <CheckCircleOutlined /> {t('gp_booking_end_time')}
             </div>
             <div className='space-y-3'>
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>Ngày kết thúc</label>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_end_date')}</label>
                 <DatePicker
                   value={endDate}
                   onChange={setEndDate}
@@ -234,7 +237,7 @@ const FlexibleBookingModal = ({
                 />
               </div>
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>Giờ kết thúc</label>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_end_time')}</label>
                 <TimePicker
                   value={endTime}
                   onChange={setEndTime}
@@ -251,17 +254,17 @@ const FlexibleBookingModal = ({
         <div className='bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 border border-slate-200'>
           <div className='grid md:grid-cols-3 gap-4'>
             <div>
-              <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>Thời lượng</p>
+              <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>{t('gp_booking_duration')}</p>
               <p className='text-2xl font-black text-slate-900'>{formatDuration(duration)}</p>
             </div>
             <div>
-              <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>Quota sau khi đặt</p>
+              <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>{t('gp_booking_quota_after')}</p>
               <p className='text-2xl font-black text-slate-900'>
                 {quotaUser.usedSlots + 1}/{quotaUser.totalSlots}
               </p>
             </div>
             <div>
-              <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>Còn lại</p>
+              <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>{t('gp_booking_remaining')}</p>
               <p className='text-2xl font-black text-slate-900'>{quotaUser.remainingSlots - 1} slot</p>
             </div>
           </div>
@@ -279,7 +282,7 @@ const FlexibleBookingModal = ({
             }}
             className='px-4 py-2 bg-cyan-100 text-cyan-700 rounded-lg text-sm font-semibold hover:bg-cyan-200 transition'
           >
-            Hôm nay (9:00 - 17:00)
+            {t('gp_booking_quick_today')}
           </button>
           <button
             onClick={() => {
@@ -291,7 +294,7 @@ const FlexibleBookingModal = ({
             }}
             className='px-4 py-2 bg-cyan-100 text-cyan-700 rounded-lg text-sm font-semibold hover:bg-cyan-200 transition'
           >
-            Ngày mai (9:00 - 17:00)
+            {t('gp_booking_quick_tomorrow')}
           </button>
           <button
             onClick={() => {
@@ -303,7 +306,7 @@ const FlexibleBookingModal = ({
             }}
             className='px-4 py-2 bg-cyan-100 text-cyan-700 rounded-lg text-sm font-semibold hover:bg-cyan-200 transition'
           >
-            Qua đêm (18:00 - 9:00+1)
+            {t('gp_booking_quick_overnight')}
           </button>
         </div>
       </div>

@@ -2,7 +2,11 @@ import { Alert, Button } from 'antd'
 import { CalendarOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-toastify'
 import FlexibleBookingModal from '../FlexibleBookingModal'
+import groupApi from '../../../../../../apis/group.api'
+import { useI18n } from '../../../../../../i18n/useI18n'
 
 interface RangeSelectorProps {
   onRangeSelected: (start: string, end: string) => void
@@ -27,6 +31,7 @@ const RangeSelector = ({
   quotaUser,
   conflicts = []
 }: RangeSelectorProps) => {
+  const { t } = useI18n()
   const [startDate, setStartDate] = useState<string | null>(null)
   const [endDate, setEndDate] = useState<string | null>(null)
   const [startTime, setStartTime] = useState<string>('09:00')
@@ -47,7 +52,7 @@ const RangeSelector = ({
       onRangeSelected('', '') // Clear selection
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Đặt xe thất bại. Vui lòng thử lại!')
+      toast.error(error?.response?.data?.message || t('gp_booking_error'))
     }
   })
 
@@ -75,12 +80,12 @@ const RangeSelector = ({
       <div className='bg-white rounded-2xl p-6 shadow-lg border border-cyan-100 mb-6'>
         <div className='flex items-center gap-3 mb-4'>
           <CalendarOutlined className='text-cyan-600 text-xl' />
-          <h3 className='text-xl font-black text-cyan-600'>Chọn khoảng thời gian</h3>
+          <h3 className='text-xl font-black text-cyan-600'>{t('gp_booking_range_title')}</h3>
         </div>
 
         <div className='grid md:grid-cols-2 gap-4 mb-4'>
           <div>
-            <label className='block text-sm font-semibold text-gray-700 mb-2'>Ngày bắt đầu</label>
+            <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_start_date')}</label>
             <input
               type='date'
               value={startDate || ''}
@@ -90,7 +95,7 @@ const RangeSelector = ({
             />
           </div>
           <div>
-            <label className='block text-sm font-semibold text-gray-700 mb-2'>Ngày kết thúc</label>
+            <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_end_date')}</label>
             <input
               type='date'
               value={endDate || ''}
@@ -103,7 +108,7 @@ const RangeSelector = ({
 
         <div className='grid md:grid-cols-2 gap-4 mb-4'>
           <div>
-            <label className='block text-sm font-semibold text-gray-700 mb-2'>Giờ bắt đầu</label>
+            <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_start_time')}</label>
             <input
               type='time'
               value={startTime}
@@ -112,7 +117,7 @@ const RangeSelector = ({
             />
           </div>
           <div>
-            <label className='block text-sm font-semibold text-gray-700 mb-2'>Giờ kết thúc</label>
+            <label className='block text-sm font-semibold text-gray-700 mb-2'>{t('gp_booking_end_time')}</label>
             <input
               type='time'
               value={endTime}
@@ -124,10 +129,10 @@ const RangeSelector = ({
 
         {hasConflicts && (
           <Alert
-            message='Cảnh báo xung đột'
+            message={t('gp_booking_conflict_warning')}
             description={
               <div className='mt-2'>
-                <p className='text-sm mb-2'>Có {conflicts.length} slot đã được đặt trong khoảng thời gian này:</p>
+                <p className='text-sm mb-2'>{t('gp_booking_conflict_message', { count: conflicts.length })}:</p>
                 <ul className='list-disc list-inside text-sm space-y-1'>
                   {conflicts.slice(0, 5).map((conflict, idx) => (
                     <li key={idx}>
@@ -154,7 +159,7 @@ const RangeSelector = ({
             className='bg-gradient-to-r from-cyan-500 to-blue-500 border-0 hover:from-cyan-600 hover:to-blue-600'
             size='large'
           >
-            {bookingMutation.isPending ? 'Đang xử lý...' : 'Xác nhận đặt xe'}
+            {bookingMutation.isPending ? t('gp_booking_processing') : t('gp_booking_range_confirm')}
           </Button>
           {(startDate || endDate) && (
             <Button
@@ -165,14 +170,14 @@ const RangeSelector = ({
               }}
               size='large'
             >
-              Xóa lựa chọn
+              {t('gp_booking_range_clear')}
             </Button>
           )}
         </div>
 
         {hasSelection && (
           <div className='mt-4 p-4 bg-cyan-50 rounded-xl border border-cyan-200'>
-            <p className='text-sm font-semibold text-cyan-700 mb-1'>Thời gian đã chọn:</p>
+            <p className='text-sm font-semibold text-cyan-700 mb-1'>{t('gp_booking_range_selected')}:</p>
             <p className='text-lg font-black text-cyan-900'>
               {dayjs(startDate).format('DD/MM/YYYY')} {startTime} - {dayjs(endDate).format('DD/MM/YYYY')} {endTime}
             </p>

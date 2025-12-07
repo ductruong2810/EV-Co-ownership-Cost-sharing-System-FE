@@ -2,10 +2,8 @@ import { CalendarOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons'
 import { Card } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
 import { useState, useMemo } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
-import groupApi from '../../../../../../apis/group.api'
 import BookingSlotCell from '../BookingSlotCell'
+import { useI18n } from '../../../../../../i18n/useI18n'
 
 type SlotType =
   | 'AVAILABLE'
@@ -58,8 +56,8 @@ const MonthViewCalendar = ({
   onSlotClick,
   selectedRange
 }: MonthViewCalendarProps) => {
+  const { t } = useI18n()
   const [currentMonth, setCurrentMonth] = useState<Dayjs>(dayjs())
-  const queryClient = useQueryClient()
 
   // Group slots by date for month view
   const slotsByDate = useMemo(() => {
@@ -120,7 +118,7 @@ const MonthViewCalendar = ({
           onClick={prevMonth}
           className='px-4 py-2 bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200 transition font-semibold'
         >
-          ← Tháng trước
+          ← {t('gp_booking_month_prev')}
         </button>
         <div className='text-center'>
           <h3 className='text-2xl font-black text-cyan-600'>{currentMonth.format('MMMM YYYY')}</h3>
@@ -128,14 +126,14 @@ const MonthViewCalendar = ({
             onClick={goToToday}
             className='text-sm text-gray-600 hover:text-cyan-600 transition mt-1'
           >
-            Về hôm nay
+            {t('gp_booking_month_today')}
           </button>
         </div>
         <button
           onClick={nextMonth}
           className='px-4 py-2 bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200 transition font-semibold'
         >
-          Tháng sau →
+          {t('gp_booking_month_next')} →
         </button>
       </div>
 
@@ -148,7 +146,7 @@ const MonthViewCalendar = ({
                 <th className='p-4 text-left font-black text-white text-sm w-32 sticky left-0 z-10 bg-[#06B6D4]'>
                   <div className='flex items-center gap-2'>
                     <CalendarOutlined />
-                    <span>Thời gian</span>
+                    <span>{t('gp_booking_time_slot')}</span>
                   </div>
                 </th>
                 {monthDays.map((day, idx) => (

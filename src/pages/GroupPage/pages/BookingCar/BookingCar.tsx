@@ -23,6 +23,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import dayjs from 'dayjs'
 import { AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons'
+import { useI18n } from '../../../../i18n/useI18n'
 
 // ============= INTERFACES (giữ nguyên) =============
 type SlotStatus = 'AVAILABLE' | 'LOCKED' | 'CONFIRMED' | 'CANCELLED' | ''
@@ -62,6 +63,7 @@ interface QuotaInfo {
 
 // ============= MAIN COMPONENT =============
 const BookingCar = () => {
+  const { t } = useI18n()
   const { groupId } = useParams<{ groupId: string }>()
   const { setGroupId, subscribeGroupNotifications, unsubscribeGroupNotifications } = useContext(AppContext)
   
@@ -204,32 +206,32 @@ const BookingCar = () => {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-bookings'] })
       queryClient.invalidateQueries({ queryKey: ['smart-suggestions', groupId] })
-      toast.success(response?.data?.message || 'Đặt xe thành công!')
+      toast.success(response?.data?.message || t('gp_booking_success'))
       setIsFlexibleModalVisible(false)
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Đặt xe thất bại. Vui lòng thử lại!')
+      toast.error(error?.response?.data?.message || t('gp_booking_error'))
     }
   })
 
   const handleFlexibleBooking = (data: { startDateTime: string; endDateTime: string }) => {
     if (!groupSummary?.vehicleId) {
-      toast.error('Không tìm thấy thông tin xe')
+      toast.error(t('gp_booking_error'))
       return
     }
 
     if (quotaUser.remainingSlots <= 0) {
-      toast.error('Bạn đã hết quota cho tuần này!')
+      toast.error(t('gp_booking_error'))
       return
     }
 
     if (vehicleStatus === 'Has Issues') {
-      toast.error('Xe đang có vấn đề, không thể đặt!')
+      toast.error(t('gp_booking_error'))
       return
     }
 
     if (vehicleStatus === 'Under Maintenance') {
-      toast.warning('Xe đang bảo trì, vui lòng đặt sau!')
+      toast.warning(t('gp_booking_error'))
       return
     }
 
@@ -287,8 +289,8 @@ const BookingCar = () => {
         {selectedRange && conflicts.length > 0 && (
           <div className='mb-6'>
             <Alert
-              message='Phát hiện xung đột'
-              description={`Có ${conflicts.length} slot đã được đặt trong khoảng thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.`}
+              message={t('gp_booking_conflict_detected')}
+              description={t('gp_booking_conflict_message', { count: conflicts.length })}
               type='warning'
               showIcon
               closable
@@ -333,7 +335,7 @@ const BookingCar = () => {
                 }`}
               >
                 <UnorderedListOutlined className='mr-1' />
-                Tuần
+                {t('gp_booking_week')}
               </button>
               <button
                 onClick={() => setCalendarView('month')}
@@ -344,7 +346,7 @@ const BookingCar = () => {
                 }`}
               >
                 <AppstoreOutlined className='mr-1' />
-                Tháng
+                {t('gp_booking_month')}
               </button>
             </div>
             <Button
@@ -352,8 +354,8 @@ const BookingCar = () => {
               onClick={() => navigateWeek('prev')}
               className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-md text-xs sm:text-sm'
             >
-              <span className='hidden sm:inline'>Tuần trước</span>
-              <span className='sm:hidden'>Trước</span>
+              <span className='hidden sm:inline'>{t('gp_booking_prev_week')}</span>
+              <span className='sm:hidden'>{t('gp_booking_prev_week').split(' ')[0]}</span>
             </Button>
             <Button
               icon={<CalendarOutlined />}
@@ -361,24 +363,24 @@ const BookingCar = () => {
               className='px-3 sm:px-4 py-2 border-cyan-500 text-cyan-600 hover:bg-cyan-50 text-xs sm:text-sm'
               disabled={!selectedWeekStart}
             >
-              <span className='hidden sm:inline'>Tuần này</span>
-              <span className='sm:hidden'>Hôm nay</span>
+              <span className='hidden sm:inline'>{t('gp_booking_current_week')}</span>
+              <span className='sm:hidden'>{t('gp_booking_today')}</span>
             </Button>
             <Button
               icon={<RightOutlined />}
               onClick={() => navigateWeek('next')}
               className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-md text-xs sm:text-sm'
             >
-              <span className='hidden sm:inline'>Tuần sau</span>
-              <span className='sm:hidden'>Sau</span>
+              <span className='hidden sm:inline'>{t('gp_booking_next_week')}</span>
+              <span className='sm:hidden'>{t('gp_booking_next_week').split(' ')[0]}</span>
             </Button>
             <Button
               icon={<CalendarOutlined />}
               onClick={() => setIsFlexibleModalVisible(true)}
               className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-600 hover:to-teal-600 shadow-md text-xs sm:text-sm font-bold'
             >
-              <span className='hidden sm:inline'>Đặt linh hoạt</span>
-              <span className='sm:hidden'>Linh hoạt</span>
+              <span className='hidden sm:inline'>{t('gp_booking_flexible')}</span>
+              <span className='sm:hidden'>{t('gp_booking_flexible').split(' ')[0]}</span>
             </Button>
             <Button
               onClick={() => setShowRangeSelector(!showRangeSelector)}
@@ -389,8 +391,8 @@ const BookingCar = () => {
               }`}
             >
               <CalendarOutlined />
-              <span className='hidden sm:inline'>Chọn khoảng</span>
-              <span className='sm:hidden'>Khoảng</span>
+              <span className='hidden sm:inline'>{t('gp_booking_select_range')}</span>
+              <span className='sm:hidden'>{t('gp_booking_range')}</span>
             </Button>
           </div>
           <div className='text-xs sm:text-sm text-gray-600 font-medium text-center sm:text-right'>
@@ -399,7 +401,7 @@ const BookingCar = () => {
                 {data.weekStart} - {data.weekEnd}
               </span>
             ) : (
-              <span>Đang tải...</span>
+              <span>{t('gp_booking_loading')}</span>
             )}
           </div>
         </div>
@@ -415,7 +417,7 @@ const BookingCar = () => {
                   <th className='p-3 sm:p-6 text-left font-black text-white text-sm sm:text-lg w-40 sm:w-56 sticky left-0 z-10 bg-[#06B6D4]'>
                     <div className='flex items-center gap-2 sm:gap-3'>
                       <ClockCircleOutlined style={{ fontSize: '18px' }} className='sm:text-[22px]' />
-                      <span className='uppercase tracking-wide text-xs sm:text-base'>Khung giờ</span>
+                      <span className='uppercase tracking-wide text-xs sm:text-base'>{t('gp_booking_time_slot')}</span>
                     </div>
                   </th>
 
