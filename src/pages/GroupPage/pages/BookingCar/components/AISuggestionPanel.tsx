@@ -5,6 +5,7 @@ interface AISuggestionPanelProps {
   suggestions?: BookingSuggestion[]
   insights?: string[]
   isLoading: boolean
+  onSuggestionClick?: (date: string, timeRange: string) => void
 }
 
 const badgeMap: Record<string, string> = {
@@ -13,7 +14,7 @@ const badgeMap: Record<string, string> = {
   LOW: 'bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800'
 }
 
-const AISuggestionPanel = ({ suggestions, insights, isLoading }: AISuggestionPanelProps) => {
+const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick }: AISuggestionPanelProps) => {
   if (isLoading) {
     return (
       <div className='bg-white rounded-3xl p-6 shadow-xl border border-cyan-100'>
@@ -42,7 +43,8 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading }: AISuggestionPan
         {suggestions.map((item) => (
           <div
             key={`${item.date}-${item.timeRange}`}
-            className='rounded-2xl border border-slate-100 p-4 bg-gradient-to-br from-white to-slate-50 hover:shadow-lg transition-all duration-200'
+            onClick={() => onSuggestionClick?.(item.date, item.timeRange)}
+            className='rounded-2xl border border-slate-100 p-4 bg-gradient-to-br from-white to-slate-50 hover:shadow-lg hover:border-cyan-400 hover:scale-105 transition-all duration-200 cursor-pointer active:scale-95'
           >
             <div className='flex items-center justify-between mb-3'>
               <div>

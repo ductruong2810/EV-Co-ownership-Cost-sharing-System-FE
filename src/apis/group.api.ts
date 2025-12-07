@@ -110,8 +110,8 @@ const groupApi = {
   },
 
   // get booking calendar for group vehicles
-  getBookingCalendar: (groupId: string) => {
-    return http.get<BookingResponse>(`api/calendar/groups/${groupId}/weekly`)
+  getBookingCalendar: (groupId: string, params?: { weekStart?: string }) => {
+    return http.get<BookingResponse>(`api/calendar/groups/${groupId}/weekly`, { params })
   },
   // booking slot
   bookingSlot: (body: { vehicleId: number; startDateTime: string; endDateTime: string }) => {
