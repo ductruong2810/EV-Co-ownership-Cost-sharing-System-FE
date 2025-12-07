@@ -1,3 +1,16 @@
+import {
+  CarOutlined,
+  CheckCircleOutlined,
+  DollarOutlined,
+  FileTextOutlined,
+  FundOutlined,
+  QrcodeOutlined,
+  TeamOutlined,
+  UserOutlined,
+  PercentageOutlined,
+  CalendarOutlined,
+  BarChartOutlined
+} from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { NavLink, useNavigate, useParams } from 'react-router-dom'
@@ -37,39 +50,39 @@ export default function CoOwnerSideBar() {
   const group: GroupItem = idGroupQuery?.data?.data as GroupItem
 
   const navItems = [
-    { to: `viewGroups/${group?.groupId}/dashboardGroup`, label: 'Group Setup' },
-    { to: `viewGroups/${group?.groupId}/viewMembers`, label: 'Members' },
-    { to: `viewGroups/${group?.groupId}/ownershipPercentage`, label: 'Percentage' },
-    { to: `viewGroups/${group?.groupId}/ownershipRatio`, label: 'Ownership Ratio' },
-    { to: `viewGroups/${group?.groupId}/createContract`, label: 'Contract' },
-    { to: `viewGroups/${group?.groupId}/paymentDeposit`, label: 'Deposit' }
+    { to: `viewGroups/${group?.groupId}/dashboardGroup`, label: 'Group Setup', icon: <CheckCircleOutlined /> },
+    { to: `viewGroups/${group?.groupId}/viewMembers`, label: 'Members', icon: <TeamOutlined /> },
+    { to: `viewGroups/${group?.groupId}/ownershipPercentage`, label: 'Percentage', icon: <PercentageOutlined /> },
+    { to: `viewGroups/${group?.groupId}/ownershipRatio`, label: 'Ownership Ratio', icon: <BarChartOutlined /> },
+    { to: `viewGroups/${group?.groupId}/createContract`, label: 'Contract', icon: <FileTextOutlined /> },
+    { to: `viewGroups/${group?.groupId}/paymentDeposit`, label: 'Deposit', icon: <DollarOutlined /> }
   ]
   const navApprovedItems = [
-    { to: `viewGroups/${group?.groupId}/booking`, label: 'Booking Car' },
-    { to: `viewGroups/${group?.groupId}/mybooking`, label: 'My Booking' },
-    { to: `viewGroups/${group?.groupId}/ownershipRatio`, label: 'Ownership Ratio' },
-    { to: `viewGroups/${group?.groupId}/check-QR`, label: 'QR Check' },
-    { to: `viewGroups/${group?.groupId}/voting`, label: 'Voting' },
-    { to: `viewGroups/${group?.groupId}/fund-ownership`, label: 'Fund and deposit' },
-    { to: `viewGroups/${group?.groupId}/group-expense`, label: 'Vehicle Billing' }
+    { to: `viewGroups/${group?.groupId}/booking`, label: 'Booking Car', icon: <CarOutlined /> },
+    { to: `viewGroups/${group?.groupId}/mybooking`, label: 'My Booking', icon: <CalendarOutlined /> },
+    { to: `viewGroups/${group?.groupId}/ownershipRatio`, label: 'Ownership Ratio', icon: <BarChartOutlined /> },
+    { to: `viewGroups/${group?.groupId}/check-QR`, label: 'QR Check', icon: <QrcodeOutlined /> },
+    { to: `viewGroups/${group?.groupId}/voting`, label: 'Voting', icon: <UserOutlined /> },
+    { to: `viewGroups/${group?.groupId}/fund-ownership`, label: 'Fund and deposit', icon: <FundOutlined /> },
+    { to: `viewGroups/${group?.groupId}/group-expense`, label: 'Vehicle Billing', icon: <DollarOutlined /> }
   ]
 
   return (
-    <nav className='max-w-4xl mx-auto'>
-      <ul className='flex items-center gap-2'>
+    <nav className='max-w-4xl mx-auto w-full'>
+      <ul className='flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1 snap-x snap-mandatory'>
         {(isApprovalStatus ? navApprovedItems : navItems).map((item, index) => {
           return (
-            <li key={index}>
+            <li key={index} className='flex-shrink-0 snap-start'>
               <NavLink
                 to={item.to}
                 className={({ isActive }) =>
                   `
-                    inline-flex items-center justify-center
-                    px-4 py-2.5 rounded-xl
+                    inline-flex items-center justify-center gap-1.5 sm:gap-2
+                    px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl
                     text-xs font-semibold whitespace-nowrap
                     transition-all duration-300
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2
-                    w-32
+                    min-w-[85px] sm:min-w-[115px]
                     ${
                       isActive
                         ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30 scale-105'
@@ -77,8 +90,17 @@ export default function CoOwnerSideBar() {
                     }
                   `.trim()
                 }
+                title={item.label}
               >
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    <span className={`text-sm sm:text-base transition-colors flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-600'}`}>
+                      {item.icon}
+                    </span>
+                    <span className='hidden sm:inline truncate max-w-[80px]'>{item.label}</span>
+                    <span className='sm:hidden truncate max-w-[50px]'>{item.label.split(' ')[0]}</span>
+                  </>
+                )}
               </NavLink>
             </li>
           )

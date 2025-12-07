@@ -5,6 +5,7 @@
 html {
   height: 100%;
   line-height: 1.2;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -37,4 +38,14 @@ body {
 
 .notification-center-dropdown .ant-dropdown-menu-item {
   padding: 0;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
 }

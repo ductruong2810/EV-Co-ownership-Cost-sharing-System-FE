@@ -10,7 +10,7 @@ export default function Header() {
 
   return (
     <header className='sticky top-0 z-50 w-full backdrop-blur-md bg-white/95 shadow-md border-b border-gray-200/50'>
-      <div className='flex flex-row justify-between items-center px-4 sm:px-6 py-2 max-w-7xl mx-auto'>
+      <div className='flex flex-row justify-between items-center px-3 sm:px-4 lg:px-6 py-2 sm:py-3 max-w-7xl mx-auto gap-2 sm:gap-4'>
         {/* Logo */}
         <Link 
           to={path.home} 
@@ -35,7 +35,7 @@ export default function Header() {
         </Link>
 
         {/* Chỉ hiển thị khi đang ở trang group detail */}
-        <div className='flex-1 flex justify-center mx-4'>
+        <div className='flex-1 flex justify-center mx-2 sm:mx-4 min-w-0'>
           {isMatch && <CoOwnerSideBar />}
         </div>
 

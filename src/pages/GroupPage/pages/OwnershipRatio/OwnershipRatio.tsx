@@ -56,8 +56,8 @@ export default function OwnershipRatio() {
       <div className='absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-cyan-200 via-sky-100 to-indigo-200 shadow-[0_0_20px_rgba(6,182,212,0.6)]' />
 
       <div className='max-w-7xl mt-10 mx-auto'>
-        {/* Header with centered button */}
-        <div className='flex items-center justify-center gap-4 mb-8 ml-72'>
+        {/* Header with button on right - consistent with MemberGroup */}
+        <div className='flex items-center justify-between gap-4 mb-8'>
           <HeaderTitle />
 
           {/* Glassmorphism Button */}
@@ -67,7 +67,7 @@ export default function OwnershipRatio() {
             className='group relative px-6 py-3 backdrop-blur-xl bg-white/20 border-2 border-white/40 rounded-xl
                      shadow-[0_8px_32px_rgba(6,182,212,0.3),inset_0_1px_0_rgba(255,255,255,0.4)]
                      hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(6,182,212,0.5),inset_0_1px_0_rgba(255,255,255,0.6)]
-                     transition-all duration-300 overflow-hidden ml-36'
+                     transition-all duration-300 overflow-hidden'
           >
             {/* Gradient Overlay on Hover */}
             <div className='absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />

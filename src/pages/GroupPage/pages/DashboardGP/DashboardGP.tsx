@@ -123,7 +123,7 @@ export default function DashboardGP() {
   }
 
   return (
-    <div className='w-full max-w-5xl rounded-[2rem] backdrop-blur-[60px] bg-gradient-to-br from-white/22 via-white/16 to-white/20 shadow-[0_15px_70px_rgba(6,182,212,0.5),0_30px_100px_rgba(14,165,233,0.4),0_0_150px_rgba(79,70,229,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] border-[4px] border-white/60 p-10 space-y-8 m-12 relative overflow-hidden'>
+    <div className='w-full max-w-5xl rounded-[1.5rem] sm:rounded-[2rem] backdrop-blur-[60px] bg-gradient-to-br from-white/22 via-white/16 to-white/20 shadow-[0_15px_70px_rgba(6,182,212,0.5),0_30px_100px_rgba(14,165,233,0.4),0_0_150px_rgba(79,70,229,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] border-[2px] sm:border-[4px] border-white/60 p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 m-4 sm:m-8 lg:m-12 relative overflow-hidden'>
       {/* Top Gradient Bar */}
       <div className='absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-cyan-200 via-sky-100 to-indigo-200 shadow-[0_0_20px_rgba(6,182,212,0.6)]' />
 
@@ -140,15 +140,15 @@ export default function DashboardGP() {
       />
 
       {/* Main content grid */}
-      <div className='grid lg:grid-cols-2 gap-8'>
+      <div className='grid lg:grid-cols-2 gap-6 sm:gap-8'>
         {/* Left card - Steps */}
         <div className='group relative'>
           <div className='absolute -inset-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-all duration-400' />
-          <div className='relative rounded-3xl bg-white/15 backdrop-blur-xl border-[3px] border-white/40 p-8 shadow-[0_0_30px_rgba(16,185,129,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] transition-all duration-400'>
-            <h2 className='text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(16,185,129,0.7)] mb-8'>
+          <div className='relative rounded-2xl sm:rounded-3xl bg-white/15 backdrop-blur-xl border-[2px] sm:border-[3px] border-white/40 p-4 sm:p-6 lg:p-8 shadow-[0_0_30px_rgba(16,185,129,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] transition-all duration-400'>
+            <h2 className='text-2xl sm:text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(16,185,129,0.7)] mb-6 sm:mb-8'>
               {t('gp_steps_title')}
             </h2>
-            <div className='space-y-5'>
+            <div className='space-y-4 sm:space-y-5'>
               <StepCard
                 num='1'
                 title={t('gp_step1_title')}
@@ -183,11 +183,11 @@ export default function DashboardGP() {
         {/* Right card - Benefits */}
         <div className='group relative'>
           <div className='absolute -inset-1 bg-gradient-to-r from-cyan-400 to-sky-500 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-all duration-400' />
-          <div className='relative rounded-3xl bg-white/15 backdrop-blur-xl border-[3px] border-white/40 p-8 shadow-[0_0_30px_rgba(6,182,212,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] transition-all duration-400'>
-            <h2 className='text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.7)] mb-8'>
+          <div className='relative rounded-2xl sm:rounded-3xl bg-white/15 backdrop-blur-xl border-[2px] sm:border-[3px] border-white/40 p-4 sm:p-6 lg:p-8 shadow-[0_0_30px_rgba(6,182,212,0.3),inset_0_1px_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] transition-all duration-400'>
+            <h2 className='text-2xl sm:text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.7)] mb-6 sm:mb-8'>
               {t('gp_benefits_title')}
             </h2>
-            <div className='space-y-5'>
+            <div className='space-y-4 sm:space-y-5'>
               <BenefitCard
                 icon={<CalendarOutlined />}
                 title={t('gp_benefit_schedule_title')}
@@ -213,7 +213,7 @@ export default function DashboardGP() {
         <div className='flex justify-center'>
           <button
             onClick={handleCTAClick}
-            className='px-8 py-4 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-lg shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:shadow-[0_0_40px_rgba(6,182,212,0.7)] hover:scale-105 transition-all duration-300 flex items-center gap-3'
+            className='px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-base sm:text-lg shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:shadow-[0_0_40px_rgba(6,182,212,0.7)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-center'
           >
             <span>{nextStep === 1 || nextStep === 2 ? t('gp_cta_start_upload') : t('gp_cta_set_percentage')}</span>
             <svg
