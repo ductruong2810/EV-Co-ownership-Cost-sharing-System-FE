@@ -15,7 +15,14 @@ import StatusCard from './components/StatusCard'
 import VehicleInforCard from './components/VehicleInforCard'
 import UsageAnalyticsCard from './components/UsageAnalyticsCard'
 import AISuggestionPanel from './components/AISuggestionPanel'
+import FlexibleBookingModal from './components/FlexibleBookingModal'
+import MonthViewCalendar from './components/MonthViewCalendar'
+import RangeSelector from './components/RangeSelector'
 import { AppContext } from '../../../../contexts/app.context'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-toastify'
+import dayjs from 'dayjs'
+import { AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons'
 
 // ============= INTERFACES (giữ nguyên) =============
 type SlotStatus = 'AVAILABLE' | 'LOCKED' | 'CONFIRMED' | 'CANCELLED' | ''
@@ -154,6 +161,84 @@ const BookingCar = () => {
   // Highlight slot when clicking AI suggestion
   const [highlightedSlot, setHighlightedSlot] = useState<string | null>(null)
 
+  // Calendar view state (week or month)
+  const [calendarView, setCalendarView] = useState<'week' | 'month'>('week')
+
+  // Range selection state
+  const [selectedRange, setSelectedRange] = useState<{ start: string; end: string } | null>(null)
+  const [showRangeSelector, setShowRangeSelector] = useState(false)
+
+  // Detect conflicts in selected range
+  const conflicts = useMemo(() => {
+    if (!selectedRange) return []
+    const conflictsList: Array<{ date: string; time: string; bookedBy: string }> = []
+    const start = dayjs(selectedRange.start)
+    const end = dayjs(selectedRange.end)
+
+    dailySlots.forEach((day) => {
+      const dayDate = dayjs(day.date)
+      if (dayDate.isSameOrAfter(start, 'day') && dayDate.isSameOrBefore(end, 'day')) {
+        day.slots.forEach((slot) => {
+          if (slot.type === 'BOOKED_OTHER' || slot.type === 'BOOKED_SELF') {
+            conflictsList.push({
+              date: day.date,
+              time: slot.time,
+              bookedBy: slot.bookedBy || 'Unknown'
+            })
+          }
+        })
+      }
+    })
+
+    return conflictsList
+  }, [selectedRange, dailySlots])
+
+  // Flexible booking modal state
+  const [isFlexibleModalVisible, setIsFlexibleModalVisible] = useState(false)
+  const queryClient = useQueryClient()
+
+  // Flexible booking mutation
+  const flexibleBookingMutation = useMutation({
+    mutationFn: (body: { vehicleId: number; startDateTime: string; endDateTime: string }) =>
+      groupApi.bookingSlot(body),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['vehicle-bookings'] })
+      queryClient.invalidateQueries({ queryKey: ['smart-suggestions', groupId] })
+      toast.success(response?.data?.message || 'Đặt xe thành công!')
+      setIsFlexibleModalVisible(false)
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Đặt xe thất bại. Vui lòng thử lại!')
+    }
+  })
+
+  const handleFlexibleBooking = (data: { startDateTime: string; endDateTime: string }) => {
+    if (!groupSummary?.vehicleId) {
+      toast.error('Không tìm thấy thông tin xe')
+      return
+    }
+
+    if (quotaUser.remainingSlots <= 0) {
+      toast.error('Bạn đã hết quota cho tuần này!')
+      return
+    }
+
+    if (vehicleStatus === 'Has Issues') {
+      toast.error('Xe đang có vấn đề, không thể đặt!')
+      return
+    }
+
+    if (vehicleStatus === 'Under Maintenance') {
+      toast.warning('Xe đang bảo trì, vui lòng đặt sau!')
+      return
+    }
+
+    flexibleBookingMutation.mutate({
+      vehicleId: groupSummary.vehicleId,
+      ...data
+    })
+  }
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-8 my-5 rounded-2xl'>
       <div className='max-w-[96vw] mx-auto'>
@@ -180,6 +265,39 @@ const BookingCar = () => {
         {/* Stats Bar */}
         <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
 
+        {/* Range Selector */}
+        {showRangeSelector && (
+          <RangeSelector
+            onRangeSelected={(start, end) => {
+              setSelectedRange({ start, end })
+              setShowRangeSelector(false)
+            }}
+            vehicleId={groupSummary?.vehicleId || 0}
+            vehicleInfo={{
+              brand: groupSummary?.brand,
+              model: groupSummary?.model,
+              licensePlate: groupSummary?.licensePlate
+            }}
+            quotaUser={quotaUser}
+            conflicts={conflicts}
+          />
+        )}
+
+        {/* Conflict Alert */}
+        {selectedRange && conflicts.length > 0 && (
+          <div className='mb-6'>
+            <Alert
+              message='Phát hiện xung đột'
+              description={`Có ${conflicts.length} slot đã được đặt trong khoảng thời gian bạn chọn. Vui lòng chọn khoảng thời gian khác.`}
+              type='warning'
+              showIcon
+              closable
+              onClose={() => setSelectedRange(null)}
+              className='rounded-xl'
+            />
+          </div>
+        )}
+
         {/* AI analytics + suggestions */}
         <div className='grid lg:grid-cols-2 gap-6 mb-8'>
           <UsageAnalyticsCard
@@ -201,9 +319,34 @@ const BookingCar = () => {
           />
         </div>
 
-        {/* Week Navigation */}
+        {/* Week Navigation & Flexible Booking */}
         <div className='mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-2xl p-4 shadow-lg border border-cyan-100'>
-          <div className='flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center sm:justify-start'>
+          <div className='flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center sm:justify-start flex-wrap'>
+            {/* View Toggle */}
+            <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
+              <button
+                onClick={() => setCalendarView('week')}
+                className={`px-3 py-2 rounded-md text-sm font-semibold transition-all ${
+                  calendarView === 'week'
+                    ? 'bg-cyan-500 text-white shadow-md'
+                    : 'text-gray-600 hover:text-cyan-600'
+                }`}
+              >
+                <UnorderedListOutlined className='mr-1' />
+                Tuần
+              </button>
+              <button
+                onClick={() => setCalendarView('month')}
+                className={`px-3 py-2 rounded-md text-sm font-semibold transition-all ${
+                  calendarView === 'month'
+                    ? 'bg-cyan-500 text-white shadow-md'
+                    : 'text-gray-600 hover:text-cyan-600'
+                }`}
+              >
+                <AppstoreOutlined className='mr-1' />
+                Tháng
+              </button>
+            </div>
             <Button
               icon={<LeftOutlined />}
               onClick={() => navigateWeek('prev')}
@@ -229,6 +372,26 @@ const BookingCar = () => {
               <span className='hidden sm:inline'>Tuần sau</span>
               <span className='sm:hidden'>Sau</span>
             </Button>
+            <Button
+              icon={<CalendarOutlined />}
+              onClick={() => setIsFlexibleModalVisible(true)}
+              className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-600 hover:to-teal-600 shadow-md text-xs sm:text-sm font-bold'
+            >
+              <span className='hidden sm:inline'>Đặt linh hoạt</span>
+              <span className='sm:hidden'>Linh hoạt</span>
+            </Button>
+            <Button
+              onClick={() => setShowRangeSelector(!showRangeSelector)}
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border-2 text-xs sm:text-sm font-bold transition-all ${
+                showRangeSelector
+                  ? 'bg-cyan-500 border-cyan-500 text-white'
+                  : 'border-cyan-500 text-cyan-600 hover:bg-cyan-50'
+              }`}
+            >
+              <CalendarOutlined />
+              <span className='hidden sm:inline'>Chọn khoảng</span>
+              <span className='sm:hidden'>Khoảng</span>
+            </Button>
           </div>
           <div className='text-xs sm:text-sm text-gray-600 font-medium text-center sm:text-right'>
             {data?.weekStart && data?.weekEnd ? (
@@ -242,8 +405,9 @@ const BookingCar = () => {
         </div>
 
         {/* hiển thị lịch  đặt xe */}
-        <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white calendar-container'>
-          <div className='overflow-x-auto scrollbar-hide'>
+        {calendarView === 'week' ? (
+          <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white calendar-container'>
+            <div className='overflow-x-auto scrollbar-hide'>
             {/* Chỉ render 1 bảng duy nhất, không map dailySlots nữa */}
             <table className='w-full border-collapse min-w-[800px]'>
               <thead>
@@ -358,9 +522,39 @@ const BookingCar = () => {
             </table>
           </div>
         </Card>
+        ) : (
+          <div className='mb-8 calendar-container'>
+            <MonthViewCalendar
+              dailySlots={dailySlots}
+              vehicleId={groupSummary?.vehicleId || 0}
+              vehicleStatus={vehicleStatus}
+              quotaUser={quotaUser}
+              groupSummary={groupSummary}
+              selectedRange={selectedRange}
+              onSlotClick={(date, time) => {
+                setHighlightedSlot(`${date}-${time}`)
+              }}
+            />
+          </div>
+        )}
 
         {/* mô tả các trang thái khi booking*/}
         <DetailStatusBooking />
+
+        {/* Flexible Booking Modal */}
+        <FlexibleBookingModal
+          visible={isFlexibleModalVisible}
+          onClose={() => setIsFlexibleModalVisible(false)}
+          onConfirm={handleFlexibleBooking}
+          vehicleId={groupSummary?.vehicleId || 0}
+          vehicleInfo={{
+            brand: groupSummary?.brand,
+            model: groupSummary?.model,
+            licensePlate: groupSummary?.licensePlate
+          }}
+          quotaUser={quotaUser}
+          isLoading={flexibleBookingMutation.isPending}
+        />
       </div>
     </div>
   )
