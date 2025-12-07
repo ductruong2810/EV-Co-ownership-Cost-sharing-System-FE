@@ -1,5 +1,6 @@
 import { BulbOutlined } from '@ant-design/icons'
 import type { BookingSuggestion } from '../../../../../types/api/group.type'
+import { useI18n } from '../../../../../i18n/useI18n'
 
 interface AISuggestionPanelProps {
   suggestions?: BookingSuggestion[]
@@ -15,12 +16,14 @@ const badgeMap: Record<string, string> = {
 }
 
 const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick }: AISuggestionPanelProps) => {
+  const { t } = useI18n()
+
   if (isLoading) {
     return (
       <div className='bg-white rounded-3xl p-6 shadow-xl border border-cyan-100'>
         <div className='flex items-center gap-3 text-cyan-600 font-semibold'>
           <BulbOutlined />
-          Đang tạo đề xuất thông minh...
+          {t('gp_booking_ai_generating')}
         </div>
       </div>
     )
@@ -33,9 +36,9 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick
       <div className='flex items-start justify-between gap-4'>
         <div>
           <p className='text-xs font-bold text-cyan-500 uppercase tracking-widest flex items-center gap-2'>
-            <BulbOutlined /> AI Recommendation
+            <BulbOutlined /> {t('gp_booking_ai_recommendation')}
           </p>
-          <h3 className='text-2xl font-bold text-slate-900 mt-1'>Slot nên đặt trong tuần này</h3>
+          <h3 className='text-2xl font-bold text-slate-900 mt-1'>{t('gp_booking_ai_suggestions_title')}</h3>
         </div>
       </div>
 
@@ -66,7 +69,7 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick
 
       {insights && insights.length > 0 && (
         <div className='bg-cyan-50 border border-cyan-100 rounded-2xl p-4'>
-          <p className='text-xs font-bold text-cyan-700 uppercase mb-2'>AI Insights</p>
+          <p className='text-xs font-bold text-cyan-700 uppercase mb-2'>{t('gp_booking_ai_insights')}</p>
           <ul className='space-y-2 text-sm text-cyan-900'>
             {insights.map((insight, idx) => (
               <li key={idx} className='flex items-start gap-2'>
