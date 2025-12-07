@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { Input, Select } from 'antd'
+import { Input, Select, Spin } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 
 import adminApi from '../../../../apis/admin.api'
-import Skeleton from '../../../../components/Skeleton'
 import logger from '../../../../utils/logger'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
@@ -61,7 +60,6 @@ export default function EditContract() {
     navigate(`/manager/feedbackCo-Owner/${contractId}/${groupId}/${groupName}`)
   }
 
-  if (allContractQuery.isLoading) return <Skeleton />
 
   if (allContractQuery?.data?.data.length === 0)
     return (
@@ -85,6 +83,14 @@ export default function EditContract() {
         title={t('admin_edit_contract_title')}
         subtitle={t('admin_edit_contract_subtitle')}
       />
+
+      {/* Loading State */}
+      {allContractQuery.isLoading && (
+        <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+          <Spin size='large' />
+          <span className='ml-3 text-gray-600 font-medium'>{t('admin_edit_contract_loading')}</span>
+        </div>
+      )}
 
       {/* Search and Filter Section */}
       <div className='mb-6 flex flex-col sm:flex-row gap-4'>

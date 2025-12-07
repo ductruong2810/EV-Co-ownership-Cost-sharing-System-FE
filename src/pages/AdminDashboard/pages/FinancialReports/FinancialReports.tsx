@@ -4,7 +4,6 @@ import { DownloadOutlined, FilePdfOutlined, DollarOutlined } from '@ant-design/i
 import { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import staffApi from '../../../../apis/staff.api'
-import Skeleton from '../../../../components/Skeleton'
 import { exportFinancialReportToPDF, type FinancialReportData } from '../../../../utils/pdfExport'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'

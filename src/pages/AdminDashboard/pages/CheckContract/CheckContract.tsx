@@ -1,11 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, useMemo } from 'react'
-import { Input, Select, DatePicker, Collapse, Button } from 'antd'
+import { Input, Select, DatePicker, Collapse, Button, Spin } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons'
 import { toast } from 'react-toastify'
 import dayjs, { Dayjs } from 'dayjs'
 import adminApi from '../../../../apis/admin.api'
-import Skeleton from '../../../../components/Skeleton'
 import type { ContractResponse, ContractDetail } from '../../../../types/api/admin.type'
 import { formatToVND } from '../../../../utils/formatPrice'
 import EmptyState from '../EmptyState'
@@ -205,8 +204,7 @@ function CheckContract() {
 
   const hasActiveFilters = searchTerm || startDateRange[0] || startDateRange[1] || endDateRange[0] || endDateRange[1] || statusFilter !== 'ALL'
 
-  if (isLoading) return <Skeleton />
-  if (contracts.length === 0) return <EmptyState />
+  if (contracts.length === 0 && !isLoading) return <EmptyState />
 
   const getStatusBadge = (status: string) => {
     const style =
@@ -239,6 +237,14 @@ function CheckContract() {
         title={t('admin_check_contract_title')}
         subtitle={t('admin_check_contract_subtitle')}
       />
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+          <Spin size='large' />
+          <span className='ml-3 text-gray-600 font-medium'>{t('admin_check_contract_loading')}</span>
+        </div>
+      )}
 
       {/* Search and Filter Section */}
         <div className='mb-6 space-y-3'>

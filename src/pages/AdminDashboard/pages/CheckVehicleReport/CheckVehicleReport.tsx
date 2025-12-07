@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { Input, Select, Tag } from 'antd'
+import { Input, Select, Tag, Spin } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
-import Skeleton from '../../../../components/Skeleton'
 import technicianApi from '../../../../apis/technician.api'
 import auditApi from '../../../../apis/audit.api'
 import type { VehicleCheck } from '../../../../types/api/technician.type'
@@ -39,7 +38,6 @@ export function CheckVehicleReport() {
     retry: 1
   })
 
-  if (isPending) return <Skeleton />
   if (isError) return <ErrorState error={error as Error} onRetry={() => refetch()} />
 
   const reportData: VehicleCheck[] = data?.data ?? []
@@ -121,6 +119,14 @@ export function CheckVehicleReport() {
           approved={summary.approved}
           rejected={summary.rejected}
         />
+
+        {/* Loading State */}
+        {isPending && (
+          <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+            <Spin size='large' />
+            <span className='ml-3 text-gray-600 font-medium'>{t('admin_check_vehicle_report_loading')}</span>
+          </div>
+        )}
 
         <section className='mb-5 grid gap-3 md:grid-cols-4'>
           <SummaryCard label={t('admin_check_vehicle_report_summary_pending')} value={summary.pending} color='bg-amber-50 text-amber-700 border-amber-100' />

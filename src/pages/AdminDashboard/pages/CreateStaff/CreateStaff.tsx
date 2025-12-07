@@ -1,11 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-import { Input } from 'antd'
+import { Input, Spin } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { toast } from 'react-toastify'
 import adminApi from '../../../../apis/admin.api'
-import Skeleton from '../../../../components/Skeleton'
 import logger from '../../../../utils/logger'
 import AdminPageContainer from '../../AdminPageContainer'
 import AdminPageHeader from '../../AdminPageHeader'
@@ -103,8 +102,6 @@ export default function CreateStaff() {
     createStaffMutation.mutate(data)
   }
 
-  if (isLoading) return <Skeleton />
-
   return (
     <AdminPageContainer>
       <AdminPageHeader
@@ -112,6 +109,14 @@ export default function CreateStaff() {
         title={t('admin_create_staff_title')}
         subtitle={t('admin_create_staff_subtitle')}
       />
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+          <Spin size='large' />
+          <span className='ml-3 text-gray-600 font-medium'>{t('admin_create_staff_loading')}</span>
+        </div>
+      )}
 
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           {/* Create Form */}

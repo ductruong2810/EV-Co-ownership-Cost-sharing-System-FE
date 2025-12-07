@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
-import { Input, Select, Tag, DatePicker, InputNumber, Collapse, Button, Space, Checkbox, Modal, message } from 'antd'
+import { Input, Select, Tag, DatePicker, InputNumber, Collapse, Button, Space, Checkbox, Modal, message, Spin } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import staffApi from '../../../../apis/staff.api'
 import type { groupStaffItem } from '../../../../types/api/staff.type'
 import PaginationButton from './components/PaginationButton'
 import StatusBadge from './components/StatusBadge'
-import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState'
 import { InfoCircleOutlined, RightOutlined, TeamOutlined, CalendarOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
@@ -326,9 +325,6 @@ export default function CheckGroup() {
     }
   }, [groupData, selectedGroup])
 
-  if (isPending) {
-    return <Skeleton />
-  }
 
   if (isError) {
     return (
@@ -363,6 +359,14 @@ export default function CheckGroup() {
         title={t('admin_check_group_title')}
         subtitle={t('admin_check_group_subtitle')}
       />
+
+      {/* Loading State */}
+      {isPending && (
+        <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+          <Spin size='large' />
+          <span className='ml-3 text-gray-600 font-medium'>{t('admin_check_group_loading')}</span>
+        </div>
+      )}
 
         {/* Summary */}
         <div className='grid grid-cols-2 gap-3 md:grid-cols-4'>

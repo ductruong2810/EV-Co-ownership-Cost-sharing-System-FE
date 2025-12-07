@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Tag, Select, Input, DatePicker, Collapse, Button, Space, Checkbox, Modal, message } from 'antd'
+import { Tag, Select, Input, DatePicker, Collapse, Button, Space, Checkbox, Modal, message, Spin } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -8,7 +8,6 @@ import disputeApi from '../../../../apis/dispute.api'
 import staffApi from '../../../../apis/staff.api'
 import type { DisputeSummary } from '../../../../types/api/dispute.type'
 import type { groupStaffItem } from '../../../../types/api/staff.type'
-import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState/EmptyState'
 import path from '../../../../constants/path'
 import AdminPageContainer from '../../AdminPageContainer'
@@ -279,7 +278,6 @@ const DisputeList = () => {
 
   const hasActiveFilters = searchTerm || dateRange[0] || dateRange[1] || groupIdFilter || disputeTypeFilter !== 'ALL'
 
-  if (isLoading) return <Skeleton />
 
   if (isError) {
     return (
@@ -320,6 +318,14 @@ const DisputeList = () => {
           />
         }
       />
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+          <Spin size='large' />
+          <span className='ml-3 text-gray-600 font-medium'>{t('admin_disputes_loading')}</span>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className='space-y-3'>

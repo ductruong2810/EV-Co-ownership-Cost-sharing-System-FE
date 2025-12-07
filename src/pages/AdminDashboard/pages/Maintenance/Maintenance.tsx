@@ -2,10 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import technicianApi from '../../../../apis/technician.api'
 import auditApi from '../../../../apis/audit.api'
-import Skeleton from '../../../../components/Skeleton'
 import { toast } from 'react-toastify'
 import logger from '../../../../utils/logger'
-import { Input, Select, Tag, DatePicker, InputNumber, Button, Space, Checkbox, Modal, message } from 'antd'
+import { Input, Select, Tag, DatePicker, InputNumber, Button, Space, Checkbox, Modal, message, Spin } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { useI18n } from '../../../../i18n/useI18n'
@@ -388,7 +387,6 @@ function MaintenanceList() {
     })
   }
 
-  if (loadingUser || loadingMaint) return <Skeleton />
 
   if (errorUser) {
     return (
@@ -494,6 +492,14 @@ function MaintenanceList() {
           <h1 className='text-3xl font-bold text-gray-900'>{t('admin_maintenance_title')}</h1>
           <p className='text-gray-600'>{t('admin_maintenance_subtitle')}</p>
         </div>
+
+        {/* Loading State */}
+        {(loadingUser || loadingMaint) && (
+          <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+            <Spin size='large' />
+            <span className='ml-3 text-gray-600 font-medium'>{t('admin_maintenance_loading')}</span>
+          </div>
+        )}
 
         <div className='mb-6 grid grid-cols-2 gap-3 md:grid-cols-4'>
           {summaryMetrics.map((metric) => (

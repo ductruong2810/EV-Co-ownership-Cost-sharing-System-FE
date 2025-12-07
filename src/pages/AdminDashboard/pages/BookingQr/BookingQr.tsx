@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useParams, useNavigate } from 'react-router-dom'
 import { useRef, useState, useMemo } from 'react'
-import { Input, Select, Button, Card } from 'antd'
+import { Input, Select, Button, Card, Spin } from 'antd'
 import { SearchOutlined, ArrowLeftOutlined, QrcodeOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -9,7 +9,6 @@ import { QRCodeCanvas } from 'qrcode.react'
 import adminApi from '../../../../apis/admin.api'
 import staffApi from '../../../../apis/staff.api'
 import EmptyQRCard from './components/EmptyQRCard'
-import Skeleton from '../../../../components/Skeleton'
 import EmptyState from '../EmptyState'
 import { useI18n } from '../../../../i18n/useI18n'
 
@@ -193,8 +192,6 @@ export default function BookingQr() {
     )
   }
 
-  if (isLoading) return <Skeleton />
-  
   if (error)
     return (
       <div className='min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 flex items-center justify-center p-6'>
@@ -219,6 +216,14 @@ export default function BookingQr() {
   return (
     <div className='min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-4 sm:p-6'>
       <div className='max-w-7xl mx-auto'>
+        {/* Loading State */}
+        {isLoading && (
+          <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+            <Spin size='large' />
+            <span className='ml-3 text-gray-600 font-medium'>{t('admin_booking_qr_loading')}</span>
+          </div>
+        )}
+
         {/* Breadcrumb */}
         <div className='mb-4'>
           <Button

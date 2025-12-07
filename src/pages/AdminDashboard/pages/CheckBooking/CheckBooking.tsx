@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { Avatar, Pagination, Input, Select, Tag, DatePicker, Button, Space } from 'antd'
+import { Avatar, Pagination, Input, Select, Tag, DatePicker, Button, Space, Spin } from 'antd'
 import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons'
 import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import staffApi from '../../../../apis/staff.api'
-import Skeleton from '../../../../components/Skeleton'
 import type { GetGroupById, UserOfStaff } from '../../../../types/api/staff.type'
 import { useNavigate } from 'react-router-dom'
 import EmptyState from '../EmptyState'
@@ -140,7 +139,6 @@ export default function CheckBooking() {
   const selectedUser = filteredUsers.find((u: UserOfStaff) => u.userId === selectedUserId)
 
   // Render
-  if (isLoading) return <Skeleton />
 
   if (isError) {
     return (
@@ -178,6 +176,14 @@ export default function CheckBooking() {
           totalPages: total
         })}
       />
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+          <Spin size='large' />
+          <span className='ml-3 text-gray-600 font-medium'>{t('admin_check_booking_loading')}</span>
+        </div>
+      )}
 
         <div className='mb-6 grid gap-3 md:grid-cols-4'>
           <SummaryCard

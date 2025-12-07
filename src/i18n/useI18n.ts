@@ -523,6 +523,7 @@ const messages = {
 
     // AdminDashboard - Disputes
     admin_disputes_eyebrow: 'Staff escalation',
+    admin_disputes_loading: 'Loading disputes...',
     admin_disputes_title: 'Dispute center',
     admin_disputes_subtitle: 'Monitor and resolve incident reports across groups.',
     admin_disputes_all_statuses: 'All statuses',
@@ -666,10 +667,12 @@ const messages = {
     admin_check_group_activity_approved_title: 'Group Approved',
     admin_check_group_activity_approved_desc: 'Group was approved and activated',
     admin_check_group_activity_rejected_title: 'Group Rejected',
+    admin_check_group_loading: 'Loading groups...',
 
     // AdminDashboard - CheckBooking page
     admin_check_booking_title: 'Booking Management',
     admin_check_booking_subtitle: 'Manage bookings by co-owners • Total {{filtered}} of {{total}} users • Page {{page}}/{{totalPages}}',
+    admin_check_booking_loading: 'Loading bookings...',
     admin_check_booking_summary_total: 'Total co-owners',
     admin_check_booking_summary_active: 'Active',
     admin_check_booking_summary_inactive: 'Inactive',
@@ -729,6 +732,7 @@ const messages = {
     admin_booking_qr_start: 'Start',
     admin_booking_qr_end: 'End',
     admin_booking_qr_download: 'Download {{phase}}',
+    admin_booking_qr_loading: 'Loading booking QR codes...',
     admin_booking_qr_error_load: 'Error loading bookings',
     admin_booking_qr_error_unknown: 'Unknown error',
     admin_booking_qr_empty_no_qr: 'No QR {{phase}}',
@@ -755,6 +759,7 @@ const messages = {
     admin_check_vehicle_report_status_rejected: 'Rejected',
     admin_check_vehicle_report_empty_title: 'No pending reports',
     admin_check_vehicle_report_empty_desc: 'All reports have been processed',
+    admin_check_vehicle_report_loading: 'Loading vehicle reports...',
     admin_check_vehicle_report_error_load: 'Failed to load report list',
     admin_check_vehicle_report_select: 'Select',
     admin_check_vehicle_report_new: 'NEW',
@@ -772,6 +777,7 @@ const messages = {
     admin_check_vehicle_report_batch_error: 'Failed to update some reports',
 
     // AdminDashboard - Maintenance page
+    admin_maintenance_loading: 'Loading maintenance data...',
     admin_maintenance_title: 'Maintenance management',
     admin_maintenance_subtitle: 'Track open requests, create new maintenance tasks, and close funded jobs.',
     admin_maintenance_summary_open: 'Open tasks',
@@ -905,6 +911,7 @@ const messages = {
     admin_financial_reports_info_pdf_layout: 'Professional layout suitable for printing',
 
     // AdminDashboard - CheckContract page
+    admin_check_contract_loading: 'Loading contracts...',
     admin_check_contract_title: 'Contract Approval',
     admin_check_contract_subtitle: 'Review and approve pending contracts',
     admin_check_contract_search_placeholder: 'Search by contract ID or group ID...',
@@ -1122,6 +1129,7 @@ const messages = {
     admin_check_license_imagecard_submit_rejection: 'Submit Rejection',
 
     // AdminDashboard - CreateStaff page
+    admin_create_staff_loading: 'Loading staff accounts...',
     admin_create_staff_title: 'Create Staff Account',
     admin_create_staff_subtitle: 'Create a new staff account for system administration',
     admin_create_staff_form_title: 'New Staff Account',
@@ -1161,6 +1169,7 @@ const messages = {
     admin_create_staff_validation_password_pattern: 'Password must have at least 1 uppercase letter and 1 special character',
 
     // AdminDashboard - CreateTechnician page
+    admin_create_technician_loading: 'Loading technician accounts...',
     admin_create_technician_title: 'Create Technician Account',
     admin_create_technician_subtitle: 'Create a new technician account for vehicle maintenance',
     admin_create_technician_form_title: 'New Technician Account',
@@ -1200,6 +1209,7 @@ const messages = {
     admin_create_technician_validation_password_pattern: 'Password must have at least 1 uppercase letter and 1 special character',
 
     // AdminDashboard - EditContract page
+    admin_edit_contract_loading: 'Loading contracts...',
     admin_edit_contract_title: 'Contract Editing',
     admin_edit_contract_subtitle: 'Review and manage contract feedback',
     admin_edit_contract_search_placeholder: 'Search by contract ID, group ID, or group name...',
@@ -1962,6 +1972,7 @@ const messages = {
 
     // AdminDashboard - Disputes
     admin_disputes_eyebrow: 'Escalation nhân viên',
+    admin_disputes_loading: 'Đang tải tranh chấp...',
     admin_disputes_title: 'Trung tâm Tranh chấp',
     admin_disputes_subtitle: 'Giám sát và giải quyết báo cáo sự cố trên các nhóm.',
     admin_disputes_all_statuses: 'Tất cả trạng thái',
@@ -2041,6 +2052,7 @@ const messages = {
 
     // AdminDashboard - CheckGroup page
     admin_check_group_eyebrow: 'Không gian làm việc Staff',
+    admin_check_group_loading: 'Đang tải nhóm...',
     admin_check_group_title: 'Duyệt nhóm',
     admin_check_group_subtitle: 'Xem xét và phê duyệt các nhóm đồng sở hữu mới. Sử dụng bộ lọc để ưu tiên các đơn đang chờ.',
     admin_check_group_summary_pending: 'Đang chờ xem xét',
@@ -2107,6 +2119,7 @@ const messages = {
     admin_check_group_activity_rejected_title: 'Nhóm đã bị Từ chối',
 
     // AdminDashboard - CheckBooking page
+    admin_check_booking_loading: 'Đang tải đặt chỗ...',
     admin_check_booking_title: 'Quản lý Đặt chỗ',
     admin_check_booking_subtitle: 'Quản lý đặt chỗ của đồng sở hữu • Tổng {{filtered}} trên {{total}} người dùng • Trang {{page}}/{{totalPages}}',
     admin_check_booking_summary_total: 'Tổng đồng sở hữu',
@@ -2135,6 +2148,7 @@ const messages = {
 
     // AdminDashboard - BookingQr page
     admin_booking_qr_back: 'Quay lại Quản lý Đặt chỗ',
+    admin_booking_qr_loading: 'Đang tải mã QR đặt chỗ...',
     admin_booking_qr_title: 'Quản lý Mã QR',
     admin_booking_qr_user: 'Người dùng',
     admin_booking_qr_group: 'Nhóm',
@@ -2194,6 +2208,7 @@ const messages = {
     admin_check_vehicle_report_status_rejected: 'Đã từ chối',
     admin_check_vehicle_report_empty_title: 'Không có báo cáo đang chờ',
     admin_check_vehicle_report_empty_desc: 'Tất cả báo cáo đã được xử lý',
+    admin_check_vehicle_report_loading: 'Đang tải báo cáo kiểm tra xe...',
     admin_check_vehicle_report_error_load: 'Không thể tải danh sách báo cáo',
     admin_check_vehicle_report_select: 'Chọn',
     admin_check_vehicle_report_new: 'MỚI',
@@ -2211,6 +2226,7 @@ const messages = {
     admin_check_vehicle_report_batch_error: 'Không thể cập nhật một số báo cáo',
 
     // AdminDashboard - Maintenance page
+    admin_maintenance_loading: 'Đang tải dữ liệu bảo trì...',
     admin_maintenance_title: 'Quản lý Bảo trì',
     admin_maintenance_subtitle: 'Theo dõi các yêu cầu mở, tạo nhiệm vụ bảo trì mới và đóng các công việc đã được tài trợ.',
     admin_maintenance_summary_open: 'Nhiệm vụ mở',
@@ -2344,6 +2360,7 @@ const messages = {
     admin_financial_reports_info_pdf_layout: 'Bố cục chuyên nghiệp phù hợp để in',
 
     // AdminDashboard - CheckContract page
+    admin_check_contract_loading: 'Đang tải hợp đồng...',
     admin_check_contract_title: 'Phê duyệt Hợp đồng',
     admin_check_contract_subtitle: 'Xem xét và phê duyệt các hợp đồng đang chờ',
     admin_check_contract_search_placeholder: 'Tìm kiếm theo ID hợp đồng hoặc ID nhóm...',

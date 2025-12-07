@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
-import { Input, Select, Tag, Checkbox, Button, Space, Modal, message, Alert } from 'antd'
+import { Input, Select, Tag, Checkbox, Button, Space, Modal, message, Alert, Spin } from 'antd'
 import { SearchOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { toast } from 'react-toastify'
 import staffApi from '../../../../apis/staff.api'
 import { getDecryptedImageUrl } from '../../../../utils/imageUrl'
-import Skeleton from '../../../../components/Skeleton'
 import ImageCardComponent from './components/ImageCard/ImageCard'
 import EmptyState from '../EmptyState'
 import StatusBadge from './components/StatusBadge'
@@ -692,8 +691,7 @@ export default function CheckLicense() {
 
   const selectedMember = filteredMembers.find((m) => m.id === selectedMemberId) || null
 
-  if (loading) return <Skeleton />
-  if (members.length === 0) {
+  if (members.length === 0 && !loading) {
     return (
       <AdminPageContainer>
         <EmptyState />
@@ -734,6 +732,14 @@ export default function CheckLicense() {
             </Button>
           }
         />
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className='mb-6 flex items-center justify-center py-8 bg-white rounded-xl shadow-sm border border-gray-100'>
+          <Spin size='large' />
+          <span className='ml-3 text-gray-600 font-medium'>{t('admin_check_license_loading')}</span>
+        </div>
       )}
 
         <div className='mb-4 grid grid-cols-4 gap-3'>
