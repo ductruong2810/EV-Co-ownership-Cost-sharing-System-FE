@@ -1,5 +1,5 @@
 // VehicleBookingCalendar.tsx - IMPROVED BADGE & LEGEND DESIGN
-import { ClockCircleOutlined, ToolOutlined, LeftOutlined, RightOutlined, CalendarOutlined } from '@ant-design/icons'
+import { ClockCircleOutlined, ToolOutlined, LeftOutlined, RightOutlined, CalendarOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
 import { useContext, useEffect, useState, useMemo } from 'react'
 import { Card, Tag, Button } from 'antd'
