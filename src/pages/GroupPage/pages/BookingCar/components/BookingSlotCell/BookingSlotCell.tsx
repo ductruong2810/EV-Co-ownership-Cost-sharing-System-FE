@@ -131,9 +131,11 @@ export default function BookingSlotCell({
 
   return (
     <>
-      <div className={`py-6 px-4 rounded-2xl ${getSlotStyle(type)}`} onClick={confirmBooking}>
+      <div 
+        className={`py-6 px-4 rounded-2xl ${getSlotStyle(type)} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]`} 
+        onClick={confirmBooking}
+      >
         <Tooltip title={getTooltip({ type, bookedBy })} placement='top'>
-          {/* Thêm min-h và flex để căn giữa */}
           <div className='flex items-center justify-center h-[120px]'>
             {type === 'AVAILABLE' && (
               <div className='flex flex-col items-center gap-2'>

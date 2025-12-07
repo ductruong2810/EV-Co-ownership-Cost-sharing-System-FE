@@ -239,6 +239,12 @@ const messages = {
     gp_booking_validation_order: 'End time must be after start time',
     gp_booking_validation_min_duration: 'Minimum booking duration is 1 hour',
     gp_booking_validation_max_duration: 'Maximum booking duration is 24 hours',
+    gp_booking_hide_calendar: 'Hide Calendar',
+    gp_booking_show_calendar: 'Show Calendar',
+    gp_booking_hide: 'Hide',
+    gp_booking_show: 'Show',
+    gp_booking_calendar_hidden: 'Calendar is Hidden',
+    gp_booking_calendar_hidden_desc: 'You can use Flexible Booking or Range Selector to book the vehicle',
 
     // GroupPage - OwnershipRatio
     gp_ownership_view_contract: 'View contract',
@@ -1558,6 +1564,12 @@ const messages = {
     gp_booking_validation_order: 'Thời gian kết thúc phải sau thời gian bắt đầu',
     gp_booking_validation_min_duration: 'Thời lượng booking tối thiểu là 1 giờ',
     gp_booking_validation_max_duration: 'Thời lượng booking tối đa là 24 giờ',
+    gp_booking_hide_calendar: 'Ẩn lịch',
+    gp_booking_show_calendar: 'Hiện lịch',
+    gp_booking_hide: 'Ẩn',
+    gp_booking_show: 'Hiện',
+    gp_booking_calendar_hidden: 'Calendar đã được ẩn',
+    gp_booking_calendar_hidden_desc: 'Bạn có thể sử dụng Flexible Booking hoặc Range Selector để đặt xe',
 
     // GroupPage - OwnershipRatio
     gp_ownership_view_contract: 'Xem hợp đồng',

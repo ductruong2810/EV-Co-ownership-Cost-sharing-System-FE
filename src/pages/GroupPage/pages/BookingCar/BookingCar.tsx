@@ -166,6 +166,9 @@ const BookingCar = () => {
   // Calendar view state (week or month)
   const [calendarView, setCalendarView] = useState<'week' | 'month'>('week')
 
+  // Show/hide slot-based calendar
+  const [showSlotCalendar, setShowSlotCalendar] = useState(true)
+
   // Range selection state
   const [selectedRange, setSelectedRange] = useState<{ start: string; end: string } | null>(null)
   const [showRangeSelector, setShowRangeSelector] = useState(false)
@@ -242,10 +245,10 @@ const BookingCar = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-8 my-5 rounded-2xl'>
-      <div className='max-w-[96vw] mx-auto'>
-        {/* Header Section - giữ nguyên như code trước */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-4 sm:p-6 lg:p-8 my-4 sm:my-5 rounded-2xl'>
+      <div className='max-w-[98vw] sm:max-w-[96vw] mx-auto space-y-6 sm:space-y-8'>
+        {/* Header Section */}
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
           {/* Vehicle Info Card */}
           <VehicleInforCard
             brand={groupSummary?.brand || ''}
@@ -265,7 +268,9 @@ const BookingCar = () => {
         </div>
 
         {/* Stats Bar */}
-        <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
+        <div className='bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-cyan-100/50'>
+          <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
+        </div>
 
         {/* Range Selector */}
         {showRangeSelector && (
@@ -301,7 +306,7 @@ const BookingCar = () => {
         )}
 
         {/* AI analytics + suggestions */}
-        <div className='grid lg:grid-cols-2 gap-6 mb-8'>
+        <div className='grid lg:grid-cols-2 gap-6'>
           <UsageAnalyticsCard
             data={smartSuggestionQuery?.data?.data?.analytics}
             isLoading={smartSuggestionQuery.isLoading}
@@ -322,37 +327,51 @@ const BookingCar = () => {
         </div>
 
         {/* Week Navigation & Flexible Booking */}
-        <div className='mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-2xl p-4 shadow-lg border border-cyan-100'>
+        <div className='flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-xl border border-cyan-100/50 hover:shadow-2xl transition-all duration-300'>
           <div className='flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center sm:justify-start flex-wrap'>
             {/* View Toggle */}
-            <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
+            <div className='flex items-center gap-1 bg-gray-100/80 backdrop-blur-sm rounded-xl p-1 shadow-inner border border-gray-200/50'>
               <button
                 onClick={() => setCalendarView('week')}
-                className={`px-3 py-2 rounded-md text-sm font-semibold transition-all ${
+                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   calendarView === 'week'
-                    ? 'bg-cyan-500 text-white shadow-md'
-                    : 'text-gray-600 hover:text-cyan-600'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg scale-105'
+                    : 'text-gray-600 hover:text-cyan-600 hover:bg-gray-200/50'
                 }`}
               >
-                <UnorderedListOutlined className='mr-1' />
+                <UnorderedListOutlined className='mr-1.5' />
                 {t('gp_booking_week')}
               </button>
               <button
                 onClick={() => setCalendarView('month')}
-                className={`px-3 py-2 rounded-md text-sm font-semibold transition-all ${
+                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   calendarView === 'month'
-                    ? 'bg-cyan-500 text-white shadow-md'
-                    : 'text-gray-600 hover:text-cyan-600'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg scale-105'
+                    : 'text-gray-600 hover:text-cyan-600 hover:bg-gray-200/50'
                 }`}
               >
-                <AppstoreOutlined className='mr-1' />
+                <AppstoreOutlined className='mr-1.5' />
                 {t('gp_booking_month')}
               </button>
             </div>
+            {/* Toggle Slot Calendar */}
+            <Button
+              icon={showSlotCalendar ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+              onClick={() => setShowSlotCalendar(!showSlotCalendar)}
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border-2 text-xs sm:text-sm font-bold transition-all duration-200 active:scale-95 ${
+                showSlotCalendar
+                  ? 'bg-slate-100 border-slate-400 text-slate-700 hover:bg-slate-200'
+                  : 'bg-amber-100 border-amber-400 text-amber-700 hover:bg-amber-200'
+              }`}
+              title={showSlotCalendar ? (t('gp_booking_hide_calendar') || 'Ẩn lịch slot') : (t('gp_booking_show_calendar') || 'Hiện lịch slot')}
+            >
+              <span className='hidden sm:inline'>{showSlotCalendar ? (t('gp_booking_hide_calendar') || 'Ẩn lịch') : (t('gp_booking_show_calendar') || 'Hiện lịch')}</span>
+              <span className='sm:hidden'>{showSlotCalendar ? (t('gp_booking_hide') || 'Ẩn') : (t('gp_booking_show') || 'Hiện')}</span>
+            </Button>
             <Button
               icon={<LeftOutlined />}
               onClick={() => navigateWeek('prev')}
-              className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-md text-xs sm:text-sm'
+              className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg text-xs sm:text-sm transition-all duration-200 active:scale-95'
             >
               <span className='hidden sm:inline'>{t('gp_booking_prev_week')}</span>
               <span className='sm:hidden'>{t('gp_booking_prev_week').split(' ')[0]}</span>
@@ -360,7 +379,7 @@ const BookingCar = () => {
             <Button
               icon={<CalendarOutlined />}
               onClick={goToCurrentWeek}
-              className='px-3 sm:px-4 py-2 border-cyan-500 text-cyan-600 hover:bg-cyan-50 text-xs sm:text-sm'
+              className='px-3 sm:px-4 py-2 border-2 border-cyan-500 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-600 text-xs sm:text-sm transition-all duration-200 active:scale-95'
               disabled={!selectedWeekStart}
             >
               <span className='hidden sm:inline'>{t('gp_booking_current_week')}</span>
@@ -369,7 +388,7 @@ const BookingCar = () => {
             <Button
               icon={<RightOutlined />}
               onClick={() => navigateWeek('next')}
-              className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-md text-xs sm:text-sm'
+              className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 hover:from-cyan-600 hover:to-blue-600 shadow-md hover:shadow-lg text-xs sm:text-sm transition-all duration-200 active:scale-95'
             >
               <span className='hidden sm:inline'>{t('gp_booking_next_week')}</span>
               <span className='sm:hidden'>{t('gp_booking_next_week').split(' ')[0]}</span>
@@ -377,17 +396,17 @@ const BookingCar = () => {
             <Button
               icon={<CalendarOutlined />}
               onClick={() => setIsFlexibleModalVisible(true)}
-              className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-600 hover:to-teal-600 shadow-md text-xs sm:text-sm font-bold'
+              className='flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 hover:from-emerald-600 hover:to-teal-600 shadow-md hover:shadow-lg text-xs sm:text-sm font-bold transition-all duration-200 active:scale-95'
             >
               <span className='hidden sm:inline'>{t('gp_booking_flexible')}</span>
               <span className='sm:hidden'>{t('gp_booking_flexible').split(' ')[0]}</span>
             </Button>
             <Button
               onClick={() => setShowRangeSelector(!showRangeSelector)}
-              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border-2 text-xs sm:text-sm font-bold transition-all ${
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 border-2 text-xs sm:text-sm font-bold transition-all duration-200 active:scale-95 ${
                 showRangeSelector
-                  ? 'bg-cyan-500 border-cyan-500 text-white'
-                  : 'border-cyan-500 text-cyan-600 hover:bg-cyan-50'
+                  ? 'bg-cyan-500 border-cyan-500 text-white shadow-lg'
+                  : 'border-cyan-500 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-600'
               }`}
             >
               <CalendarOutlined />
@@ -406,29 +425,28 @@ const BookingCar = () => {
           </div>
         </div>
 
-        {/* hiển thị lịch  đặt xe */}
-        {calendarView === 'week' ? (
-          <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white calendar-container'>
+        {/* Calendar Section */}
+        {showSlotCalendar && (calendarView === 'week' ? (
+          <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_25px_70px_-15px_rgba(6,182,212,0.3)] transition-all duration-500 bg-white calendar-container'>
             <div className='overflow-x-auto scrollbar-hide'>
-            {/* Chỉ render 1 bảng duy nhất, không map dailySlots nữa */}
             <table className='w-full border-collapse min-w-[800px]'>
               <thead>
-                <tr className='bg-gradient-to-r from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE]'>
-                  <th className='p-3 sm:p-6 text-left font-black text-white text-sm sm:text-lg w-40 sm:w-56 sticky left-0 z-10 bg-[#06B6D4]'>
+                <tr className='bg-gradient-to-r from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE] shadow-lg'>
+                  <th className='p-3 sm:p-6 text-left font-black text-white text-sm sm:text-lg w-40 sm:w-56 sticky left-0 z-20 bg-gradient-to-r from-[#06B6D4] to-[#0EA5E9] shadow-lg'>
                     <div className='flex items-center gap-2 sm:gap-3'>
-                      <ClockCircleOutlined style={{ fontSize: '18px' }} className='sm:text-[22px]' />
-                      <span className='uppercase tracking-wide text-xs sm:text-base'>{t('gp_booking_time_slot')}</span>
+                      <ClockCircleOutlined style={{ fontSize: '18px' }} className='sm:text-[22px] drop-shadow-md' />
+                      <span className='uppercase tracking-wide text-xs sm:text-base drop-shadow-md'>{t('gp_booking_time_slot')}</span>
                     </div>
                   </th>
 
                   {dailySlots.map((day) => (
                     <th
                       key={day.date}
-                      className='p-3 sm:p-6 text-center font-black text-white text-xs sm:text-base min-w-[120px] sm:min-w-[140px] whitespace-nowrap'
+                      className='p-3 sm:p-6 text-center font-black text-white text-xs sm:text-base min-w-[120px] sm:min-w-[140px] whitespace-nowrap relative'
                     >
                       <div className='flex flex-col items-center justify-center gap-1 sm:gap-2'>
-                        <div className='text-sm sm:text-xl font-black tracking-wide uppercase'>{day.dayOfWeek}</div>
-                        <div className='bg-white/25 rounded-full py-1 sm:py-2 px-2 sm:px-4 inline-block text-xs font-bold backdrop-blur-sm shadow-lg ring-1 ring-white/30'>
+                        <div className='text-sm sm:text-xl font-black tracking-wide uppercase drop-shadow-md'>{day.dayOfWeek}</div>
+                        <div className='bg-white/30 backdrop-blur-md rounded-full py-1.5 sm:py-2 px-3 sm:px-5 inline-block text-xs font-bold shadow-xl ring-2 ring-white/40 hover:bg-white/40 transition-all duration-200'>
                           {day.date}
                         </div>
                       </div>
@@ -445,10 +463,10 @@ const BookingCar = () => {
                     className={
                       slot.type === 'MAINTENANCE'
                         ? 'bg-gradient-to-r from-gray-50 to-slate-50/50'
-                        : 'bg-white hover:bg-gradient-to-r hover:from-cyan-50/30 hover:to-transparent transition-all duration-300'
+                        : 'bg-white hover:bg-gradient-to-r hover:from-cyan-50/50 hover:to-blue-50/30 transition-all duration-200 even:bg-slate-50/30'
                     }
                   >
-                    <td className='border-t border-gray-200 p-3 sm:p-6 sticky left-0 z-10 bg-white'>
+                    <td className='border-t border-gray-200/50 p-3 sm:p-6 sticky left-0 z-10 bg-white shadow-sm'>
                       <div className='flex items-center gap-2 sm:gap-3 flex-wrap'>
                         <div className='text-[#06B6D4] font-black text-xs sm:text-base'>{slot.time}</div>
                         {slot.type === 'MAINTENANCE' && (
@@ -476,7 +494,7 @@ const BookingCar = () => {
                       return (
                         <td
                           key={`${day.date}-${timeIndex}`}
-                          className={`border-t border-gray-200 p-2 sm:p-5 ${isHighlighted ? 'bg-yellow-100 ring-4 ring-yellow-400 ring-opacity-50' : ''} transition-all duration-300`}
+                          className={`border-t border-gray-200/50 p-2 sm:p-5 ${isHighlighted ? 'bg-yellow-100 ring-4 ring-yellow-400 ring-opacity-60 shadow-lg' : ''} transition-all duration-300`}
                         >
                           {daySlot?.type === 'MAINTENANCE' ? (
                             <div className='flex items-center justify-center min-h-[80px] py-6 px-4 rounded-2xl bg-gradient-to-br from-gray-100 to-slate-100 border border-gray-300'>
@@ -525,7 +543,7 @@ const BookingCar = () => {
           </div>
         </Card>
         ) : (
-          <div className='mb-8 calendar-container'>
+          <div className='calendar-container'>
             <MonthViewCalendar
               dailySlots={dailySlots}
               vehicleId={groupSummary?.vehicleId || 0}
@@ -538,6 +556,27 @@ const BookingCar = () => {
               }}
             />
           </div>
+        ))}
+
+        {/* Message when calendar is hidden */}
+        {!showSlotCalendar && (
+          <Card className='shadow-xl border-0 rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50/30 border-2 border-amber-200'>
+            <div className='p-8 sm:p-12 text-center'>
+              <EyeInvisibleOutlined style={{ fontSize: '48px', color: '#f59e0b' }} className='mb-4' />
+              <h3 className='text-2xl font-black text-amber-800 mb-2'>{t('gp_booking_calendar_hidden') || 'Calendar đã được ẩn'}</h3>
+              <p className='text-amber-700 mb-6'>
+                {t('gp_booking_calendar_hidden_desc') || 'Bạn có thể sử dụng Flexible Booking hoặc Range Selector để đặt xe'}
+              </p>
+              <Button
+                icon={<EyeOutlined />}
+                onClick={() => setShowSlotCalendar(true)}
+                className='bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 hover:from-amber-600 hover:to-orange-600 shadow-lg'
+                size='large'
+              >
+                {t('gp_booking_show_calendar') || 'Hiện lại lịch slot'}
+              </Button>
+            </div>
+          </Card>
         )}
 
         {/* mô tả các trang thái khi booking*/}
