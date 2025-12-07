@@ -7,7 +7,7 @@ import {
   TransactionOutlined,
   UserOutlined
 } from '@ant-design/icons'
-import { Space, Modal, Avatar as AvatarIcon } from 'antd'
+import { Space, Modal } from 'antd'
 import { useContext, useState } from 'react'
 import { Link } from 'react-router-dom'
 import path from '../../constants/path'
@@ -282,9 +282,11 @@ function NavHeader() {
         <div ref={accountRefs.setReference}>
           <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-teal-50/50 transition-all duration-300 cursor-pointer group'>
             <div className='relative'>
-              <AvatarIcon
-                className='text-xl sm:text-2xl text-gray-600 group-hover:text-teal-500 transition-all duration-300 group-hover:scale-110 bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-teal-100 group-hover:to-cyan-100'
-                icon={<UserOutlined />}
+              <Avatar
+                userId={userId}
+                avatar={userProfile?.avatarUrl || undefined}
+                size={32}
+                className='group-hover:scale-110 transition-transform duration-300'
               />
             </div>
             <span className='hidden sm:inline-block text-sm font-semibold text-gray-700 group-hover:text-teal-600 truncate max-w-[120px] transition-colors duration-300'>
