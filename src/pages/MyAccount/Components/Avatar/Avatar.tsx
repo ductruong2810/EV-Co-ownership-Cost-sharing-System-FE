@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import { createAvatar } from '@dicebear/core'
 import { lorelei } from '@dicebear/collection'
 
@@ -36,7 +36,24 @@ export default function Avatar({ avatar, userId, size = 128, className = '', onC
   // Ưu tiên avatar custom (nếu có và hợp lệ), fallback sang generated avatar
   // Chỉ dùng avatarUrl nếu nó không null/empty và là URL hợp lệ
   const hasCustomAvatar = avatar && avatar.trim() !== '' && avatar !== 'null'
-  const src = hasCustomAvatar ? avatar : generatedAvatar
+  
+  // Track previous avatar URL to add cache busting only when URL changes
+  const prevAvatarRef = useRef<string | undefined>(avatar)
+  const cacheBustRef = useRef<number>(Date.now())
+  
+  useEffect(() => {
+    // If avatar URL changed, update cache bust timestamp
+    if (hasCustomAvatar && avatar !== prevAvatarRef.current) {
+      cacheBustRef.current = Date.now()
+      prevAvatarRef.current = avatar
+    }
+  }, [avatar, hasCustomAvatar])
+  
+  // Add cache busting to force browser to reload image when URL changes
+  const avatarWithCacheBust = hasCustomAvatar 
+    ? `${avatar}${avatar.includes('?') ? '&' : '?'}t=${cacheBustRef.current}`
+    : null
+  const src = avatarWithCacheBust || generatedAvatar
 
   return (
     <button

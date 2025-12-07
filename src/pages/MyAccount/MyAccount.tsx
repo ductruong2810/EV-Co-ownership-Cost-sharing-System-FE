@@ -86,8 +86,12 @@ export default function MyAccount() {
   // Mutation for update avatar
   const avatarMutation = useMutation({
     mutationFn: (avatarFile: File) => userApi.updateAvatar(avatarFile),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+    onSuccess: async () => {
+      // Invalidate and refetch both query keys to update UI in MyAccount and NavHeader
+      await queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+      await queryClient.invalidateQueries({ queryKey: ['userProfile'] })
+      await queryClient.refetchQueries({ queryKey: ['user-profile'] })
+      await queryClient.refetchQueries({ queryKey: ['userProfile'] })
       showSuccessToast('Avatar updated successfully')
     },
     onError: (error: any) => {
