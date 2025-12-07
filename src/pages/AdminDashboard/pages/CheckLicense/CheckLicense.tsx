@@ -1444,8 +1444,17 @@ export default function CheckLicense() {
       </AnimatePresence>
 
       {/* Review Guidelines Modal */}
-      <dialog id='review-guidelines-modal' className='modal'>
-        <div className='modal-box max-w-3xl relative'>
+      <dialog 
+        id='review-guidelines-modal' 
+        className='modal'
+        onClick={(e) => {
+          // Close modal when clicking on backdrop (dialog element itself)
+          if (e.target === e.currentTarget) {
+            (e.currentTarget as HTMLDialogElement).close()
+          }
+        }}
+      >
+        <div className='modal-box max-w-3xl relative' onClick={(e) => e.stopPropagation()}>
           <form method='dialog' className='absolute right-4 top-4 z-10'>
             <button 
               type='submit'
@@ -1492,7 +1501,7 @@ export default function CheckLicense() {
               </h4>
               <div className='ml-10 space-y-4'>
                 <div>
-                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_image_quality')}:</p>
+                  <p className='font-semibold text-gray-900 mb-1'>{t('admin_check_license_guidelines_image_quality')}</p>
                   <ul className='list-disc list-inside space-y-1 text-gray-700 ml-4'>
                     <li>{t('admin_check_license_guidelines_image_clear')}</li>
                     <li>{t('admin_check_license_guidelines_text_readable')}</li>
