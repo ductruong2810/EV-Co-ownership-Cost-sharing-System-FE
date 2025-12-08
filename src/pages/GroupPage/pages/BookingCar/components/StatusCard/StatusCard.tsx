@@ -1,4 +1,4 @@
-import { Card, Tag } from 'antd'
+import { Card, Tag, Progress } from 'antd'
 
 import { DashboardOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import getConditionConfig from '../BookingSlotCell/utils/getConditionconfig'
@@ -24,6 +24,8 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
         return { color: 'blue', text: t('gp_status_unknown') }
     }
   })()
+
+  const batteryValue = Math.max(0, Math.min(100, batteryPercent ?? 0))
 
   return (
     <>
@@ -66,6 +68,15 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   <span className='text-white text-sm sm:text-base font-semibold'>{t('gp_status_battery')}</span>
                 </div>
                 <div className='text-white text-xl sm:text-2xl font-black drop-shadow-[0_3px_8px_rgba(0,0,0,0.2)]'>{batteryPercent}%</div>
+              </div>
+              <div className='w-full'>
+                <Progress
+                  percent={batteryValue}
+                  showInfo={false}
+                  strokeColor='#ffffff'
+                  trailColor='rgba(255,255,255,0.25)'
+                  strokeWidth={10}
+                />
               </div>
             </div>
 
