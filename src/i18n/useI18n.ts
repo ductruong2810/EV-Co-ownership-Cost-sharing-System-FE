@@ -260,6 +260,11 @@ const messages = {
     gp_booking_show: 'Show',
     gp_booking_calendar_hidden: 'Calendar is Hidden',
     gp_booking_calendar_hidden_desc: 'You can use Flexible Booking or Range Selector to book the vehicle',
+    gp_booking_group_label: 'Current group',
+    gp_booking_group_placeholder: 'Your group',
+    gp_booking_group_id: 'Group ID: {{id}}',
+    gp_booking_vehicle_id: 'Vehicle ID: {{id}}',
+    gp_booking_vehicle_placeholder: 'Vehicle',
     gp_booking_analytics_title: 'Personal Usage Insights',
     gp_booking_analytics_ai_title: 'AI Fairness Evaluation',
     gp_booking_analytics_under_utilized: 'Under-utilized',
@@ -1565,6 +1570,11 @@ const messages = {
     gp_overview_members_value: '{{current}} / {{capacity}}',
     gp_overview_remaining_share: 'Tỷ lệ còn lại',
     gp_overview_remaining_pct: 'Còn {{percent}}%',
+    gp_booking_group_label: 'Nhóm hiện tại',
+    gp_booking_group_placeholder: 'Nhóm của bạn',
+    gp_booking_group_id: 'ID nhóm: {{id}}',
+    gp_booking_vehicle_id: 'ID xe: {{id}}',
+    gp_booking_vehicle_placeholder: 'Xe',
 
     // GroupPage - MyBooking
     gp_mybooking_title: 'Lịch đặt xe của tôi',
