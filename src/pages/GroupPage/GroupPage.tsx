@@ -23,7 +23,7 @@ export default function GroupPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
-      className='min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-cyan-300 via-blue-400 to-indigo-600'
+      className='min-h-screen flex justify-center items-start pt-8 pb-10 relative overflow-hidden bg-gradient-to-br from-cyan-300 via-blue-400 to-indigo-600'
     >
       {/* Holographic Background Effects */}
       <div className='absolute inset-0 overflow-hidden pointer-events-none'>
