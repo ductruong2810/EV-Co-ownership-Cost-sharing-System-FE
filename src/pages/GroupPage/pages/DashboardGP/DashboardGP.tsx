@@ -61,6 +61,13 @@ export default function DashboardGP() {
     retryOnMount: false
   })
 
+  const group = groupQuery.data?.data
+  const ownership = ownershipQuery.data?.data?.userOwnership
+  const groupSummary = ownershipQuery.data?.data?.groupSummary
+  const quotaRemaining = usageReportQuery.data?.data?.remainingQuotaSlots
+  const quotaTotal = usageReportQuery.data?.data?.totalQuotaSlots
+  const bookingsThisWeek = usageReportQuery.data?.data?.bookingsThisWeek
+
   // Calculate step completion status
   const stepStatus = useMemo(() => {
     const profile = userProfileQuery.data?.data
@@ -102,6 +109,16 @@ export default function DashboardGP() {
     return null // All steps completed
   }, [stepStatus])
 
+  const nextStepLabel = useMemo(() => {
+    if (nextStep === null) return t('gp_overview_ready')
+    const stepMap: Record<number, string> = {
+      1: t('gp_step1_title'),
+      2: t('gp_step2_title'),
+      3: t('gp_step3_title')
+    }
+    return t('gp_overview_next_step', { step: stepMap[nextStep] || '' })
+  }, [nextStep, t])
+
   // Handle step card click
   const handleStepClick = (stepNum: number) => {
     if (stepNum === 1 || stepNum === 2) {
@@ -122,6 +139,34 @@ export default function DashboardGP() {
     }
   }
 
+  const handleBookingClick = () => navigate(`/dashboard/viewGroups/${groupId}/booking`)
+  const handleMyBookingClick = () => navigate(`/dashboard/viewGroups/${groupId}/mybooking`)
+  const handleOwnershipClick = () => navigate(`/dashboard/viewGroups/${groupId}/ownershipPercentage`)
+  const handleDepositClick = () => navigate(`/dashboard/viewGroups/${groupId}/paymentDeposit`)
+
+  const quotaDisplay =
+    quotaRemaining != null && quotaTotal != null
+      ? `${quotaRemaining}/${quotaTotal}`
+      : quotaRemaining != null
+        ? `${quotaRemaining}`
+        : t('gp_overview_quota_fallback')
+
+  const ownershipDisplay =
+    ownership?.ownershipPercentage != null ? `${ownership.ownershipPercentage}%` : '--'
+
+  const memberDisplay =
+    groupSummary?.totalMembers != null
+      ? t('gp_overview_members_value', {
+          current: groupSummary.totalMembers,
+          capacity: groupSummary.memberCapacity ?? '∞'
+        })
+      : '--'
+
+  const remainingShareDisplay =
+    groupSummary?.remainingPercentage != null
+      ? t('gp_overview_remaining_pct', { percent: groupSummary.remainingPercentage })
+      : '--'
+
   return (
     <div className='w-full max-w-5xl rounded-[1.5rem] sm:rounded-[2rem] backdrop-blur-[60px] bg-gradient-to-br from-white/22 via-white/16 to-white/20 shadow-[0_15px_70px_rgba(6,182,212,0.5),0_30px_100px_rgba(14,165,233,0.4),0_0_150px_rgba(79,70,229,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] border-[2px] sm:border-[4px] border-white/60 p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 m-4 sm:m-8 lg:m-12 relative overflow-hidden'>
       {/* Top Gradient Bar */}
@@ -129,6 +174,75 @@ export default function DashboardGP() {
 
       {/* Group Header */}
       <GroupHeader groupId={groupId} />
+
+      {/* Quick overview & actions */}
+      <div className='grid gap-4 sm:gap-6 lg:grid-cols-[1.8fr,1.1fr]'>
+        <div className='relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cyan-500/80 via-blue-500/70 to-indigo-600/70 border border-white/30 shadow-[0_20px_60px_rgba(6,182,212,0.35)]'>
+          <div className='absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_45%)] pointer-events-none' />
+          <div className='relative p-5 sm:p-7 lg:p-8 flex flex-col gap-4 sm:gap-5'>
+            <div className='space-y-2'>
+              <p className='text-white/80 text-sm font-medium'>{t('gp_overview_title')}</p>
+              <h2 className='text-2xl sm:text-3xl font-bold text-white leading-tight'>
+                {group?.groupName || t('gp_overview_group_placeholder')}
+              </h2>
+              <p className='text-white/80 text-sm sm:text-base'>{nextStepLabel}</p>
+            </div>
+            <div className='flex flex-wrap gap-3 sm:gap-4'>
+              <button
+                onClick={handleBookingClick}
+                className='px-4 sm:px-5 py-2.5 rounded-xl bg-white text-sky-600 font-semibold shadow-[0_10px_30px_rgba(14,165,233,0.4)] hover:-translate-y-0.5 active:translate-y-0 transition-transform'
+              >
+                {t('gp_overview_primary_cta')}
+              </button>
+              <button
+                onClick={handleMyBookingClick}
+                className='px-4 sm:px-5 py-2.5 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10 transition-colors'
+              >
+                {t('gp_overview_mybooking_cta')}
+              </button>
+              <button
+                onClick={handleOwnershipClick}
+                className='px-4 sm:px-5 py-2.5 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10 transition-colors'
+              >
+                {t('gp_overview_ownership_cta')}
+              </button>
+              <button
+                onClick={handleDepositClick}
+                className='px-4 sm:px-5 py-2.5 rounded-xl border border-white/50 text-white font-semibold hover:bg-white/10 transition-colors'
+              >
+                {t('gp_overview_payment_cta')}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className='rounded-2xl sm:rounded-3xl bg-white/12 backdrop-blur-xl border border-white/30 p-4 sm:p-5 lg:p-6 shadow-[0_15px_40px_rgba(14,165,233,0.2)]'>
+          <div className='grid grid-cols-2 gap-3 sm:gap-4'>
+            <div className='rounded-xl bg-white/8 border border-white/20 p-3 sm:p-4'>
+              <p className='text-xs text-white/70 font-medium'>{t('gp_overview_quota')}</p>
+              <p className='text-lg sm:text-xl text-white font-bold'>{quotaDisplay}</p>
+              {bookingsThisWeek != null && (
+                <p className='text-xs text-white/65'>
+                  {t('gp_booking_analytics_this_week')}: {bookingsThisWeek}
+                </p>
+              )}
+            </div>
+            <div className='rounded-xl bg-white/8 border border-white/20 p-3 sm:p-4'>
+              <p className='text-xs text-white/70 font-medium'>{t('gp_overview_ownership')}</p>
+              <p className='text-lg sm:text-xl text-white font-bold'>{ownershipDisplay}</p>
+            </div>
+            <div className='rounded-xl bg-white/8 border border-white/20 p-3 sm:p-4'>
+              <p className='text-xs text-white/70 font-medium'>{t('gp_overview_members')}</p>
+              <p className='text-lg sm:text-xl text-white font-bold'>{memberDisplay}</p>
+            </div>
+            <div className='rounded-xl bg-white/8 border border-white/20 p-3 sm:p-4'>
+              <p className='text-xs text-white/70 font-medium'>{t('gp_overview_remaining_share')}</p>
+              <p className='text-lg sm:text-xl text-white font-bold'>{remainingShareDisplay}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Top banner */}
       <Banner completedSteps={completedSteps} totalSteps={totalSteps} />
 
