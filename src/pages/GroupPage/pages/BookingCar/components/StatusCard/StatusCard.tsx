@@ -37,7 +37,7 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
         >
           <div className='absolute inset-0 bg-white/5'></div>
           <div className='absolute bottom-0 right-0 w-28 h-28 bg-white/12 rounded-full blur-3xl'></div>
-          <div className='relative z-10 flex flex-col justify-between h-full min-h-[210px]'>
+          <div className='relative z-10 flex flex-col justify-between h-full min-h-[220px]'>
             <div className='flex items-start justify-between mb-3'>
               <div className='flex items-start gap-3'>
                 <div className='bg-white/25 backdrop-blur-xl p-3 rounded-2xl shadow-lg ring-1 ring-white/30'>
@@ -49,13 +49,6 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                 </div>
                 <div>
                   <div className='text-white/95 text-sm sm:text-base font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
-                  <div className='text-white text-lg sm:text-xl font-black leading-snug'>
-                    {
-                      getConditionConfig({
-                        vehicleStatus: vehicleStatus
-                      }).text
-                    }
-                  </div>
                 </div>
               </div>
               <Tag color={badge.color} className='font-semibold px-3 py-1 rounded-full border-0 bg-white/25 text-white text-xs sm:text-sm'>

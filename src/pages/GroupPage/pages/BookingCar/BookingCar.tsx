@@ -256,7 +256,7 @@ const BookingCar = () => {
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-4 sm:p-6 lg:p-8 my-4 sm:my-5 rounded-2xl'>
       <div className='max-w-[98vw] sm:max-w-[96vw] mx-auto space-y-6 sm:space-y-8'>
         {/* Header Section */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch'>
           {/* Vehicle Info Card */}
           <VehicleInforCard
             brand={groupSummary?.brand || ''}
