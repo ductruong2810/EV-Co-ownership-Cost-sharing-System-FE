@@ -291,9 +291,7 @@ const BookingCar = () => {
         </div>
 
         {/* Stats Bar */}
-        <div className='bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-cyan-100/50'>
         <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
-        </div>
 
         {/* Range Selector */}
         {showRangeSelector && (
