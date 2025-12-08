@@ -27,7 +27,10 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
 
   return (
     <>
-      <Card className='shadow-xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_16px_45px_-12px_rgba(6,182,212,0.35)] transition-all duration-400 hover:-translate-y-1.5 bg-gradient-to-br from-white to-cyan-50/20'>
+      <Card
+        className='shadow-xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_16px_45px_-12px_rgba(6,182,212,0.35)] transition-all duration-400 hover:-translate-y-1.5 bg-gradient-to-br from-white to-cyan-50/20'
+        bodyStyle={{ padding: 0, height: '100%' }}
+      >
         <div
           className={`bg-gradient-to-br ${
             getConditionConfig({

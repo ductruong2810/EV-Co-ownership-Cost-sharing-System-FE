@@ -12,7 +12,10 @@ interface VehicleInforCardProps {
 export default function VehicleInforCard({ brand, licensePlate, weekStart, weekEnd, model }: VehicleInforCardProps) {
   return (
     <>
-      <Card className='shadow-xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_16px_45px_-12px_rgba(6,182,212,0.35)] transition-all duration-400 hover:-translate-y-1.5 bg-gradient-to-br from-white to-cyan-50/20 h-full'>
+      <Card
+        className='shadow-xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_16px_45px_-12px_rgba(6,182,212,0.35)] transition-all duration-400 hover:-translate-y-1.5 bg-gradient-to-br from-white to-cyan-50/20 h-full'
+        bodyStyle={{ padding: 0, height: '100%' }}
+      >
         <div className='bg-gradient-to-br from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE] -m-6 p-5 sm:p-6 h-full relative overflow-hidden'>
           <div className='absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full blur-3xl'></div>
           <div className='absolute bottom-0 left-0 w-20 h-20 bg-white/6 rounded-full blur-2xl'></div>

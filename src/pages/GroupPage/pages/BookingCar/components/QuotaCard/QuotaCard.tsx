@@ -8,7 +8,10 @@ interface QuotaInfo {
 export default function QuotaCard({ quotaUser }: { quotaUser: QuotaInfo }) {
   return (
     <>
-      <Card className='shadow-xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_16px_45px_-12px_rgba(14,165,233,0.3)] transition-all duration-400 hover:-translate-y-1.5 bg-gradient-to-br from-white to-sky-50/20 h-full'>
+      <Card
+        className='shadow-xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_16px_45px_-12px_rgba(14,165,233,0.3)] transition-all duration-400 hover:-translate-y-1.5 bg-gradient-to-br from-white to-sky-50/20 h-full'
+        bodyStyle={{ padding: 0, height: '100%' }}
+      >
         <div className='bg-gradient-to-br from-[#0EA5E9] via-[#3B82F6] to-[#06B6D4] -m-6 p-5 sm:p-6 h-full relative overflow-hidden'>
           <div className='absolute inset-0 bg-white/5'></div>
           <div className='absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-3xl'></div>
