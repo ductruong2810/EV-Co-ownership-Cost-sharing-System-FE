@@ -25,6 +25,7 @@ import { toast } from 'react-toastify'
 import dayjs from 'dayjs'
 import { AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons'
 import { useI18n } from '../../../../i18n/useI18n'
+import { useRef, useEffect } from 'react'
 
 // ============= INTERFACES (giữ nguyên) =============
 type SlotStatus = 'AVAILABLE' | 'LOCKED' | 'CONFIRMED' | 'CANCELLED' | ''
@@ -180,6 +181,7 @@ const BookingCar = () => {
   // Range selection state
   const [selectedRange, setSelectedRange] = useState<{ start: string; end: string } | null>(null)
   const [showRangeSelector, setShowRangeSelector] = useState(false)
+  const rangeSelectorRef = useRef<HTMLDivElement | null>(null)
 
   // Detect conflicts in selected range
   const conflicts = useMemo(() => {
@@ -205,6 +207,12 @@ const BookingCar = () => {
 
     return conflictsList
   }, [selectedRange, dailySlots])
+
+  useEffect(() => {
+    if (showRangeSelector && rangeSelectorRef.current) {
+      rangeSelectorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [showRangeSelector])
 
   // Flexible booking modal state
   const [isFlexibleModalVisible, setIsFlexibleModalVisible] = useState(false)
@@ -280,20 +288,22 @@ const BookingCar = () => {
 
         {/* Range Selector */}
         {showRangeSelector && (
-          <RangeSelector
-            onRangeSelected={(start, end) => {
-              setSelectedRange({ start, end })
-              setShowRangeSelector(false)
-            }}
-            vehicleId={groupSummary?.vehicleId || 0}
-            vehicleInfo={{
-              brand: groupSummary?.brand,
-              model: groupSummary?.model,
-              licensePlate: groupSummary?.licensePlate
-            }}
-            quotaUser={quotaUser}
-            conflicts={conflicts}
-          />
+          <div ref={rangeSelectorRef}>
+            <RangeSelector
+              onRangeSelected={(start, end) => {
+                setSelectedRange({ start, end })
+                setShowRangeSelector(false)
+              }}
+              vehicleId={groupSummary?.vehicleId || 0}
+              vehicleInfo={{
+                brand: groupSummary?.brand,
+                model: groupSummary?.model,
+                licensePlate: groupSummary?.licensePlate
+              }}
+              quotaUser={quotaUser}
+              conflicts={conflicts}
+            />
+          </div>
         )}
 
         {/* Conflict Alert */}
