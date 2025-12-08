@@ -27,20 +27,20 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
 
   return (
     <>
-      <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.3)] transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-cyan-50/20'>
+      <Card className='shadow-xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_16px_45px_-12px_rgba(6,182,212,0.35)] transition-all duration-400 hover:-translate-y-1.5 bg-gradient-to-br from-white to-cyan-50/20'>
         <div
           className={`bg-gradient-to-br ${
             getConditionConfig({
               vehicleStatus: vehicleStatus || 'Good'
             }).bgColor
-          } -m-6 p-6 sm:p-7 h-full relative overflow-hidden`}
+          } -m-6 p-5 sm:p-6 h-full relative overflow-hidden`}
         >
           <div className='absolute inset-0 bg-white/5'></div>
-          <div className='absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl'></div>
-          <div className='relative z-10 flex flex-col justify-between h-full min-h-[220px]'>
-            <div className='flex items-center justify-between mb-3.5'>
-              <div className='flex items-center gap-3'>
-                <div className='bg-white/30 backdrop-blur-xl p-3 rounded-xl shadow-lg ring-1 ring-white/30'>
+          <div className='absolute bottom-0 right-0 w-28 h-28 bg-white/12 rounded-full blur-3xl'></div>
+          <div className='relative z-10 flex flex-col justify-between h-full min-h-[210px]'>
+            <div className='flex items-start justify-between mb-3'>
+              <div className='flex items-start gap-3'>
+                <div className='bg-white/25 backdrop-blur-xl p-3 rounded-2xl shadow-lg ring-1 ring-white/30'>
                   {
                     getConditionConfig({
                       vehicleStatus: vehicleStatus
@@ -48,8 +48,8 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   }
                 </div>
                 <div>
-                  <div className='text-white/95 text-lg font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
-                  <div className='text-white text-xl font-black leading-snug'>
+                  <div className='text-white/95 text-base font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
+                  <div className='text-white text-lg font-black leading-snug'>
                     {
                       getConditionConfig({
                         vehicleStatus: vehicleStatus
@@ -58,7 +58,7 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   </div>
                 </div>
               </div>
-              <Tag color={badge.color} className='font-semibold px-3 py-1 rounded-full border-0 bg-white/20 text-white'>
+              <Tag color={badge.color} className='font-semibold px-3 py-1 rounded-full border-0 bg-white/25 text-white text-xs sm:text-sm'>
                 {badge.text}
               </Tag>
             </div>
@@ -66,17 +66,17 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
             <div className='flex-1 flex flex-col justify-center space-y-3'>
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
-                  <ThunderboltOutlined style={{ fontSize: '26px', color: 'white' }} />
-                  <span className='text-white text-sm font-bold'>{t('gp_status_battery')}</span>
+                  <ThunderboltOutlined style={{ fontSize: '24px', color: 'white' }} />
+                  <span className='text-white text-sm font-semibold'>{t('gp_status_battery')}</span>
                 </div>
-                <div className='text-white text-2xl font-black'>{batteryPercent}%</div>
+                <div className='text-white text-2xl font-black drop-shadow-[0_3px_8px_rgba(0,0,0,0.2)]'>{batteryPercent}%</div>
               </div>
             </div>
 
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='bg-white/25 backdrop-blur-md rounded-2xl p-4 text-center shadow-lg ring-1 ring-white/30 hover:bg-white/30 transition-all'>
-                <DashboardOutlined style={{ fontSize: '20px', color: 'white' }} />
-                <div className='text-white text-base font-black mt-1'>{odometer}</div>
+            <div className='flex justify-center'>
+              <div className='bg-white/18 backdrop-blur-md rounded-2xl px-5 py-4 text-center shadow-lg ring-1 ring-white/25 hover:bg-white/24 transition-all w-[150px]'>
+                <DashboardOutlined style={{ fontSize: '22px', color: 'white' }} />
+                <div className='text-white text-lg font-black mt-1 leading-tight'>{odometer}</div>
                 <div className='text-white/90 text-xs font-bold uppercase'>{t('gp_status_odometer')}</div>
               </div>
             </div>
