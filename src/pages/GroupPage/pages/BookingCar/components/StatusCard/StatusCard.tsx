@@ -17,11 +17,11 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
             getConditionConfig({
               vehicleStatus: vehicleStatus || 'Good'
             }).bgColor
-          } -m-6 p-7 h-full relative overflow-hidden`}
+          } -m-6 p-6 sm:p-7 h-full relative overflow-hidden`}
         >
           <div className='absolute inset-0 bg-white/5'></div>
           <div className='absolute bottom-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl'></div>
-          <div className='relative z-10 flex flex-col justify-between h-full min-h-[300px]'>
+          <div className='relative z-10 flex flex-col justify-between h-full min-h-[240px]'>
             <div className='flex items-center justify-between mb-4'>
               <div className='flex items-center gap-3'>
                 <div className='bg-white/30 backdrop-blur-xl p-3 rounded-xl shadow-lg ring-1 ring-white/30'>

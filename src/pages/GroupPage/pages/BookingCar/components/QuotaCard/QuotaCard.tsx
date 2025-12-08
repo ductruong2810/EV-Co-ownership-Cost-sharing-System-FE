@@ -9,11 +9,11 @@ export default function QuotaCard({ quotaUser }: { quotaUser: QuotaInfo }) {
   return (
     <>
       <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_20px_60px_-15px_rgba(14,165,233,0.3)] transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-sky-50/20'>
-        <div className='bg-gradient-to-br from-[#0EA5E9] via-[#3B82F6] to-[#06B6D4] -m-6 p-7 h-full relative overflow-hidden'>
+        <div className='bg-gradient-to-br from-[#0EA5E9] via-[#3B82F6] to-[#06B6D4] -m-6 p-6 sm:p-7 h-full relative overflow-hidden'>
           <div className='absolute inset-0 bg-white/5'></div>
           <div className='absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-3xl'></div>
-          <div className='relative z-10 flex flex-col justify-between h-full min-h-[300px]'>
-            <div className='text-white text-3xl font-black uppercase tracking-widest text-center mb-4'>Quota</div>
+          <div className='relative z-10 flex flex-col justify-between h-full min-h-[240px]'>
+            <div className='text-white text-2xl sm:text-3xl font-black uppercase tracking-widest text-center mb-3'>Quota</div>
             <div className='flex-1 flex items-center justify-center'>
               <div className='relative'>
                 <Progress
