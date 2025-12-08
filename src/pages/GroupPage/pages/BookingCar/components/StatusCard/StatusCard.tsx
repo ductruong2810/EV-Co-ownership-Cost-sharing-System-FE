@@ -36,7 +36,7 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
             getConditionConfig({
               vehicleStatus: vehicleStatus || 'Good'
             }).bgColor
-          } -m-6 p-5 sm:p-6 h-full relative overflow-hidden`}
+          } p-5 sm:p-6 h-full relative overflow-hidden`}
         >
           <div className='absolute inset-0 bg-white/5'></div>
           <div className='absolute bottom-0 right-0 w-28 h-28 bg-white/12 rounded-full blur-3xl'></div>
