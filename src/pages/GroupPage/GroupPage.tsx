@@ -1,8 +1,21 @@
 import { motion } from 'framer-motion'
 import { Outlet, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import groupApi from '../../apis/group.api'
+import { Tag } from 'antd'
+import { useI18n } from '../../i18n/useI18n'
 
 export default function GroupPage() {
   const { groupId } = useParams<{ groupId: string }>()
+  const { t } = useI18n()
+
+  const groupQuery = useQuery({
+    queryKey: ['id-groups', groupId],
+    queryFn: () => groupApi.getGroupById(groupId as string),
+    enabled: !!groupId
+  })
+
+  const group = groupQuery.data?.data
   
   return (
     <motion.div
@@ -31,8 +44,28 @@ export default function GroupPage() {
         />
       </div>
 
-      {/* Child content */}
-      <Outlet />
+      <div className='relative w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6'>
+        {/* Group context bar */}
+        <div className='mb-6 rounded-2xl bg-white/15 backdrop-blur-lg border border-white/30 shadow-[0_15px_40px_rgba(6,182,212,0.35)] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+          <div>
+            <p className='text-xs font-semibold text-white/80 uppercase tracking-wide'>
+              {t('gp_booking_group_label')}
+            </p>
+            <h1 className='text-2xl sm:text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.7)] leading-tight'>
+              {group?.groupName || t('gp_booking_group_placeholder')}
+            </h1>
+            {group?.description && (
+              <p className='text-sm text-white/80 mt-1'>{group.description}</p>
+            )}
+          </div>
+          <div className='flex flex-wrap gap-2'>
+            {groupId && <Tag color='blue-inverse'>{t('gp_booking_group_id', { id: groupId })}</Tag>}
+          </div>
+        </div>
+
+        {/* Child content */}
+        <Outlet />
+      </div>
     </motion.div>
   )
 }
