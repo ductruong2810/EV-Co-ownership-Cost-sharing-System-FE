@@ -36,9 +36,9 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
           } -m-6 p-6 sm:p-7 h-full relative overflow-hidden`}
         >
           <div className='absolute inset-0 bg-white/5'></div>
-          <div className='absolute bottom-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl'></div>
-          <div className='relative z-10 flex flex-col justify-between h-full min-h-[240px]'>
-            <div className='flex items-center justify-between mb-4'>
+          <div className='absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl'></div>
+          <div className='relative z-10 flex flex-col justify-between h-full min-h-[220px]'>
+            <div className='flex items-center justify-between mb-3.5'>
               <div className='flex items-center gap-3'>
                 <div className='bg-white/30 backdrop-blur-xl p-3 rounded-xl shadow-lg ring-1 ring-white/30'>
                   {
@@ -48,8 +48,8 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   }
                 </div>
                 <div>
-                  <div className='text-white/95 text-xl font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
-                  <div className='text-white text-2xl font-black'>
+                  <div className='text-white/95 text-lg font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
+                  <div className='text-white text-xl font-black leading-snug'>
                     {
                       getConditionConfig({
                         vehicleStatus: vehicleStatus
@@ -69,14 +69,14 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   <ThunderboltOutlined style={{ fontSize: '26px', color: 'white' }} />
                   <span className='text-white text-sm font-bold'>{t('gp_status_battery')}</span>
                 </div>
-                <div className='text-white text-3xl font-black'>{batteryPercent}%</div>
+                <div className='text-white text-2xl font-black'>{batteryPercent}%</div>
               </div>
             </div>
 
             <div className='grid grid-cols-2 gap-4'>
               <div className='bg-white/25 backdrop-blur-md rounded-2xl p-4 text-center shadow-lg ring-1 ring-white/30 hover:bg-white/30 transition-all'>
-                <DashboardOutlined style={{ fontSize: '22px', color: 'white' }} />
-                <div className='text-white text-lg font-black mt-1'>{odometer}</div>
+                <DashboardOutlined style={{ fontSize: '20px', color: 'white' }} />
+                <div className='text-white text-base font-black mt-1'>{odometer}</div>
                 <div className='text-white/90 text-xs font-bold uppercase'>{t('gp_status_odometer')}</div>
               </div>
             </div>

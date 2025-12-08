@@ -255,21 +255,6 @@ const BookingCar = () => {
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-4 sm:p-6 lg:p-8 my-4 sm:my-5 rounded-2xl'>
       <div className='max-w-[98vw] sm:max-w-[96vw] mx-auto space-y-6 sm:space-y-8'>
-        {/* Group context */}
-        <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white/85 backdrop-blur-sm rounded-2xl p-4 shadow-md border border-cyan-100/60'>
-          <div>
-            <p className='text-xs font-medium text-gray-500'>{t('gp_booking_group_label')}</p>
-            <h1 className='text-xl sm:text-2xl font-bold text-gray-800 leading-tight'>{groupName}</h1>
-            <p className='text-sm text-gray-500 mt-1'>
-              {groupSummary?.brand} {groupSummary?.model} • {groupSummary?.licensePlate || t('gp_booking_vehicle_placeholder')}
-            </p>
-          </div>
-          <div className='flex flex-wrap gap-2'>
-            <Tag color='blue'>{t('gp_booking_group_id', { id: groupId })}</Tag>
-            {groupSummary?.vehicleId && <Tag color='geekblue'>{t('gp_booking_vehicle_id', { id: groupSummary.vehicleId })}</Tag>}
-          </div>
-        </div>
-
         {/* Header Section */}
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
           {/* Vehicle Info Card */}
