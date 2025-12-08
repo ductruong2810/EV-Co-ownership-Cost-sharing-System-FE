@@ -1,7 +1,8 @@
-import { Card } from 'antd'
+import { Card, Tag } from 'antd'
 
 import { DashboardOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import getConditionConfig from '../BookingSlotCell/utils/getConditionconfig'
+import { useI18n } from '../../../../../i18n/useI18n'
 
 interface statusCardProps {
   vehicleStatus: 'Good' | 'Under Maintenance' | 'Has Issues' | ''
@@ -9,6 +10,21 @@ interface statusCardProps {
   odometer: number | null
 }
 export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: statusCardProps) {
+  const { t } = useI18n()
+
+  const badge = (() => {
+    switch (vehicleStatus) {
+      case 'Good':
+        return { color: 'green', text: t('gp_status_good') }
+      case 'Under Maintenance':
+        return { color: 'orange', text: t('gp_status_maintenance') }
+      case 'Has Issues':
+        return { color: 'red', text: t('gp_status_issue') }
+      default:
+        return { color: 'blue', text: t('gp_status_unknown') }
+    }
+  })()
+
   return (
     <>
       <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.3)] transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br from-white to-cyan-50/20'>
@@ -32,7 +48,7 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   }
                 </div>
                 <div>
-                  <div className='text-white/95 text-xl font-bold uppercase tracking-wide'>status of the vehicle</div>
+                  <div className='text-white/95 text-xl font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
                   <div className='text-white text-2xl font-black'>
                     {
                       getConditionConfig({
@@ -42,13 +58,16 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   </div>
                 </div>
               </div>
+              <Tag color={badge.color} className='font-semibold px-3 py-1 rounded-full border-0 bg-white/20 text-white'>
+                {badge.text}
+              </Tag>
             </div>
 
             <div className='flex-1 flex flex-col justify-center space-y-3'>
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
                   <ThunderboltOutlined style={{ fontSize: '26px', color: 'white' }} />
-                  <span className='text-white text-sm font-bold'>Battery</span>
+                  <span className='text-white text-sm font-bold'>{t('gp_status_battery')}</span>
                 </div>
                 <div className='text-white text-3xl font-black'>{batteryPercent}%</div>
               </div>
@@ -58,7 +77,7 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
               <div className='bg-white/25 backdrop-blur-md rounded-2xl p-4 text-center shadow-lg ring-1 ring-white/30 hover:bg-white/30 transition-all'>
                 <DashboardOutlined style={{ fontSize: '22px', color: 'white' }} />
                 <div className='text-white text-lg font-black mt-1'>{odometer}</div>
-                <div className='text-white/90 text-xs font-bold uppercase'>km</div>
+                <div className='text-white/90 text-xs font-bold uppercase'>{t('gp_status_odometer')}</div>
               </div>
             </div>
           </div>
