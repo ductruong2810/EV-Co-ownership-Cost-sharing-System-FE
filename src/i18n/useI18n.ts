@@ -269,9 +269,7 @@ const messages = {
     gp_booking_quick_today_desc: 'Book now for today',
     gp_booking_quick_tomorrow_desc: 'Book in advance for tomorrow',
     gp_booking_quick_overnight_desc: 'Book overnight',
-    gp_booking_flexible_title: 'Flexible Booking',
     gp_booking_flexible_desc: 'Book with custom time, not limited by fixed slots',
-    gp_booking_range_title: 'Range Selector',
     gp_booking_range_desc: 'Select time range from one day to another easily',
     gp_booking_slot_calendar_title: 'Slot Calendar',
     gp_booking_slot_calendar_desc: 'View slot-based calendar to book available time slots',
@@ -1624,11 +1622,9 @@ const messages = {
     gp_booking_quick_today_desc: 'Đặt ngay cho hôm nay',
     gp_booking_quick_tomorrow_desc: 'Đặt trước cho ngày mai',
     gp_booking_quick_overnight_desc: 'Đặt xe qua đêm',
-    gp_booking_flexible_title: 'Flexible Booking',
     gp_booking_flexible_desc: 'Đặt xe với thời gian tùy chỉnh, không bị giới hạn bởi các slot cố định',
-    gp_booking_range_title: 'Range Selector',
     gp_booking_range_desc: 'Chọn khoảng thời gian từ ngày này đến ngày khác một cách dễ dàng',
-    gp_booking_slot_calendar_title: 'Slot Calendar',
+    gp_booking_slot_calendar_title: 'Lịch Slot',
     gp_booking_slot_calendar_desc: 'Xem lịch slot-based để đặt theo các khung giờ có sẵn',
 
     // GroupPage - OwnershipRatio
