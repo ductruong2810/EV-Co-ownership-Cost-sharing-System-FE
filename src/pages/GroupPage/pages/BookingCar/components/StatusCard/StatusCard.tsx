@@ -48,8 +48,8 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
                   }
                 </div>
                 <div>
-                  <div className='text-white/95 text-base font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
-                  <div className='text-white text-lg font-black leading-snug'>
+                  <div className='text-white/95 text-sm sm:text-base font-bold uppercase tracking-wide'>{t('gp_status_title')}</div>
+                  <div className='text-white text-lg sm:text-xl font-black leading-snug'>
                     {
                       getConditionConfig({
                         vehicleStatus: vehicleStatus
@@ -67,16 +67,16 @@ export default function StatusCard({ vehicleStatus, batteryPercent, odometer }: 
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
                   <ThunderboltOutlined style={{ fontSize: '24px', color: 'white' }} />
-                  <span className='text-white text-sm font-semibold'>{t('gp_status_battery')}</span>
+                  <span className='text-white text-sm sm:text-base font-semibold'>{t('gp_status_battery')}</span>
                 </div>
-                <div className='text-white text-2xl font-black drop-shadow-[0_3px_8px_rgba(0,0,0,0.2)]'>{batteryPercent}%</div>
+                <div className='text-white text-xl sm:text-2xl font-black drop-shadow-[0_3px_8px_rgba(0,0,0,0.2)]'>{batteryPercent}%</div>
               </div>
             </div>
 
             <div className='flex justify-center'>
               <div className='bg-white/18 backdrop-blur-md rounded-2xl px-5 py-4 text-center shadow-lg ring-1 ring-white/25 hover:bg-white/24 transition-all w-[150px]'>
                 <DashboardOutlined style={{ fontSize: '22px', color: 'white' }} />
-                <div className='text-white text-lg font-black mt-1 leading-tight'>{odometer}</div>
+                <div className='text-white text-base sm:text-lg font-black mt-1 leading-tight'>{odometer}</div>
                 <div className='text-white/90 text-xs font-bold uppercase'>{t('gp_status_odometer')}</div>
               </div>
             </div>
