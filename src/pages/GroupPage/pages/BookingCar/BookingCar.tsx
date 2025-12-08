@@ -286,26 +286,6 @@ const BookingCar = () => {
         {/* Stats Bar */}
         <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
 
-        {/* Range Selector */}
-        {showRangeSelector && (
-          <div ref={rangeSelectorRef}>
-            <RangeSelector
-              onRangeSelected={(start, end) => {
-                setSelectedRange({ start, end })
-                setShowRangeSelector(false)
-              }}
-              vehicleId={groupSummary?.vehicleId || 0}
-              vehicleInfo={{
-                brand: groupSummary?.brand,
-                model: groupSummary?.model,
-                licensePlate: groupSummary?.licensePlate
-              }}
-              quotaUser={quotaUser}
-              conflicts={conflicts}
-            />
-          </div>
-        )}
-
         {/* Conflict Alert */}
         {selectedRange && conflicts.length > 0 && (
           <div className='mb-6'>
@@ -586,6 +566,26 @@ const BookingCar = () => {
               licensePlate: groupSummary?.licensePlate
             }}
           />
+        )}
+
+        {/* Range Selector (moved down for better layout) */}
+        {showRangeSelector && (
+          <div ref={rangeSelectorRef} className='mt-4'>
+            <RangeSelector
+              onRangeSelected={(start, end) => {
+                setSelectedRange({ start, end })
+                setShowRangeSelector(false)
+              }}
+              vehicleId={groupSummary?.vehicleId || 0}
+              vehicleInfo={{
+                brand: groupSummary?.brand,
+                model: groupSummary?.model,
+                licensePlate: groupSummary?.licensePlate
+              }}
+              quotaUser={quotaUser}
+              conflicts={conflicts}
+            />
+          </div>
         )}
 
         {/* mô tả các trang thái khi booking*/}
