@@ -8,8 +8,6 @@ import convertIsoString from '../../../../../../utils/createIsoString'
 import ModalConfirm from '../ModalConfirm'
 import getSlotStyle from './utils/getSlotStyle'
 import getTooltip from './utils/getTooltip'
-import { showErrorToast } from '../../../../../../components/Error/ErrorToast'
-import { ErrorType, ErrorSeverity } from '../../../../../../types/error.type'
 
 export interface Slot {
   date: string
@@ -80,22 +78,12 @@ export default function BookingSlotCell({
       return
     }
     if (quotaUser.remainingSlots <= 0) {
-      showErrorToast({
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.MEDIUM,
-        message: 'You have used up your quota for this week!',
-        timestamp: new Date()
-      })
+      toast.error('You have used up your quota for this week!')
       return
     }
 
     if (vehicleStatus === 'Has Issues') {
-      showErrorToast({
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.MEDIUM,
-        message: 'The vehicle is currently damaged and cannot be booked!',
-        timestamp: new Date()
-      })
+      toast.error('The vehicle is currently damaged and cannot be booked!')
       return
     }
 
@@ -131,11 +119,9 @@ export default function BookingSlotCell({
 
   return (
     <>
-      <div 
-        className={`py-6 px-4 rounded-2xl ${getSlotStyle(type)} cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]`} 
-        onClick={confirmBooking}
-      >
+      <div className={`py-6 px-4 rounded-2xl ${getSlotStyle(type)}`} onClick={confirmBooking}>
         <Tooltip title={getTooltip({ type, bookedBy })} placement='top'>
+          {/* Thêm min-h và flex để căn giữa */}
           <div className='flex items-center justify-center h-[120px]'>
             {type === 'AVAILABLE' && (
               <div className='flex flex-col items-center gap-2'>

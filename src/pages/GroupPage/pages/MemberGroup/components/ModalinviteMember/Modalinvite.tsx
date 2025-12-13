@@ -1,12 +1,24 @@
 import { CloseCircleOutlined, CloseOutlined, MailOutlined, UserAddOutlined } from '@ant-design/icons'
 import type { FieldErrors, UseFormHandleSubmit, UseFormRegister } from 'react-hook-form'
+import type { InviteSchema } from '../../../../../../utils/rule'
 
 interface IModalinviteProps {
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>
-  handleSubmit: UseFormHandleSubmit<any, any>
-  onSubmit: (data: { inviteeEmail: string }) => void
-  register: UseFormRegister<any>
-  errors: FieldErrors<any>
+  handleSubmit: UseFormHandleSubmit<
+    {
+      inviteeEmail: string
+    },
+    {
+      inviteeEmail: string
+    }
+  >
+  onSubmit: (data: InviteSchema) => void
+  register: UseFormRegister<{
+    inviteeEmail: string
+  }>
+  errors: FieldErrors<{
+    inviteeEmail: string
+  }>
   reset: () => void
   isPending: boolean
 }
@@ -65,7 +77,7 @@ export default function Modalinvite({
             {errors.inviteeEmail && (
               <p className='mt-2.5 text-sm text-red-200 flex items-center gap-1.5 font-medium'>
                 <CloseCircleOutlined />
-                {String(errors.inviteeEmail.message || '')}
+                {errors.inviteeEmail.message}
               </p>
             )}
           </div>

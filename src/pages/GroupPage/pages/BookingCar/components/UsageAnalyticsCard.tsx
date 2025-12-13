@@ -1,41 +1,39 @@
 import { LoadingOutlined } from '@ant-design/icons'
 import type { UsageAnalytics } from '../../../../../types/api/group.type'
-import { useI18n } from '../../../../../i18n/useI18n'
 
 interface UsageAnalyticsCardProps {
   data?: UsageAnalytics
   isLoading: boolean
 }
 
-const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
-  const { t } = useI18n()
-
-  const statusConfig: Record<
-    string,
-    { label: string; badge: string; description: string }
-  > = {
-    UNDER_UTILIZED: {
-      label: t('gp_booking_analytics_under_utilized'),
-      badge: 'bg-amber-100 text-amber-700 border-amber-200',
-      description: t('gp_booking_analytics_under_desc')
-    },
-    OVER_UTILIZED: {
-      label: t('gp_booking_analytics_over_utilized'),
-      badge: 'bg-rose-100 text-rose-700 border-rose-200',
-      description: t('gp_booking_analytics_over_desc')
-    },
-    ON_TRACK: {
-      label: t('gp_booking_analytics_balanced'),
-      badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      description: t('gp_booking_analytics_balanced_desc')
-    }
+const statusConfig: Record<
+  string,
+  { label: string; badge: string; description: string }
+> = {
+  UNDER_UTILIZED: {
+    label: 'Under-utilized',
+    badge: 'bg-amber-100 text-amber-700 border-amber-200',
+    description: 'Bạn đang dùng ít hơn quyền sở hữu. AI đã ưu tiên slot giờ vàng.'
+  },
+  OVER_UTILIZED: {
+    label: 'Over-utilized',
+    badge: 'bg-rose-100 text-rose-700 border-rose-200',
+    description: 'Bạn vượt quá quyền sở hữu. Nên chuyển sang khung giờ vắng.'
+  },
+  ON_TRACK: {
+    label: 'Balanced',
+    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    description: 'Mức sử dụng cân bằng với quyền sở hữu.'
   }
+}
+
+const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
   if (isLoading) {
     return (
       <div className='bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex items-center justify-center h-full'>
         <div className='flex items-center gap-3 text-slate-500 font-semibold'>
           <LoadingOutlined />
-          {t('gp_booking_analytics_loading')}
+          Đang phân tích lịch sử sử dụng...
         </div>
       </div>
     )
@@ -46,18 +44,18 @@ const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
   const status = statusConfig[data.fairnessStatus] || statusConfig.ON_TRACK
 
   const metrics = [
-    { label: t('gp_booking_analytics_ownership'), value: `${data.ownershipPercentage.toFixed(1)}%` },
-    { label: t('gp_booking_analytics_actual'), value: `${data.actualHoursLast4Weeks.toFixed(1)}h` },
-    { label: t('gp_booking_analytics_expected'), value: `${data.expectedHoursLast4Weeks.toFixed(1)}h` },
-    { label: t('gp_booking_analytics_this_week'), value: `${data.hoursThisWeek.toFixed(1)}h / ${data.bookingsThisWeek} booking` }
+    { label: 'Ownership %', value: `${data.ownershipPercentage.toFixed(1)}%` },
+    { label: 'Actual (4 tuần)', value: `${data.actualHoursLast4Weeks.toFixed(1)}h` },
+    { label: 'Expected', value: `${data.expectedHoursLast4Weeks.toFixed(1)}h` },
+    { label: 'Tuần này', value: `${data.hoursThisWeek.toFixed(1)}h / ${data.bookingsThisWeek} booking` }
   ]
 
   return (
     <div className='bg-white rounded-3xl p-6 shadow-xl border border-slate-100 space-y-6'>
       <div className='flex items-start justify-between gap-4'>
         <div>
-          <p className='text-sm font-semibold text-slate-500 uppercase tracking-wide'>{t('gp_booking_analytics_title')}</p>
-          <h3 className='text-2xl font-bold text-slate-900 mt-1'>{t('gp_booking_analytics_ai_title')}</h3>
+          <p className='text-sm font-semibold text-slate-500 uppercase tracking-wide'>Personal Usage Insights</p>
+          <h3 className='text-2xl font-bold text-slate-900 mt-1'>AI đánh giá công bằng</h3>
         </div>
         <span className={`px-4 py-1 rounded-full text-xs font-bold border ${status.badge}`}>{status.label}</span>
       </div>
@@ -78,7 +76,7 @@ const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
 
       <div className='grid md:grid-cols-2 gap-4'>
         <div className='bg-slate-50 rounded-2xl p-4 border border-slate-100'>
-          <p className='text-xs font-bold text-slate-500 uppercase mb-2'>{t('gp_booking_analytics_action_items')}</p>
+          <p className='text-xs font-bold text-slate-500 uppercase mb-2'>Action items</p>
           <ul className='space-y-2'>
             {(data.actionItems ?? []).map((item, idx) => (
               <li key={idx} className='flex items-start gap-2 text-sm text-slate-700'>
@@ -90,7 +88,7 @@ const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
         </div>
 
         <div className='bg-slate-50 rounded-2xl p-4 border border-slate-100'>
-          <p className='text-xs font-bold text-slate-500 uppercase mb-3'>{t('gp_booking_analytics_leaderboard')}</p>
+          <p className='text-xs font-bold text-slate-500 uppercase mb-3'>Leaderboard (4 tuần)</p>
           <div className='space-y-2'>
             {data.leaderboard.map((entry) => (
               <div

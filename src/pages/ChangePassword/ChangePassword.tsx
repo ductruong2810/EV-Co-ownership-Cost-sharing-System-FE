@@ -12,16 +12,14 @@ import HeaderSection from './components/HeaderSection/HeaderSection'
 import { toast } from 'react-toastify'
 import path from '../../constants/path'
 import { useI18n } from '../../i18n/useI18n'
-import { showErrorToast } from '../../components/Error/ErrorToast'
-import { ErrorType, ErrorSeverity } from '../../types/error.type'
 
 export default function ChangePassword() {
   const {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm({
-    resolver: yupResolver(changePasswordSchema)
+  } = useForm<ChangePasswordSchema>({
+    resolver: yupResolver<FieldValues>(changePasswordSchema)
   })
 
   const { t } = useI18n()
@@ -39,7 +37,7 @@ export default function ChangePassword() {
   const navigate = useNavigate()
 
   const changePasswordMutation = useMutation({
-    mutationFn: (body: any) => authApi.changePassword(body)
+    mutationFn: (body: ChangePasswordSchema) => authApi.changePassword(body)
   })
 
   const onSubmit = handleSubmit((data) => {
@@ -55,11 +53,8 @@ export default function ChangePassword() {
       },
       onError: (error) => {
         console.log('Change password failed:', error)
-        showErrorToast({
-          type: ErrorType.SERVER,
-          severity: ErrorSeverity.HIGH,
-          message: t('change_password_failed'),
-          timestamp: new Date()
+        toast.error(t('change_password_failed'), {
+          autoClose: 1000
         })
       }
     })

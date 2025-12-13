@@ -1,12 +1,10 @@
 import { BulbOutlined } from '@ant-design/icons'
 import type { BookingSuggestion } from '../../../../../types/api/group.type'
-import { useI18n } from '../../../../../i18n/useI18n'
 
 interface AISuggestionPanelProps {
   suggestions?: BookingSuggestion[]
   insights?: string[]
   isLoading: boolean
-  onSuggestionClick?: (date: string, timeRange: string) => void
 }
 
 const badgeMap: Record<string, string> = {
@@ -15,15 +13,13 @@ const badgeMap: Record<string, string> = {
   LOW: 'bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800'
 }
 
-const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick }: AISuggestionPanelProps) => {
-  const { t } = useI18n()
-
+const AISuggestionPanel = ({ suggestions, insights, isLoading }: AISuggestionPanelProps) => {
   if (isLoading) {
     return (
       <div className='bg-white rounded-3xl p-6 shadow-xl border border-cyan-100'>
         <div className='flex items-center gap-3 text-cyan-600 font-semibold'>
           <BulbOutlined />
-          {t('gp_booking_ai_generating')}
+          Đang tạo đề xuất thông minh...
         </div>
       </div>
     )
@@ -36,9 +32,9 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick
       <div className='flex items-start justify-between gap-4'>
         <div>
           <p className='text-xs font-bold text-cyan-500 uppercase tracking-widest flex items-center gap-2'>
-            <BulbOutlined /> {t('gp_booking_ai_recommendation')}
+            <BulbOutlined /> AI Recommendation
           </p>
-          <h3 className='text-2xl font-bold text-slate-900 mt-1'>{t('gp_booking_ai_suggestions_title')}</h3>
+          <h3 className='text-2xl font-bold text-slate-900 mt-1'>Slot nên đặt trong tuần này</h3>
         </div>
       </div>
 
@@ -46,8 +42,7 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick
         {suggestions.map((item) => (
           <div
             key={`${item.date}-${item.timeRange}`}
-            onClick={() => onSuggestionClick?.(item.date, item.timeRange)}
-            className='rounded-2xl border border-slate-100 p-4 bg-gradient-to-br from-white to-slate-50 hover:shadow-lg hover:border-cyan-400 hover:scale-105 transition-all duration-200 cursor-pointer active:scale-95'
+            className='rounded-2xl border border-slate-100 p-4 bg-gradient-to-br from-white to-slate-50 hover:shadow-lg transition-all duration-200'
           >
             <div className='flex items-center justify-between mb-3'>
               <div>
@@ -69,7 +64,7 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading, onSuggestionClick
 
       {insights && insights.length > 0 && (
         <div className='bg-cyan-50 border border-cyan-100 rounded-2xl p-4'>
-          <p className='text-xs font-bold text-cyan-700 uppercase mb-2'>{t('gp_booking_ai_insights')}</p>
+          <p className='text-xs font-bold text-cyan-700 uppercase mb-2'>AI Insights</p>
           <ul className='space-y-2 text-sm text-cyan-900'>
             {insights.map((insight, idx) => (
               <li key={idx} className='flex items-start gap-2'>

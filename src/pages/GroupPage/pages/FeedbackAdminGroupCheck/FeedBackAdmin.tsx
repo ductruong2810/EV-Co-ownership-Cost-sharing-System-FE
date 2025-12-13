@@ -9,8 +9,6 @@ import adminApi from '../../../../apis/admin.api'
 import type { FeedbackItem } from '../../../../types/api/admin.type'
 import userApi from '../../../../apis/user.api'
 import logger from '../../../../utils/logger'
-import { showErrorToast } from '../../../../components/Error/ErrorToast'
-import { ErrorType, ErrorSeverity } from '../../../../types/error.type'
 
 export default function FeedBackAdmin() {
   const queryClient = useQueryClient()
@@ -34,12 +32,7 @@ export default function FeedBackAdmin() {
 
   const handleAcceptFeedback = (feedbackId: string, adminNote: string) => {
     if (adminNote.trim().length === 0) {
-      showErrorToast({
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.MEDIUM,
-        message: 'Please enter contract modification information before accepting feedback',
-        timestamp: new Date()
-      })
+      toast.error('Please enter contract modification information before accepting feedback')
       return
     }
     accepctFeedback.mutate(
@@ -56,12 +49,7 @@ export default function FeedBackAdmin() {
 
   const handleRejectFeedback = ({ feedbackId, reason }: { feedbackId: string; reason: string }) => {
     if (reason.trim().length === 0) {
-      showErrorToast({
-        type: ErrorType.VALIDATION,
-        severity: ErrorSeverity.MEDIUM,
-        message: 'Please enter a reason before rejecting feedback',
-        timestamp: new Date()
-      })
+      toast.error('Please enter a reason before rejecting feedback')
       return
     }
     rejectFeedback.mutate(
@@ -90,7 +78,7 @@ export default function FeedBackAdmin() {
   const feedbacksKey = useMemo(() => {
     const allFeedbacks = feedbacks?.feedbacks || []
     if (allFeedbacks.length === 0) return 'empty'
-    return JSON.stringify(allFeedbacks.map(f => ({ id: f.feedbackId, email: f.email })))
+    return JSON.stringify(allFeedbacks.map(f => ({ id: f.id, email: f.email })))
   }, [feedbacks?.feedbacks])
 
   const groupedFeedbacks = useMemo(() => {
