@@ -111,10 +111,10 @@ const BookingCar = () => {
   const vehicleStatus = bookingQuery?.data?.data?.dashboardSummary?.vehicleStatus || ''
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-8 my-5 rounded-2xl'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-4 md:p-8 my-5 rounded-2xl'>
       <div className='max-w-[96vw] mx-auto'>
         {/* Header Section - giữ nguyên như code trước */}
-        <div className='grid grid-cols-3 gap-6 mb-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8'>
           {/* Vehicle Info Card */}
           <VehicleInforCard
             brand={groupSummary?.brand || ''}
@@ -151,14 +151,46 @@ const BookingCar = () => {
 
         {/* hiển thị lịch  đặt xe */}
         <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white'>
-          <div className='overflow-x-auto'>
-            {/* Chỉ render 1 bảng duy nhất, không map dailySlots nữa */}
-            <table className='w-full border-collapse'>
+          {bookingQuery.isLoading ? (
+            <div className='p-4 md:p-8'>
+              <div className='animate-pulse'>
+                {/* Header skeleton */}
+                <div className='h-16 bg-gradient-to-r from-cyan-200 to-blue-200 rounded-lg mb-4'></div>
+                {/* Table rows skeleton */}
+                <div className='space-y-3'>
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className='flex gap-3'>
+                      <div className='w-32 h-20 bg-gray-200 rounded-lg'></div>
+                      <div className='flex-1 grid grid-cols-7 gap-3'>
+                        {[...Array(7)].map((_, j) => (
+                          <div key={j} className='h-20 bg-gray-100 rounded-lg'></div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : dailySlots.length === 0 || !dailySlots[0]?.slots?.length ? (
+            <div className='p-8 md:p-12 text-center'>
+              <div className='text-5xl md:text-6xl mb-4' role='img' aria-label='Calendar icon'>
+                📅
+              </div>
+              <h3 className='text-lg md:text-xl font-bold text-gray-800 mb-2'>No booking slots available</h3>
+              <p className='text-sm md:text-base text-gray-600'>There are no time slots available for this week.</p>
+            </div>
+          ) : (
+            <div className='overflow-x-auto'>
+              {/* Chỉ render 1 bảng duy nhất, không map dailySlots nữa */}
+              <table className='w-full border-collapse' aria-label='Vehicle booking calendar'>
               <thead>
                 <tr className='bg-gradient-to-r from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE]'>
-                  <th className='p-6 text-left font-black text-white text-lg w-56 sticky left-0 z-10 bg-[#06B6D4]'>
-                    <div className='flex items-center gap-3'>
-                      <ClockCircleOutlined style={{ fontSize: '22px' }} />
+                  <th
+                    className='p-4 md:p-6 text-left font-black text-white text-base md:text-lg w-40 md:w-56 sticky left-0 z-10 bg-[#06B6D4]'
+                    scope='col'
+                  >
+                    <div className='flex items-center gap-2 md:gap-3'>
+                      <ClockCircleOutlined style={{ fontSize: '18px' }} aria-hidden='true' />
                       <span className='uppercase tracking-wide'>Khung giờ</span>
                     </div>
                   </th>
@@ -166,11 +198,12 @@ const BookingCar = () => {
                   {dailySlots.map((day) => (
                     <th
                       key={day.date}
-                      className='p-6 text-center font-black text-white text-base min-w-[140px] whitespace-nowrap'
+                      className='p-3 md:p-6 text-center font-black text-white text-sm md:text-base min-w-[120px] md:min-w-[140px] whitespace-nowrap'
+                      scope='col'
                     >
-                      <div className='flex flex-col items-center justify-center gap-2'>
-                        <div className='text-xl font-black tracking-wide uppercase'>{day.dayOfWeek}</div>
-                        <div className='bg-white/25 rounded-full py-2 px-4 inline-block text-xs font-bold backdrop-blur-sm shadow-lg ring-1 ring-white/30'>
+                      <div className='flex flex-col items-center justify-center gap-1 md:gap-2'>
+                        <div className='text-base md:text-xl font-black tracking-wide uppercase'>{day.dayOfWeek}</div>
+                        <div className='bg-white/25 rounded-full py-1 md:py-2 px-2 md:px-4 inline-block text-xs font-bold backdrop-blur-sm shadow-lg ring-1 ring-white/30'>
                           {day.date}
                         </div>
                       </div>
@@ -190,9 +223,9 @@ const BookingCar = () => {
                         : 'bg-white hover:bg-gradient-to-r hover:from-cyan-50/30 hover:to-transparent transition-all duration-300'
                     }
                   >
-                    <td className='border-t border-gray-200 p-6 sticky left-0 z-10 bg-white'>
-                      <div className='flex items-center gap-3'>
-                        <div className='text-[#06B6D4] font-black text-base '>{slot.time}</div>
+                    <td className='border-t border-gray-200 p-3 md:p-6 sticky left-0 z-10 bg-white' scope='row'>
+                      <div className='flex items-center gap-2 md:gap-3 flex-wrap'>
+                        <div className='text-[#06B6D4] font-black text-sm md:text-base'>{slot.time}</div>
                         {slot.type === 'MAINTENANCE' && (
                           <Tag
                             icon={<ToolOutlined />}
@@ -212,7 +245,7 @@ const BookingCar = () => {
                     {dailySlots.map((day) => {
                       const daySlot = day.slots[timeIndex]
                       return (
-                        <td key={`${day.date}-${timeIndex}`} className='border-t border-gray-200 p-5'>
+                        <td key={`${day.date}-${timeIndex}`} className='border-t border-gray-200 p-2 md:p-5'>
                           {daySlot?.type === 'MAINTENANCE' ? (
                             <div className='flex items-center justify-center min-h-[80px] py-6 px-4 rounded-2xl bg-gradient-to-br from-gray-100 to-slate-100 border border-gray-300'>
                               <div className='flex flex-col items-center gap-2'>
@@ -241,7 +274,8 @@ const BookingCar = () => {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          )}
         </Card>
 
         {/* mô tả các trang thái khi booking*/}

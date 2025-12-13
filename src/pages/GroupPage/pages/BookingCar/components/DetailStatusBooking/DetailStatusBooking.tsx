@@ -6,10 +6,14 @@ export default function DetailStatusBooking() {
     <>
       <Card className='shadow-2xl border-0 rounded-3xl hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-gradient-to-r from-white via-cyan-50/10 to-white'>
         <div className='p-8'>
-          <h3 className='text-center text-lg font-black text-gray-700 mb-6 uppercase tracking-wider'>
+          <h3 className='text-center text-lg font-black text-gray-800 mb-6 uppercase tracking-wider' id='status-legend-title'>
             explain all status
           </h3>
-          <div className='grid grid-cols-5 gap-6'>
+          <div
+            className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6'
+            role='list'
+            aria-labelledby='status-legend-title'
+          >
             {[
               {
                 icon: <PlusOutlined style={{ fontSize: '18px', color: 'white' }} />,
@@ -56,21 +60,21 @@ export default function DetailStatusBooking() {
               },
               {
                 icon: <UserOutlined style={{ fontSize: '24px', color: '#c522ba' }} />,
-                bg: 'bg-gradient-to-br from-purple-400 to-purple-500-100 border-2 border-purple-300 shadow-lg ring-2 ring-purple-200/50',
+                bg: 'bg-gradient-to-br from-purple-400 to-purple-200 border-2 border-purple-300 shadow-lg ring-2 ring-purple-200/50',
                 border: '',
                 label: 'Completed check-in other',
                 description: 'Completed check-in other'
               },
               {
                 icon: <UserOutlined style={{ fontSize: '24px', color: '#70136a' }} />,
-                bg: 'bg-gradient-to-br from-pink-100 to-pink-500-100 border-2 border-pink-300 shadow-lg ring-2 ring-pink-200/50',
+                bg: 'bg-gradient-to-br from-pink-100 to-pink-200 border-2 border-pink-300 shadow-lg ring-2 ring-pink-200/50',
                 border: '',
                 label: 'Completed check-in myself',
                 description: 'Completed check-in myself'
               },
               {
                 icon: <UserOutlined style={{ fontSize: '24px', color: '#ce1313' }} />,
-                bg: 'bg-gradient-to-br from-red-100 to-red-500-100 border-2 border-red-300 shadow-lg ring-2 ring-red-200/50',
+                bg: 'bg-gradient-to-br from-red-100 to-red-200 border-2 border-red-300 shadow-lg ring-2 ring-red-200/50',
                 border: '',
                 label: 'awaiting review technician check',
                 description: 'awaiting review technician check'
@@ -78,6 +82,7 @@ export default function DetailStatusBooking() {
             ].map((item, idx) => (
               <div
                 key={idx}
+                role='listitem'
                 className='flex flex-col items-center gap-3 p-4 rounded-2xl hover:bg-gray-50/50 transition-all duration-300 hover:scale-105'
               >
                 <div
@@ -86,8 +91,10 @@ export default function DetailStatusBooking() {
                   {item.icon}
                 </div>
                 <div className='text-center'>
-                  <div className='text-sm font-black text-gray-800 mb-1'>{item.label}</div>
-                  <div className='text-xs text-gray-500 font-medium'>{item.description}</div>
+                  <div className='text-sm font-black text-gray-800 mb-1' aria-label={item.label}>
+                    {item.label}
+                  </div>
+                  <div className='text-xs text-gray-600 font-medium'>{item.description}</div>
                 </div>
               </div>
             ))}

@@ -158,7 +158,7 @@ export default function BookingSlotCell({
             )}
             {type === 'COMPLETED' && (
               <div className='flex flex-col items-center gap-2'>
-                <div className='bg-gradient-to-br from--100 to-teal-100 p-2 rounded-xl shadow-md border border-green-300'>
+                <div className='bg-gradient-to-br from-green-100 to-teal-100 p-2 rounded-xl shadow-md border border-green-300'>
                   <UserOutlined style={{ fontSize: '20px', color: '#22c55e' }} />
                 </div>
                 <div className='text-xs font-bold text-green-700 tracking-wide drop-shadow-md'>Completed Booking</div>
@@ -167,30 +167,30 @@ export default function BookingSlotCell({
 
             {type === 'CHECKED_IN_OTHER' && (
               <div className='flex flex-col items-center gap-2'>
-                <div className='bg-gradient-to-br from-purple-100 to-purple-500-100 p-2 rounded-xl shadow-md border border-purple-50'>
+                <div className='bg-gradient-to-br from-purple-100 to-purple-200 p-2 rounded-xl shadow-md border border-purple-50'>
                   <UserOutlined style={{ fontSize: '20px', color: '#c222c5' }} />
                 </div>
-                <div className='text-xs font-bold text-purple-300 tracking-wide drop-shadow-md'>Check-In Other</div>
+                <div className='text-xs font-bold text-purple-700 tracking-wide drop-shadow-md'>Check-In Other</div>
               </div>
             )}
 
             {type === 'CHECKED_IN_SELF' && (
               <div className='flex flex-col items-center gap-2'>
-                <div className='bg-gradient-to-br from-pink-200 to-pink-300 p-4 rounded-xl shadow-md border border-yellow-50'>
+                <div className='bg-gradient-to-br from-pink-200 to-pink-300 p-4 rounded-xl shadow-md border border-pink-50'>
                   <UserOutlined style={{ fontSize: '20px', color: '#c522b2' }} />
                 </div>
-                <div className='ml-5 text-xs font-bold text-white-600 tracking-wide drop-shadow-md'>
+                <div className='text-xs font-bold text-pink-700 tracking-wide drop-shadow-md'>
                   Check-In Success
                 </div>
               </div>
             )}
             {type === 'AWAITING_REVIEW' && (
               <div className='flex flex-col items-center gap-2'>
-                <div className='bg-gradient-to-br from-red-200 to-red-500 p-4 rounded-xl shadow-md border border-yellow-50'>
-                  <UserOutlined style={{ fontSize: '20px', color: '#c522b2' }} />
+                <div className='bg-gradient-to-br from-red-200 to-red-500 p-4 rounded-xl shadow-md border border-red-50'>
+                  <UserOutlined style={{ fontSize: '20px', color: '#dc2626' }} />
                 </div>
-                <div className='ml-5 text-xs font-bold text-white-600 tracking-wide drop-shadow-md'>
-                  Techician check
+                <div className='text-xs font-bold text-red-700 tracking-wide drop-shadow-md'>
+                  Technician check
                 </div>
               </div>
             )}

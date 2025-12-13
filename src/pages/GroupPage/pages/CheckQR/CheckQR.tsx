@@ -26,6 +26,10 @@ export default function CheckQR() {
   const streamRef = useRef<MediaStream | null>(null)
   // file input
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // canvas ref để quét QR từ video stream
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  // interval ref để clear interval khi dừng quét
+  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const navigate = useNavigate()
   const [scannedQrCode, setScannedQrCode] = useState<string | null>(null)
 
@@ -74,6 +78,10 @@ export default function CheckQR() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop())
       }
+      // clear interval nếu có
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current)
+      }
     }
   }, [])
 
@@ -99,6 +107,23 @@ export default function CheckQR() {
         videoRef.current.srcObject = stream
         // lưu stream vào ref để dùng khi tắt camera
         streamRef.current = stream
+
+        // Đợi video sẵn sàng và bắt đầu play rồi mới quét QR code
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current
+              .play()
+              .then(() => {
+                // Bắt đầu quét sau khi video đã play
+                setTimeout(() => {
+                  startQRScanning()
+                }, 500)
+              })
+              .catch((error) => {
+                console.error('Error playing video:', error)
+              })
+          }
+        }
       }
     } catch (error) {
       const cameraError = error as CameraError
@@ -135,7 +160,65 @@ export default function CheckQR() {
     }
   }, [])
 
+  // Hàm quét QR code từ video stream
+  const scanQRFromVideo = useCallback(() => {
+    // Không quét nếu đang verify hoặc không có video/canvas
+    if (!videoRef.current || !canvasRef.current || QRVerify.isPending || !isScanning) {
+      return
+    }
+
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    const context = canvas.getContext('2d')
+
+    // Kiểm tra video đã sẵn sàng chưa
+    if (!context || video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0 || video.videoHeight === 0) {
+      return
+    }
+
+    // Set canvas size bằng video size
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+
+    // Vẽ frame hiện tại từ video lên canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    // Lấy image data từ canvas
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+
+    // Quét QR code từ image data
+    const code = jsQR(imageData.data, canvas.width, canvas.height)
+
+    if (code && code.data) {
+      console.log('QR Code detected from camera:', code.data)
+      // Dừng quét khi tìm thấy QR code để tránh quét nhiều lần
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current)
+        scanIntervalRef.current = null
+      }
+      // Verify QR code
+      QRVerify.mutate(code.data)
+    }
+  }, [QRVerify, isScanning])
+
+  // Bắt đầu quét QR code từ video stream mỗi 200ms
+  const startQRScanning = useCallback(() => {
+    // Clear interval cũ nếu có
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current)
+    }
+    // Quét mỗi 200ms để phản hồi nhanh hơn
+    scanIntervalRef.current = setInterval(() => {
+      scanQRFromVideo()
+    }, 200)
+  }, [scanQRFromVideo])
+
   const stopScanning = useCallback(() => {
+    // Dừng interval quét QR
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current)
+      scanIntervalRef.current = null
+    }
     // nếu stream đang chạy thì dừng nó lại bằng cách dừng tất cả các track của stream là  các luồng dữ liệu video
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop())
@@ -246,6 +329,8 @@ export default function CheckQR() {
         {isScanning && (
           <div className='relative h-full'>
             <video ref={videoRef} autoPlay playsInline className='w-full h-full object-cover' />
+            {/* Canvas ẩn để quét QR code từ video */}
+            <canvas ref={canvasRef} className='hidden' />
 
             <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
               <div className='w-72 h-72 border-2 border-white/50 rounded-2xl relative overflow-hidden shadow-2xl'>
