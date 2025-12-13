@@ -1,9 +1,10 @@
 // VehicleBookingCalendar.tsx - IMPROVED BADGE & LEGEND DESIGN
-import { ClockCircleOutlined, ToolOutlined } from '@ant-design/icons'
-import { useQuery } from '@tanstack/react-query'
-import { useContext, useEffect } from 'react'
+import { ClockCircleOutlined, ToolOutlined, CalendarOutlined } from '@ant-design/icons'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useContext, useEffect, useState } from 'react'
 import { Card, Tag } from 'antd'
 import { useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import groupApi from '../../../../apis/group.api'
 
 import { setGroupIdToLS } from '../../../../utils/auth'
@@ -15,6 +16,7 @@ import StatusCard from './components/StatusCard'
 import VehicleInforCard from './components/VehicleInforCard'
 import UsageAnalyticsCard from './components/UsageAnalyticsCard'
 import AISuggestionPanel from './components/AISuggestionPanel'
+import FlexibleBookingModal from './components/FlexibleBookingModal'
 import { AppContext } from '../../../../contexts/app.context'
 
 // ============= INTERFACES (giữ nguyên) =============
@@ -109,6 +111,34 @@ const BookingCar = () => {
   const groupSummary = bookingQuery?.data?.data?.dashboardSummary
 
   const vehicleStatus = bookingQuery?.data?.data?.dashboardSummary?.vehicleStatus || ''
+  const queryClient = useQueryClient()
+  const [isFlexibleModalVisible, setIsFlexibleModalVisible] = useState(false)
+
+  // Flexible booking mutation
+  const flexibleBookingMutation = useMutation({
+    mutationFn: (body: { vehicleId: number; startDateTime: string; endDateTime: string }) =>
+      groupApi.bookingSlot(body),
+    onSuccess: (response) => {
+      toast.success(response?.data?.message || 'Booking created successfully!')
+      queryClient.invalidateQueries({ queryKey: ['vehicle-bookings'] })
+      setIsFlexibleModalVisible(false)
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to create booking')
+    }
+  })
+
+  const handleFlexibleBooking = (data: { startDateTime: string; endDateTime: string }) => {
+    if (!groupSummary?.vehicleId) {
+      toast.error('Vehicle information not available')
+      return
+    }
+    flexibleBookingMutation.mutate({
+      vehicleId: groupSummary.vehicleId,
+      startDateTime: data.startDateTime,
+      endDateTime: data.endDateTime
+    })
+  }
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-4 md:p-8 my-5 rounded-2xl'>
@@ -135,6 +165,17 @@ const BookingCar = () => {
 
         {/* Stats Bar */}
         <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
+
+        {/* Flexible Booking Button */}
+        <div className='mb-6 flex justify-center'>
+          <button
+            onClick={() => setIsFlexibleModalVisible(true)}
+            className='bg-gradient-to-r from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE] text-white font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 text-lg'
+          >
+            <CalendarOutlined style={{ fontSize: '24px' }} />
+            <span>Flexible Booking</span>
+          </button>
+        </div>
 
         {/* AI analytics + suggestions */}
         <div className='grid lg:grid-cols-2 gap-6 mb-8'>
@@ -280,6 +321,21 @@ const BookingCar = () => {
 
         {/* mô tả các trang thái khi booking*/}
         <DetailStatusBooking />
+
+        {/* Flexible Booking Modal */}
+        <FlexibleBookingModal
+          visible={isFlexibleModalVisible}
+          onClose={() => setIsFlexibleModalVisible(false)}
+          onConfirm={handleFlexibleBooking}
+          vehicleId={groupSummary?.vehicleId || 0}
+          vehicleInfo={{
+            brand: groupSummary?.brand,
+            model: groupSummary?.model,
+            licensePlate: groupSummary?.licensePlate
+          }}
+          quotaUser={quotaUser}
+          isLoading={flexibleBookingMutation.isPending}
+        />
       </div>
     </div>
   )
