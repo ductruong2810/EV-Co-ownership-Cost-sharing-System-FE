@@ -168,31 +168,7 @@ const BookingCar = () => {
         {/* Stats Bar */}
         <Statsbar totalBookings={groupSummary?.totalBookings || 0} quotaUser={quotaUser} />
 
-        {/* Flexible Booking Button */}
-        <div className='mb-6 flex justify-center'>
-          <button
-            onClick={() => setIsFlexibleModalVisible(true)}
-            className='bg-gradient-to-r from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE] text-white font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 text-lg'
-          >
-            <CalendarOutlined style={{ fontSize: '24px' }} />
-            <span>Flexible Booking</span>
-          </button>
-        </div>
-
-        {/* AI analytics + suggestions */}
-        <div className='grid lg:grid-cols-2 gap-6 mb-8'>
-          <UsageAnalyticsCard
-            data={smartSuggestionQuery?.data?.data?.analytics}
-            isLoading={smartSuggestionQuery.isLoading}
-          />
-          <AISuggestionPanel
-            suggestions={smartSuggestionQuery?.data?.data?.suggestions}
-            insights={smartSuggestionQuery?.data?.data?.aiInsights}
-            isLoading={smartSuggestionQuery.isLoading}
-          />
-        </div>
-
-        {/* Booking Calendar Table */}
+        {/* Booking Calendar Table - Main content first */}
         <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white'>
           {bookingQuery.isLoading ? (
             <div className='p-4 md:p-8'>
@@ -320,6 +296,30 @@ const BookingCar = () => {
             </div>
           )}
         </Card>
+
+        {/* Action Section - Flexible Booking Button */}
+        <div className='mb-8 flex justify-center'>
+          <button
+            onClick={() => setIsFlexibleModalVisible(true)}
+            className='bg-gradient-to-r from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE] text-white font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 text-lg'
+          >
+            <CalendarOutlined style={{ fontSize: '24px' }} />
+            <span>Flexible Booking</span>
+          </button>
+        </div>
+
+        {/* AI analytics + suggestions - Supporting information */}
+        <div className='grid lg:grid-cols-2 gap-6 mb-8'>
+          <UsageAnalyticsCard
+            data={smartSuggestionQuery?.data?.data?.analytics}
+            isLoading={smartSuggestionQuery.isLoading}
+          />
+          <AISuggestionPanel
+            suggestions={smartSuggestionQuery?.data?.data?.suggestions}
+            insights={smartSuggestionQuery?.data?.data?.aiInsights}
+            isLoading={smartSuggestionQuery.isLoading}
+          />
+        </div>
 
         {/* Booking status legend */}
         <DetailStatusBooking />
