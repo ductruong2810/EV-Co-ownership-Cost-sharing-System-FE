@@ -11,17 +11,17 @@ const statusStyles: Record<
 > = {
   UNDER_UTILIZED: {
     badge: 'bg-amber-100 text-amber-700 border-amber-200',
-    description: 'Bạn đang sử dụng ít hơn quyền sở hữu. Hãy chủ động đặt thêm slot.',
+    description: 'You are using less than your ownership share. Consider booking more slots.',
     gradient: 'from-amber-400/30 to-orange-400/40'
   },
   OVER_UTILIZED: {
     badge: 'bg-rose-100 text-rose-700 border-rose-200',
-    description: 'Mức sử dụng vượt quyền. Nên chuyển sang khung giờ vắng hơn.',
+    description: 'Usage exceeds ownership share. Consider switching to off-peak hours.',
     gradient: 'from-rose-400/30 to-red-400/40'
   },
   ON_TRACK: {
     badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    description: 'Bạn đang sử dụng cân bằng với tỷ lệ sở hữu.',
+    description: 'Your usage is balanced with your ownership share.',
     gradient: 'from-emerald-400/20 to-teal-400/30'
   }
 }
@@ -65,7 +65,7 @@ const UsageReportCard = ({ data, isLoading }: UsageReportCardProps) => {
             value={`${data.actualHoursLast4Weeks.toFixed(1)}h`}
             helper={`Expected ${data.expectedHoursLast4Weeks.toFixed(1)}h`}
           />
-          <StatBlock label='Tuần này' value={`${data.hoursThisWeek.toFixed(1)}h`} helper={`${data.bookingsThisWeek} bookings`} />
+          <StatBlock label='This Week' value={`${data.hoursThisWeek.toFixed(1)}h`} helper={`${data.bookingsThisWeek} bookings`} />
         </div>
 
         <div>

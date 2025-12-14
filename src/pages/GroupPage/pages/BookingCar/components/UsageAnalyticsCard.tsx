@@ -13,17 +13,17 @@ const statusConfig: Record<
   UNDER_UTILIZED: {
     label: 'Under-utilized',
     badge: 'bg-amber-100 text-amber-700 border-amber-200',
-    description: 'Bạn đang dùng ít hơn quyền sở hữu. AI đã ưu tiên slot giờ vàng.'
+    description: 'You are using less than your ownership share. AI has prioritized prime time slots for you.'
   },
   OVER_UTILIZED: {
     label: 'Over-utilized',
     badge: 'bg-rose-100 text-rose-700 border-rose-200',
-    description: 'Bạn vượt quá quyền sở hữu. Nên chuyển sang khung giờ vắng.'
+    description: 'You are exceeding your ownership share. Consider switching to off-peak hours.'
   },
   ON_TRACK: {
     label: 'Balanced',
     badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    description: 'Mức sử dụng cân bằng với quyền sở hữu.'
+    description: 'Your usage is balanced with your ownership share.'
   }
 }
 
@@ -33,7 +33,7 @@ const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
       <div className='bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex items-center justify-center h-full'>
         <div className='flex items-center gap-3 text-slate-500 font-semibold'>
           <LoadingOutlined />
-          Đang phân tích lịch sử sử dụng...
+          Analyzing usage history...
         </div>
       </div>
     )
@@ -45,9 +45,9 @@ const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
 
   const metrics = [
     { label: 'Ownership %', value: `${data.ownershipPercentage.toFixed(1)}%` },
-    { label: 'Actual (4 tuần)', value: `${data.actualHoursLast4Weeks.toFixed(1)}h` },
+    { label: 'Actual (4 weeks)', value: `${data.actualHoursLast4Weeks.toFixed(1)}h` },
     { label: 'Expected', value: `${data.expectedHoursLast4Weeks.toFixed(1)}h` },
-    { label: 'Tuần này', value: `${data.hoursThisWeek.toFixed(1)}h / ${data.bookingsThisWeek} booking` }
+    { label: 'This Week', value: `${data.hoursThisWeek.toFixed(1)}h / ${data.bookingsThisWeek} booking` }
   ]
 
   return (
@@ -55,7 +55,7 @@ const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
       <div className='flex items-start justify-between gap-4'>
         <div>
           <p className='text-sm font-semibold text-slate-500 uppercase tracking-wide'>Personal Usage Insights</p>
-          <h3 className='text-2xl font-bold text-slate-900 mt-1'>AI đánh giá công bằng</h3>
+          <h3 className='text-2xl font-bold text-slate-900 mt-1'>AI Fairness Assessment</h3>
         </div>
         <span className={`px-4 py-1 rounded-full text-xs font-bold border ${status.badge}`}>{status.label}</span>
       </div>
@@ -88,7 +88,7 @@ const UsageAnalyticsCard = ({ data, isLoading }: UsageAnalyticsCardProps) => {
         </div>
 
         <div className='bg-slate-50 rounded-2xl p-4 border border-slate-100'>
-          <p className='text-xs font-bold text-slate-500 uppercase mb-3'>Leaderboard (4 tuần)</p>
+          <p className='text-xs font-bold text-slate-500 uppercase mb-3'>Leaderboard (4 weeks)</p>
           <div className='space-y-2'>
             {data.leaderboard.map((entry) => (
               <div

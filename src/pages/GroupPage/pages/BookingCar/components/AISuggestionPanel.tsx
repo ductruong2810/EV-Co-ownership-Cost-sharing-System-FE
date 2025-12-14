@@ -19,7 +19,7 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading }: AISuggestionPan
       <div className='bg-white rounded-3xl p-6 shadow-xl border border-cyan-100'>
         <div className='flex items-center gap-3 text-cyan-600 font-semibold'>
           <BulbOutlined />
-          Đang tạo đề xuất thông minh...
+          Generating smart suggestions...
         </div>
       </div>
     )
@@ -34,7 +34,7 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading }: AISuggestionPan
           <p className='text-xs font-bold text-cyan-500 uppercase tracking-widest flex items-center gap-2'>
             <BulbOutlined /> AI Recommendation
           </p>
-          <h3 className='text-2xl font-bold text-slate-900 mt-1'>Slot nên đặt trong tuần này</h3>
+          <h3 className='text-2xl font-bold text-slate-900 mt-1'>Recommended Slots This Week</h3>
         </div>
       </div>
 
