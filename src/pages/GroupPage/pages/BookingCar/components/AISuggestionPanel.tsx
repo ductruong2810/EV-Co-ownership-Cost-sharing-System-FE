@@ -49,13 +49,13 @@ const AISuggestionPanel = ({ suggestions, insights, isLoading }: AISuggestionPan
                 <p className='text-sm font-semibold text-slate-500'>{item.dayOfWeek}</p>
                 <p className='text-lg font-bold text-slate-900'>{item.date}</p>
               </div>
-              <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeMap[item.recommendationLevel]}`}>
-                {item.recommendationLevel}
+              <span className={`text-xs font-bold px-3 py-1 rounded-full ${badgeMap[item.recommendationLevel || 'MEDIUM'] || badgeMap.MEDIUM}`}>
+                {item.recommendationLevel || 'MEDIUM'}
               </span>
             </div>
             <p className='text-xl font-bold text-cyan-600'>{item.timeRange}</p>
             <p className='text-xs text-slate-500 uppercase tracking-wide mt-1'>
-              {item.suitability.replace('_', ' ')} · Score {item.score.toFixed(0)}
+              {item.suitability ? item.suitability.replace('_', ' ') : 'BALANCED'} · Score {item.score?.toFixed(0) || '0'}
             </p>
             <p className='text-sm text-slate-600 mt-3 leading-relaxed'>{item.reason}</p>
           </div>
