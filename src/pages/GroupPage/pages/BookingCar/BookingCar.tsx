@@ -1,7 +1,7 @@
 // VehicleBookingCalendar.tsx - IMPROVED BADGE & LEGEND DESIGN
 import { ClockCircleOutlined, ToolOutlined, CalendarOutlined } from '@ant-design/icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState, useMemo } from 'react'
 import { Card, Tag } from 'antd'
 import { useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -85,13 +85,15 @@ const BookingCar = () => {
   // data
   const data = bookingQuery?.data?.data
 
-  // quota
-  const quotaUser: QuotaInfo = {
+  // quota - memoized to prevent unnecessary recalculations
+  const quotaUser: QuotaInfo = useMemo(() => ({
     totalSlots: bookingQuery?.data?.data?.userQuota?.totalSlots ?? 0,
     usedSlots: bookingQuery?.data?.data?.userQuota?.usedSlots ?? 0,
     remainingSlots: bookingQuery?.data?.data?.userQuota?.remainingSlots ?? 0
-  }
-  const dailySlots: DailySlot[] =
+  }), [bookingQuery?.data?.data?.userQuota])
+
+  // dailySlots - memoized to prevent unnecessary recalculations
+  const dailySlots: DailySlot[] = useMemo(() =>
     bookingQuery?.data?.data?.dailySlots?.map((day) => ({
       date: day.date ?? '',
       dayOfWeek: day.dayOfWeek ?? '',
@@ -105,7 +107,7 @@ const BookingCar = () => {
           type: slot.type ?? ''
         })) ?? []
     })) ?? []
-  console.log(bookingQuery?.data?.data)
+  , [bookingQuery?.data?.data?.dailySlots])
 
   // groupSummary
   const groupSummary = bookingQuery?.data?.data?.dashboardSummary
@@ -143,7 +145,7 @@ const BookingCar = () => {
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-blue-50/40 p-4 md:p-8 my-5 rounded-2xl'>
       <div className='max-w-[96vw] mx-auto'>
-        {/* Header Section - giữ nguyên như code trước */}
+        {/* Header Section */}
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8'>
           {/* Vehicle Info Card */}
           <VehicleInforCard
@@ -190,7 +192,7 @@ const BookingCar = () => {
           />
         </div>
 
-        {/* hiển thị lịch  đặt xe */}
+        {/* Booking Calendar Table */}
         <Card className='shadow-2xl border-0 rounded-3xl overflow-hidden mb-8 hover:shadow-[0_20px_60px_-15px_rgba(6,182,212,0.2)] transition-all duration-500 bg-white'>
           {bookingQuery.isLoading ? (
             <div className='p-4 md:p-8'>
@@ -222,7 +224,7 @@ const BookingCar = () => {
             </div>
           ) : (
             <div className='overflow-x-auto'>
-              {/* Chỉ render 1 bảng duy nhất, không map dailySlots nữa */}
+              {/* Single calendar table */}
               <table className='w-full border-collapse' aria-label='Vehicle booking calendar'>
               <thead>
                 <tr className='bg-gradient-to-r from-[#06B6D4] via-[#0EA5E9] to-[#22D3EE]'>
@@ -232,7 +234,7 @@ const BookingCar = () => {
                   >
                     <div className='flex items-center gap-2 md:gap-3'>
                       <ClockCircleOutlined style={{ fontSize: '18px' }} aria-hidden='true' />
-                      <span className='uppercase tracking-wide'>Khung giờ</span>
+                      <span className='uppercase tracking-wide'>Time Slot</span>
                     </div>
                   </th>
 
@@ -254,7 +256,7 @@ const BookingCar = () => {
               </thead>
 
               <tbody>
-                {/*  hiển thị cột khung giờ */}
+                {/* Time slot rows */}
                 {dailySlots[0]?.slots.map((slot, timeIndex) => (
                   <tr
                     key={timeIndex}
@@ -319,7 +321,7 @@ const BookingCar = () => {
           )}
         </Card>
 
-        {/* mô tả các trang thái khi booking*/}
+        {/* Booking status legend */}
         <DetailStatusBooking />
 
         {/* Flexible Booking Modal */}

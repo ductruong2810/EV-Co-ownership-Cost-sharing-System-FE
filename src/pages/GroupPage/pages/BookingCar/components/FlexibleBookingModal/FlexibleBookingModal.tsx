@@ -51,6 +51,13 @@ const FlexibleBookingModal = ({
     }
   }, [visible])
 
+  // Real-time validation when inputs change
+  useEffect(() => {
+    if (visible && (startDate || startTime || endDate || endTime)) {
+      validate()
+    }
+  }, [startDate, startTime, endDate, endTime, visible])
+
   // Calculate duration
   const duration = startDate && startTime && endDate && endTime
     ? endDate.hour(endTime.hour()).minute(endTime.minute()).diff(
@@ -91,6 +98,11 @@ const FlexibleBookingModal = ({
 
       if (duration > 24) {
         newErrors.push(t('gp_booking_validation_max_duration'))
+      }
+
+      // Check quota
+      if (quotaUser.remainingSlots <= 0) {
+        newErrors.push('You have used up your quota for this week!')
       }
     }
 
@@ -142,7 +154,7 @@ const FlexibleBookingModal = ({
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isLoading || errors.length > 0}
+            disabled={isLoading || errors.length > 0 || quotaUser.remainingSlots <= 0}
             className='bg-gradient-to-br from-[#06B6D4] to-[#0EA5E9] text-white font-bold text-base h-12 px-6 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed'
           >
             {isLoading ? t('gp_booking_processing') : t('gp_booking_confirm')}
@@ -259,15 +271,32 @@ const FlexibleBookingModal = ({
             </div>
             <div>
               <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>{t('gp_booking_quota_after')}</p>
-              <p className='text-2xl font-black text-slate-900'>
+              <p className={`text-2xl font-black ${quotaUser.remainingSlots <= 1 ? 'text-amber-600' : 'text-slate-900'}`}>
                 {quotaUser.usedSlots + 1}/{quotaUser.totalSlots}
               </p>
             </div>
             <div>
               <p className='text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1'>{t('gp_booking_remaining')}</p>
-              <p className='text-2xl font-black text-slate-900'>{quotaUser.remainingSlots - 1} slot</p>
+              <p className={`text-2xl font-black ${quotaUser.remainingSlots <= 1 ? 'text-amber-600' : quotaUser.remainingSlots <= 3 ? 'text-orange-500' : 'text-slate-900'}`}>
+                {Math.max(0, quotaUser.remainingSlots - 1)} slot
+              </p>
             </div>
           </div>
+          {/* Quota warning */}
+          {quotaUser.remainingSlots <= 3 && quotaUser.remainingSlots > 0 && (
+            <div className='mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg'>
+              <p className='text-sm text-amber-800 font-semibold'>
+                ⚠️ Low quota: Only {quotaUser.remainingSlots} slot{quotaUser.remainingSlots > 1 ? 's' : ''} remaining after this booking
+              </p>
+            </div>
+          )}
+          {quotaUser.remainingSlots <= 0 && (
+            <div className='mt-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
+              <p className='text-sm text-red-800 font-semibold'>
+                ❌ No quota remaining. You cannot make this booking.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
